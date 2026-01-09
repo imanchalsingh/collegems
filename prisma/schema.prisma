@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output   = "../src/generated"
 }
 
 datasource db {
@@ -20,3 +20,4 @@ model User {
   role      String
   createdAt DateTime @default(now())
 }
+
