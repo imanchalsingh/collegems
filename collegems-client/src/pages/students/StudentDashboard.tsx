@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
+import Attendance from "./Attendance";
+import Fees from "./Fee";
+import Assignment from "./Assignment";
 
 export default function StudentDashboard() {
   const [data, setData] = useState<any>(null);
 
   useEffect(() => {
-    api.get("/dashboard").then(res => setData(res.data));
+    api.get("/dashboard").then((res) => setData(res.data));
   }, []);
 
   if (!data) return <p>Loading...</p>;
@@ -22,6 +25,9 @@ export default function StudentDashboard() {
           </div>
         ))}
       </div>
+      <Attendance />
+      <Fees />
+      <Assignment />
     </div>
   );
 }
