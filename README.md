@@ -1,6 +1,6 @@
 # 🎓 College Management System (Full Stack)
 
-A feature-rich **College Management System** built using **Angular** and **NestJS**.  
+A feature-rich **College Management System** built using **React.js** and **Express.js**.  
 This project is designed for **academic use**, **real-world learning**, and **full-stack skill enhancement**.
 
 ---
@@ -8,15 +8,15 @@ This project is designed for **academic use**, **real-world learning**, and **fu
 ## 🚀 Tech Stack
 
 ### Frontend
-- Angular
-- Angular Material / Tailwind CSS
+- React
+- Tailwind CSS
 - RxJS
 - Chart.js
 
 ### Backend
-- NestJS
-- PostgreSQL / MongoDB
-- TypeORM / Prisma
+- Express.js
+- MongoDB
+- Mongoose
 - JWT Authentication
 - Swagger API Docs
 
@@ -112,6 +112,3 @@ Aspiring Full Stack Developer
 ---
 
 ⭐ If you find this project useful, feel free to star the repository!
-
-## 📂 Project Structure
-
