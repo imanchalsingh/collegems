@@ -2,14 +2,14 @@
   "name": "collegems-server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
@@ -21,5 +21,8 @@
     "multer": "^2.0.2",
     "nodemailer": "^8.0.0",
     "nodemon": "^3.1.11"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.0"
   }
 }
