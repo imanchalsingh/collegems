@@ -91,7 +91,7 @@ router.delete(
 router.get(
   "/all",
   protect,
-  allowRoles("hod", "admin", "teacher"),
+  allowRoles("hod", "admin", "teacher", "student"),
   async (req, res) => {
     const courses = await Course.find().populate("teacher", "name email");
     res.json(courses);
