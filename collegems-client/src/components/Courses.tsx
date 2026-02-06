@@ -189,7 +189,7 @@ export default function HodCourses() {
             </div>
 
             <button
-              className="flex items-center px-6 py-3 bg-gradient-to-r from-[#0a295e] to-[#bd2323] text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#bd2323]/20 active:scale-[0.98] transition-all duration-300"
+              className="flex items-center px-6 py-3 bg-linear-to-r from-[#0a295e] to-[#bd2323] text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#bd2323]/20 active:scale-[0.98] transition-all duration-300"
               onClick={() => handleOpenModal()}
             >
               <Plus className="w-5 h-5 mr-2" />
@@ -550,7 +550,7 @@ export default function HodCourses() {
                     Description
                   </label>
                   <textarea
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#bd2323] focus:ring-2 focus:ring-[#bd2323]/30 min-h-[100px]"
+                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#bd2323] focus:ring-2 focus:ring-[#bd2323]/30 min-h-25"
                     placeholder="Enter course description..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -571,7 +571,7 @@ export default function HodCourses() {
                     Cancel
                   </button>
                   <button
-                    className="px-6 py-3 bg-gradient-to-r from-[#0a295e] to-[#bd2323] text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#bd2323]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-3 bg-linear-to-r from-[#0a295e] to-[#bd2323] text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#bd2323]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => {
                       addOrUpdateCourse();
                       updateCourses(editingCourse?._id || "");
@@ -597,7 +597,7 @@ export default function HodCourses() {
             </p>
             <button
               onClick={() => handleOpenModal()}
-              className="px-6 py-3 bg-gradient-to-r from-[#0a295e] to-[#bd2323] text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#bd2323]/20 transition-all"
+              className="px-6 py-3 bg-linear-to-r from-[#0a295e] to-[#bd2323] text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#bd2323]/20 transition-all"
             >
               <Plus className="inline w-5 h-5 mr-2" />
               Add Your First Course

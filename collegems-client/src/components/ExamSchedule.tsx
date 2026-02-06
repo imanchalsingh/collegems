@@ -793,7 +793,7 @@ const ExamSchedule: React.FC = () => {
                       !location ||
                       !venue
                     }
-                    className="px-5 py-2 bg-gradient-to-r from-[#bd2323] to-[#0a295e] text-white rounded-lg hover:shadow-lg hover:shadow-[#bd2323]/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 min-w-[120px] justify-center"
+                    className="px-5 py-2 bg-linear-to-r from-[#bd2323] to-[#0a295e] text-white rounded-lg hover:shadow-lg hover:shadow-[#bd2323]/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 min-w-30 justify-center"
                   >
                     {loading ? (
                       <>

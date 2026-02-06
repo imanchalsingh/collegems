@@ -529,7 +529,7 @@ export default function Fees() {
                 <button
                   onClick={handlePayment}
                   disabled={paymentLoading || !paymentAmount || parseFloat(paymentAmount) <= 0}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-[#bd2323] to-[#0a295e] rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-3 bg-linear-to-r from-[#bd2323] to-[#0a295e] rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {paymentLoading ? (
                     <span className="flex items-center justify-center">
