@@ -5,13 +5,13 @@ import RoleRoute from "./components/RoleRoute";
 
 import StudentDashboard from "./pages/students/StudentDashboard";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
-import AdminDashboard from "./pages/admin/AdminDashboard";
 import HodDashboard from "./pages/hod/HODDashboard";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
@@ -31,14 +31,7 @@ export default function App() {
             </RoleRoute>
           }
         />
-        <Route
-          path="/admin/dashboard"
-          element={
-            <RoleRoute role="admin">
-              <AdminDashboard />
-            </RoleRoute>
-          }
-        />
+
         <Route
           path="/hod/dashboard"
           element={
