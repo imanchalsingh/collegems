@@ -17,7 +17,7 @@ router.get(
   },
 );
 
-router.get("/teachers", protect, allowRoles("hod"), async (req, res) => {
+router.get("/teachers", protect, async (req, res) => {
   const teachers = await User.find({ role: "teacher" }).select("name email");
 
   res.json(teachers);
