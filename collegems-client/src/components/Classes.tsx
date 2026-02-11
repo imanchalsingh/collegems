@@ -14,42 +14,41 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 
-interface ClassData {
-  _id?: string;
-  courseName: string;
+interface Course {
+  _id: string;
   name: string;
-  semester: number;
-  schedule: string;
-  teacher: string;
 }
 
 interface Teacher {
   _id: string;
   name: string;
   email: string;
-  department?: string;
 }
 
-interface Courses {
-  _id: string;
+interface ClassType {
+  _id?: string;
   name: string;
+  semester: number;
+  schedule: string;
+  teacher: string | Teacher;
+  courseName: string | Course;
 }
 
 const Classes: React.FC = () => {
-  const [classes, setClasses] = useState<ClassData[]>([]);
+  const [classes, setClasses] = useState<ClassType[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [courses, setCourses] = useState<Courses[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [editingClass, setEditingClass] = useState<ClassData | null>(null);
+  const [editingClass, setEditingClass] = useState<ClassType | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSemester, setFilterSemester] = useState<number | "all">("all");
-  const [formData, setFormData] = useState<ClassData>({
-    courseName: "",
+  const [formData, setFormData] = useState<ClassType>({
     name: "",
     semester: 1,
     schedule: "",
     teacher: "",
+    courseName: "",
   });
 
   //  fetch all courses
@@ -126,7 +125,7 @@ const Classes: React.FC = () => {
   };
 
   // Open edit form
-  const handleEdit = (classItem: ClassData) => {
+  const handleEdit = (classItem: ClassType) => {
     setEditingClass(classItem);
     setFormData({
       courseName: classItem.courseName,
@@ -210,6 +209,12 @@ const Classes: React.FC = () => {
       filterSemester === "all" || cls.semester === filterSemester;
     return matchesSearch && matchesSemester;
   });
+
+  // get course byid
+  const getCourseName = (courseID: string) => {
+    const course = courses.find((c) => c._id === courseID);
+    return course ? course.name : "Undefined Course";
+  };
 
   // Get teacher name by ID
   const getTeacherName = (teacherId: string) => {
@@ -396,7 +401,7 @@ const Classes: React.FC = () => {
                     <option value="">Select a teacher</option>
                     {teachers.map((teacher) => (
                       <option key={teacher._id} value={teacher._id}>
-                        {teacher.name} - {teacher.department || "General"}
+                        {teacher.name}
                       </option>
                     ))}
                   </select>
@@ -555,6 +560,11 @@ const Classes: React.FC = () => {
                     <div className="p-5">
                       {/* Header */}
                       <div className="flex justify-between items-start mb-3">
+                        <h2 className="font-bold text-lg text-white">
+                          {typeof cls.courseName === "object"
+                            ? cls.courseName.name
+                            : getCourseName(cls.courseName)}
+                        </h2>
                         <h3 className="font-bold text-lg text-white">
                           {cls.name}
                         </h3>
@@ -579,7 +589,9 @@ const Classes: React.FC = () => {
                             style={{ color: "#0a295e" }}
                           />
                           <span className="text-gray-300">
-                            {getTeacherName(cls.teacher)}
+                            {typeof cls.teacher === "object"
+                              ? cls.teacher.name
+                              : getTeacherName(cls.teacher)}
                           </span>
                         </div>
                         <div className="flex items-center text-sm">
