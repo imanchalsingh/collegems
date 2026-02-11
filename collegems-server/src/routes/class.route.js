@@ -55,7 +55,7 @@ router.put(
       const { courseName, name, semester, schedule, teacher } = req.body;
       const classes = await Class.findByIdAndUpdate(
         id,
-        {  courseName,name, semester, schedule, teacher },
+        { courseName, name, semester, schedule, teacher },
         { new: true },
       );
       if (!classes) {
@@ -94,7 +94,9 @@ router.get(
   protect,
   allowRoles("hod", "admin", "teacher", "student"),
   async (req, res) => {
-    const classes = await Class.find().populate("teacher", "name email");
+    const classes = await Class.find()
+      .populate("teacher", "name email")
+      .populate("courseName", "name");
     res.json(classes);
   },
 );
