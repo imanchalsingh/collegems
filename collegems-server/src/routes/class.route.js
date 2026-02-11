@@ -12,15 +12,15 @@ router.post(
   allowRoles("hod", "admin", "teacher"),
   async (req, res) => {
     try {
-      const { name, semester, schedule, teacher } = req.body;
+      const { courseName, name, semester, schedule, teacher } = req.body;
 
-      if (!name || !semester || !schedule || !teacher) {
+      if (!courseName || !name || !semester || !schedule || !teacher) {
         return res.status(400).json({
           message: "All fields are required",
         });
       }
 
-      const existing = await Class.findOne({ code });
+      const existing = await Class.findOne({ name });
       if (existing) {
         return res.status(400).json({
           message: "Classes already exists",
@@ -28,6 +28,7 @@ router.post(
       }
 
       const classes = await Class.create({
+        courseName,
         name,
         semester,
         schedule,
@@ -51,10 +52,10 @@ router.put(
   async (req, res) => {
     try {
       const { id } = req.params;
-      const { name, code, department, semester } = req.body;
+      const { courseName, name, semester, schedule, teacher } = req.body;
       const classes = await Class.findByIdAndUpdate(
         id,
-        { name, code, department, semester },
+        {  courseName,name, semester, schedule, teacher },
         { new: true },
       );
       if (!classes) {
