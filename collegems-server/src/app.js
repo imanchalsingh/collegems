@@ -11,6 +11,7 @@ import attendanceRoutes from "./routes/attendance.routes.js";
 import assignmentRoutes from "./routes/assignment.routes.js";
 import feeRoutes from "./routes/fee.routes.js";
 import examScheduleRoutes from "./routes/examschedule.routes.js";
+import classRoutes from "./routes/class.route.js";
 
 // Admin / HOD
 import courseRoutes from "./routes/course.routes.js";
@@ -29,6 +30,7 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/assignment", assignmentRoutes);
 
 app.use("/api/courses", courseRoutes);
+app.use("/api/classes", classRoutes);
 
 app.use("/api/fee", feeRoutes);
 
