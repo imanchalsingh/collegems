@@ -4,14 +4,15 @@ import HodCourses from "../../components/Courses";
 import Students from "../../components/Students";
 import Teachers from "../../components/Teachers";
 import ExamSchedule from "../../components/ExamSchedule";
+import Classes from "../../components/Classes";
 
 type TabType =
   | "overview"
   | "teachers"
   | "students"
   | "courses"
-  | "classess"
-  | "ExamSchedule";
+  | "classes"
+  | "examSchedule";
 
 interface Data {
   cards: Array<{
@@ -50,9 +51,9 @@ export default function HODDashboard() {
     { id: "teachers" as TabType, label: "Teachers", icon: "👨‍🏫" },
     { id: "students" as TabType, label: "Students", icon: "👨‍🎓" },
     { id: "courses" as TabType, label: "Courses", icon: "📚" },
-    { id: "classess" as TabType, label: "Classess", icon: "🏫" },
+    { id: "classes" as TabType, label: "Classes", icon: "🏫" },
     {
-      id: "ExamSchedule" as TabType,
+      id: "examSchedule" as TabType,
       label: "Exam Schedule",
       icon: "🗓️",
     },
@@ -321,9 +322,14 @@ export default function HODDashboard() {
               <HodCourses />
             </div>
           )}
-          {activeTab === "ExamSchedule" && (
+          {activeTab === "examSchedule" && (
             <div className="space-y-6">
               <ExamSchedule />
+            </div>
+          )}
+          {activeTab === "classes" && (
+            <div className="space-y-6">
+              <Classes />
             </div>
           )}
         </div>
