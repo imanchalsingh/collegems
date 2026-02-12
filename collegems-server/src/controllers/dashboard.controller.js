@@ -3,6 +3,7 @@ import Attendance from "../models/Attendance.model.js";
 import Assignment from "../models/Assignment.model.js";
 import Fee from "../models/Fee.model.js";
 import User from "../models/User.model.js";
+import Class from "../models/Classes.model.js";
 
 export const getDashboardData = async (req, res) => {
   const { role, id } = req.user;
@@ -10,20 +11,26 @@ export const getDashboardData = async (req, res) => {
   // 🎓 STUDENT
   if (role === "student") {
     const total = await Attendance.countDocuments({ student: id });
-    const present = await Attendance.countDocuments({ student: id, status: "present" });
+    const present = await Attendance.countDocuments({
+      student: id,
+      status: "present",
+    });
 
     const assignments = await Assignment.countDocuments({
-      "submissions.student": { $ne: id }
+      "submissions.student": { $ne: id },
     });
 
     const fee = await Fee.findOne({ student: id });
 
     return res.json({
       cards: [
-        { title: "Attendance %", value: total ? Math.round((present / total) * 100) + "%" : "0%" },
+        {
+          title: "Attendance %",
+          value: total ? Math.round((present / total) * 100) + "%" : "0%",
+        },
         { title: "Pending Assignments", value: assignments },
-        { title: "Fee Due", value: fee ? fee.total - fee.paid : 0 }
-      ]
+        { title: "Fee Due", value: fee ? fee.total - fee.paid : 0 },
+      ],
     });
   }
 
@@ -33,14 +40,14 @@ export const getDashboardData = async (req, res) => {
 
     const pendingEval = await Assignment.countDocuments({
       teacher: id,
-      submissions: { $elemMatch: { marks: { $exists: false } } }
+      submissions: { $elemMatch: { marks: { $exists: false } } },
     });
 
     return res.json({
       cards: [
         { title: "My Courses", value: courses },
-        { title: "Pending Evaluations", value: pendingEval }
-      ]
+        { title: "Pending Evaluations", value: pendingEval },
+      ],
     });
   }
 
@@ -49,13 +56,15 @@ export const getDashboardData = async (req, res) => {
     const students = await User.countDocuments({ role: "student" });
     const teachers = await User.countDocuments({ role: "teacher" });
     const courses = await Course.countDocuments();
+    const classes = await Class.countDocuments();
 
     return res.json({
       cards: [
         { title: "Students", value: students },
         { title: "Teachers", value: teachers },
-        { title: "Courses", value: courses }
-      ]
+        { title: "Courses", value: courses },
+        { title: "Classes", value: classes },
+      ],
     });
   }
 
@@ -69,8 +78,8 @@ export const getDashboardData = async (req, res) => {
       cards: [
         { title: "Total Users", value: users },
         { title: "Students", value: students },
-        { title: "Teachers", value: teachers }
-      ]
+        { title: "Teachers", value: teachers },
+      ],
     });
   }
 
