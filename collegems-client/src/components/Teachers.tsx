@@ -69,7 +69,10 @@ const Teachers: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div
+            className="bg-linear-to-r from-[#0a295e] to-[#bd2323] p-6 rounded-2xl flex justify-between"
+            style={{ borderBottom: `3px solid #e6c235` }}
+          >
             <div>
               <h1 className="text-3xl font-bold mb-2">teacher Management</h1>
 
@@ -83,7 +86,11 @@ const Teachers: React.FC = () => {
               </span>
               <button
                 onClick={fetchteachers}
-                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors flex items-center gap-2"
+                className="mt-4 md:mt-0 px-6 py-2 rounded-lg flex items-center font-medium transition-all hover:scale-105 active:scale-95"
+                style={{
+                  background: "linear-gradient(135deg, #bd2323, #0a295e)",
+                  border: "1px solid #e6c235",
+                }}
               >
                 <svg
                   className="w-4 h-4"
@@ -104,7 +111,7 @@ const Teachers: React.FC = () => {
           </div>
 
           {/* Search Bar */}
-          <div className="relative max-w-md">
+          <div className="relative max-w-md mt-10">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg
                 className="h-5 w-5 text-gray-400"

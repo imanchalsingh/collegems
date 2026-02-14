@@ -294,8 +294,24 @@ export default function HODSalary() {
   return (
     <div className="min-h-screen bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div
+            className="bg-linear-to-r from-[#0a295e] to-[#bd2323] p-6 rounded-2xl"
+            style={{ borderBottom: `3px solid #e6c235` }}
+          >
+            <h1 className="text-3xl font-bold text-white flex items-center">
+              <DollarSign className="mr-3" size={32} />
+              Teacher Salary Management
+            </h1>
+            <p className="text-gray-200 mt-2">
+              Manage salaries and payments for teaching staff
+            </p>
+          </div>
+        </div>
+
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 mt-10">
           <div
             className="bg-gray-800 p-4 rounded-xl border-l-4"
             style={{ borderLeftColor: "#bd2323" }}
