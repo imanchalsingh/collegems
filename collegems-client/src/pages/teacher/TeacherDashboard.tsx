@@ -13,6 +13,7 @@ import {
   ClipboardList,
   BookMarked,
   Book,
+  Coins,
 } from "lucide-react";
 import HodCourses from "../../components/Courses";
 import TeacherAssignments from "./Assignment";
@@ -20,6 +21,7 @@ import Students from "../../components/Students";
 import ExamSchedule from "../../components/ExamSchedule";
 import Classes from "../../components/Classes";
 import TeacherFee from "./Teacherfee";
+import Salary from "./Salary";
 
 export default function TeacherDashboard() {
   const [data, setData] = useState<any>(null);
@@ -114,6 +116,7 @@ export default function TeacherDashboard() {
     { id: "attendance", label: "Attendance", icon: ClipboardList },
     { id: "examschedules", label: "Exam Schedules", icon: FileText },
     { id: "fees", label: "Fees", icon: BarChart3 },
+    { id: "salary", label: "Salary", icon: Coins },
     { id: "classes", label: "Classes", icon: Book },
     { id: "students", label: "Students", icon: Users },
   ];
@@ -306,6 +309,11 @@ export default function TeacherDashboard() {
           {activeTab === "fees" && (
             <div className="space-y-6">
               <TeacherFee />
+            </div>
+          )}
+          {activeTab === "salary" && (
+            <div className="space-y-6">
+              <Salary />
             </div>
           )}
           {activeTab === "classes" && (
