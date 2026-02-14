@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import RoleRoute from "./components/RoleRoute";
-
 import StudentDashboard from "./pages/students/StudentDashboard";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
 import HodDashboard from "./pages/hod/HODDashboard";
