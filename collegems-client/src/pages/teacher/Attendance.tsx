@@ -174,13 +174,16 @@ export default function TeacherAttendance() {
     <div className="min-h-screen bg-gray-900 text-white p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
+        <div
+          className="bg-linear-to-r from-[#0a295e] to-[#bd2323] p-6 rounded-2xl"
+          style={{ borderBottom: `3px solid #e6c235` }}
+        >
           <h1 className="text-3xl font-bold mb-2">Attendance Management</h1>
           <p className="text-gray-400">Mark and manage student attendance</p>
         </div>
 
         {/* Controls Card */}
-        <div className="bg-gray-800 rounded-xl p-6 mb-6 border border-gray-700">
+        <div className="bg-gray-800 rounded-xl p-6 mb-6 border border-gray-700 mt-10">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div>
               <label className="block text-gray-300 text-sm font-medium mb-2">

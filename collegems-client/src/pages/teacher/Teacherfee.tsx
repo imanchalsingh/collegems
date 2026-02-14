@@ -296,7 +296,7 @@ export default function TeacherFee() {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 mt-10">
           <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
             <div className="flex items-center justify-between mb-2">
               <div className="text-gray-400 text-sm">Total Fees</div>

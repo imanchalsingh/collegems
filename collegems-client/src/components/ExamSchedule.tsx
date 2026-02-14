@@ -224,7 +224,10 @@ const ExamSchedule: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div
+            className="bg-linear-to-r from-[#0a295e] to-[#bd2323] p-6 rounded-2xl flex justify-between"
+            style={{ borderBottom: `3px solid #e6c235` }}
+          >
             <div>
               <h1 className="text-3xl font-bold mb-2">
                 Exam Schedule Management
@@ -233,29 +236,35 @@ const ExamSchedule: React.FC = () => {
                 Create and manage examination schedules
               </p>
             </div>
-            <button
-              onClick={openCreateModal}
-              className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-[#0a295e] to-[#bd2323] text-white rounded-xl hover:shadow-lg hover:shadow-[#bd2323]/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] font-medium"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div>
+              <button
+                onClick={openCreateModal}
+                className="mt-4 md:mt-0 px-6 py-2 rounded-lg flex items-center font-medium transition-all hover:scale-105 active:scale-95"
+                style={{
+                  background: "linear-gradient(135deg, #bd2323, #0a295e)",
+                  border: "1px solid #e6c235",
+                }}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-              Create New Exam
-            </button>
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+                Create New Exam
+              </button>
+            </div>
           </div>
 
           {/* Filters */}
-          <div className="flex flex-col md:flex-row gap-4 mt-6">
+          <div className="flex flex-col md:flex-row gap-4 mt-10">
             <div className="flex-1">
               <div className="relative">
                 <svg
