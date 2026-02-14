@@ -5,6 +5,7 @@ import Students from "../../components/Students";
 import Teachers from "../../components/Teachers";
 import ExamSchedule from "../../components/ExamSchedule";
 import Classes from "../../components/Classes";
+import Hodfee from "./Hodfee";
 
 type TabType =
   | "overview"
@@ -52,6 +53,7 @@ export default function HODDashboard() {
     { id: "students" as TabType, label: "Students", icon: "👨‍🎓" },
     { id: "courses" as TabType, label: "Courses", icon: "📚" },
     { id: "classes" as TabType, label: "Classes", icon: "🏫" },
+    { id: "fees" as TabType, label: "Fees", icon: "💵" },
     {
       id: "examSchedule" as TabType,
       label: "Exam Schedule",
@@ -316,7 +318,11 @@ export default function HODDashboard() {
               <Students />
             </div>
           )}
-
+          {activeTab === "fees" && (
+            <div className="space-y-6">
+              <Hodfee />
+            </div>
+          )}
           {activeTab === "courses" && (
             <div className="space-y-6">
               <HodCourses />
