@@ -12,7 +12,7 @@ const installmentSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const feeSchema = new mongoose.Schema(
@@ -51,7 +51,7 @@ const feeSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 /* Virtual: remaining amount */
@@ -60,7 +60,7 @@ feeSchema.virtual("remaining").get(function () {
 });
 
 /* Auto update status before save */
-feeSchema.pre("save", function (next) {
+feeSchema.pre("save", async function () {
   if (this.paid >= this.total) {
     this.status = "Paid";
   } else if (this.paid > 0) {
@@ -70,7 +70,6 @@ feeSchema.pre("save", function (next) {
   } else {
     this.status = "Pending";
   }
-  next();
 });
 
 export default mongoose.model("Fee", feeSchema);

@@ -6,7 +6,7 @@ import Fee from "../models/Fee.model.js";
 const router = express.Router();
 
 // hod sets fee of students
-router.post("/set", protect, allowRoles("admin"), async (req, res) => {
+router.post("/set", protect, allowRoles("hod"), async (req, res) => {
   try {
     const { student, total, dueDate } = req.body;
 
@@ -80,4 +80,18 @@ router.get("/me", protect, allowRoles("student"), async (req, res) => {
   }
 });
 
+// Teacher/hod views all student fees
+router.get(
+  "/all",
+  protect,
+  allowRoles("teacher", "hod"),
+  async (req, res) => {
+    try {
+      const fees = await Fee.find().populate("student", "name email");
+      res.json(fees);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  },
+);
 export default router;
