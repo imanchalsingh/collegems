@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
-import { 
-  Users, 
-  DollarSign, 
-  Calendar, 
+import {
+  Users,
+  DollarSign,
+  Calendar,
   BookOpen,
   CheckCircle,
   XCircle,
   Search,
-  GraduationCap
+  GraduationCap,
 } from "lucide-react";
 
 interface Student {
@@ -46,11 +46,14 @@ export default function Hodfee() {
   const [selectAll, setSelectAll] = useState(false);
   const [total, setTotal] = useState<number | "">("");
   const [dueDate, setDueDate] = useState<string>("");
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCourse, setFilterCourse] = useState<string>("all");
-  
+
   // Future feature: Course-wise fee setting
   const [enableCourseWise, setEnableCourseWise] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<string>("");
@@ -65,8 +68,8 @@ export default function Hodfee() {
     } catch (error) {
       console.error("Error fetching students:", error);
       setMessage({
-        type: 'error',
-        text: "Failed to load students data. Please try again."
+        type: "error",
+        text: "Failed to load students data. Please try again.",
       });
     } finally {
       setLoading(false);
@@ -78,10 +81,12 @@ export default function Hodfee() {
   }, []);
 
   // Filter students based on search and course
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (student.email?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-    const matchesCourse = filterCourse === "all" || student.course === filterCourse;
+  const filteredStudents = students.filter((student) => {
+    const matchesSearch =
+      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (student.email?.toLowerCase() || "").includes(searchTerm.toLowerCase());
+    const matchesCourse =
+      filterCourse === "all" || student.course === filterCourse;
     return matchesSearch && matchesCourse;
   });
 
@@ -90,16 +95,16 @@ export default function Hodfee() {
     if (selectAll) {
       setSelectedStudents([]);
     } else {
-      setSelectedStudents(filteredStudents.map(s => s._id));
+      setSelectedStudents(filteredStudents.map((s) => s._id));
     }
     setSelectAll(!selectAll);
   };
 
   // Handle individual student selection
   const handleSelectStudent = (studentId: string) => {
-    setSelectedStudents(prev => {
+    setSelectedStudents((prev) => {
       if (prev.includes(studentId)) {
-        return prev.filter(id => id !== studentId);
+        return prev.filter((id) => id !== studentId);
       } else {
         return [...prev, studentId];
       }
@@ -110,19 +115,19 @@ export default function Hodfee() {
   // Handle bulk fee submission
   const handleBulkSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (selectedStudents.length === 0) {
       setMessage({
-        type: 'error',
-        text: "Please select at least one student"
+        type: "error",
+        text: "Please select at least one student",
       });
       return;
     }
-    
+
     if (!total || !dueDate) {
       setMessage({
-        type: 'error',
-        text: "Total fee and due date are required"
+        type: "error",
+        text: "Total fee and due date are required",
       });
       return;
     }
@@ -132,19 +137,19 @@ export default function Hodfee() {
 
     try {
       // Submit fee for all selected students
-      const promises = selectedStudents.map(studentId =>
-        api.post("/fee/set", { 
-          student: studentId, 
-          total: Number(total), 
-          dueDate 
-        })
+      const promises = selectedStudents.map((studentId) =>
+        api.post("/fee/set", {
+          student: studentId,
+          total: Number(total),
+          dueDate,
+        }),
       );
 
       await Promise.all(promises);
-      
+
       setMessage({
-        type: 'success',
-        text: `Fee set successfully for ${selectedStudents.length} student(s)!`
+        type: "success",
+        text: `Fee set successfully for ${selectedStudents.length} student(s)!`,
       });
 
       // Reset form
@@ -152,11 +157,11 @@ export default function Hodfee() {
       setSelectAll(false);
       setTotal("");
       setDueDate("");
-      
     } catch (err: any) {
       setMessage({
-        type: 'error',
-        text: err.response?.data?.message || "Error setting fee for some students"
+        type: "error",
+        text:
+          err.response?.data?.message || "Error setting fee for some students",
       });
     } finally {
       setLoading(false);
@@ -234,30 +239,14 @@ export default function Hodfee() {
   return (
     <div className="min-h-screen bg-gray-900 p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div 
-            className="bg-linear-to-r from-[#0a295e] to-[#bd2323] p-6 rounded-2xl"
-            style={{ borderBottom: `3px solid #e6c235` }}
-          >
-            <h1 className="text-3xl font-bold text-white flex items-center">
-              <DollarSign className="mr-3" size={32} />
-              Student Fee Management
-            </h1>
-            <p className="text-gray-200 mt-2">
-              Set and manage fees for multiple students at once
-            </p>
-          </div>
-        </div>
-
         {/* Toggle between individual and course-wise (Future feature) */}
         <div className="mb-6 flex space-x-4">
           <button
             onClick={() => setEnableCourseWise(false)}
             className={`px-6 py-3 rounded-lg font-medium transition-all ${
-              !enableCourseWise 
-                ? 'bg-[#bd2323] text-white shadow-lg' 
-                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+              !enableCourseWise
+                ? "bg-[#bd2323] text-white shadow-lg"
+                : "bg-gray-800 text-gray-400 hover:bg-gray-700"
             }`}
           >
             <Users className="inline mr-2" size={18} />
@@ -266,9 +255,9 @@ export default function Hodfee() {
           <button
             onClick={() => setEnableCourseWise(true)}
             className={`px-6 py-3 rounded-lg font-medium transition-all ${
-              enableCourseWise 
-                ? 'bg-[#0a295e] text-white shadow-lg' 
-                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+              enableCourseWise
+                ? "bg-[#0a295e] text-white shadow-lg"
+                : "bg-gray-800 text-gray-400 hover:bg-gray-700"
             }`}
           >
             <BookOpen className="inline mr-2" size={18} />
@@ -284,7 +273,10 @@ export default function Hodfee() {
               <div className="p-4 border-b border-gray-700 bg-gray-850">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                    <Search
+                      className="absolute left-3 top-3 text-gray-400"
+                      size={18}
+                    />
                     <input
                       type="text"
                       placeholder="Search students..."
@@ -317,7 +309,9 @@ export default function Hodfee() {
                     className="w-4 h-4 rounded border-gray-600 text-[#bd2323] focus:ring-[#bd2323] focus:ring-offset-0 bg-gray-700"
                   />
                 </div>
-                <div className="flex-1 font-medium text-gray-300">Student Name</div>
+                <div className="flex-1 font-medium text-gray-300">
+                  Student Name
+                </div>
                 <div className="w-24 font-medium text-gray-300">Course</div>
                 <div className="w-24 font-medium text-gray-300">Status</div>
               </div>
@@ -339,7 +333,9 @@ export default function Hodfee() {
                     <div
                       key={student._id}
                       className={`px-4 py-3 border-b border-gray-700 flex items-center hover:bg-gray-750 transition-colors ${
-                        selectedStudents.includes(student._id) ? 'bg-gray-750' : ''
+                        selectedStudents.includes(student._id)
+                          ? "bg-gray-750"
+                          : ""
                       }`}
                     >
                       <div className="flex items-center w-8 mr-4">
@@ -351,12 +347,16 @@ export default function Hodfee() {
                         />
                       </div>
                       <div className="flex-1">
-                        <div className="font-medium text-white">{student.name}</div>
-                        <div className="text-sm text-gray-400">{student.email || 'No email'}</div>
+                        <div className="font-medium text-white">
+                          {student.name}
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          {student.email || "No email"}
+                        </div>
                       </div>
                       <div className="w-24">
                         <span className="px-2 py-1 text-xs rounded-full bg-gray-700 text-gray-300">
-                          {student.course || 'Not set'}
+                          {student.course || "Not set"}
                         </span>
                       </div>
                       <div className="w-24">
@@ -373,7 +373,11 @@ export default function Hodfee() {
               <div className="p-4 bg-gray-750 border-t border-gray-700">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">
-                    Selected: <span className="text-white font-bold">{selectedStudents.length}</span> students
+                    Selected:{" "}
+                    <span className="text-white font-bold">
+                      {selectedStudents.length}
+                    </span>{" "}
+                    students
                   </span>
                   <button
                     onClick={() => setSelectedStudents([])}
@@ -390,7 +394,7 @@ export default function Hodfee() {
           <div className="lg:col-span-1">
             <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 sticky top-4">
               <h2 className="text-xl font-bold mb-6 flex items-center">
-                <DollarSign className="mr-2" style={{ color: '#e6c235' }} />
+                <DollarSign className="mr-2" style={{ color: "#e6c235" }} />
                 Set Fee Details
               </h2>
 
@@ -403,7 +407,10 @@ export default function Hodfee() {
                       Total Fee Amount *
                     </label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-3 text-gray-400" size={18} />
+                      <DollarSign
+                        className="absolute left-3 top-3 text-gray-400"
+                        size={18}
+                      />
                       <input
                         type="number"
                         placeholder="Enter amount"
@@ -421,7 +428,10 @@ export default function Hodfee() {
                       Due Date *
                     </label>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-3 text-gray-400" size={18} />
+                      <Calendar
+                        className="absolute left-3 top-3 text-gray-400"
+                        size={18}
+                      />
                       <input
                         type="date"
                         className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#bd2323]"
@@ -444,7 +454,7 @@ export default function Hodfee() {
                         Processing...
                       </div>
                     ) : (
-                      `Set Fee for ${selectedStudents.length} Student${selectedStudents.length !== 1 ? 's' : ''}`
+                      `Set Fee for ${selectedStudents.length} Student${selectedStudents.length !== 1 ? "s" : ""}`
                     )}
                   </button>
 
@@ -454,7 +464,9 @@ export default function Hodfee() {
                       <div className="text-sm text-gray-300 mb-2">Summary:</div>
                       <div className="flex justify-between mb-1">
                         <span>Students:</span>
-                        <span className="font-bold">{selectedStudents.length}</span>
+                        <span className="font-bold">
+                          {selectedStudents.length}
+                        </span>
                       </div>
                       <div className="flex justify-between mb-1">
                         <span>Fee per student:</span>
@@ -474,11 +486,14 @@ export default function Hodfee() {
                 <div className="space-y-6 opacity-75">
                   <div className="p-4 bg-gray-700/50 rounded-lg border border-[#e6c235] border-opacity-30">
                     <p className="text-sm text-gray-300 flex items-center">
-                      <GraduationCap size={18} className="mr-2 text-[#e6c235]" />
+                      <GraduationCap
+                        size={18}
+                        className="mr-2 text-[#e6c235]"
+                      />
                       Course-wise fee feature (Coming Soon)
                     </p>
                   </div>
-                  
+
                   <div>
                     <label className="block text-gray-300 text-sm font-medium mb-2">
                       Select Course *
@@ -489,9 +504,15 @@ export default function Hodfee() {
                       onChange={(e) => setSelectedCourse(e.target.value)}
                     >
                       <option value="">Choose a course</option>
-                      <option value="bca">BCA - Bachelor of Computer Applications</option>
-                      <option value="bba">BBA - Bachelor of Business Administration</option>
-                      <option value="mba">MBA - Master of Business Administration</option>
+                      <option value="bca">
+                        BCA - Bachelor of Computer Applications
+                      </option>
+                      <option value="bba">
+                        BBA - Bachelor of Business Administration
+                      </option>
+                      <option value="mba">
+                        MBA - Master of Business Administration
+                      </option>
                       <option value="bcom">B.Com - Bachelor of Commerce</option>
                     </select>
                   </div>
@@ -501,7 +522,10 @@ export default function Hodfee() {
                       Course Fee *
                     </label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-3 text-gray-400" size={18} />
+                      <DollarSign
+                        className="absolute left-3 top-3 text-gray-400"
+                        size={18}
+                      />
                       <input
                         type="number"
                         placeholder="Enter course fee"
@@ -523,12 +547,14 @@ export default function Hodfee() {
 
               {/* Message Display */}
               {message && (
-                <div className={`mt-4 p-3 rounded-lg flex items-center ${
-                  message.type === 'success' 
-                    ? 'bg-green-900/30 text-green-400 border border-green-800' 
-                    : 'bg-red-900/30 text-red-400 border border-red-800'
-                }`}>
-                  {message.type === 'success' ? (
+                <div
+                  className={`mt-4 p-3 rounded-lg flex items-center ${
+                    message.type === "success"
+                      ? "bg-green-900/30 text-green-400 border border-green-800"
+                      : "bg-red-900/30 text-red-400 border border-red-800"
+                  }`}
+                >
+                  {message.type === "success" ? (
                     <CheckCircle size={18} className="mr-2 shrink-0" />
                   ) : (
                     <XCircle size={18} className="mr-2 shrink-0" />
