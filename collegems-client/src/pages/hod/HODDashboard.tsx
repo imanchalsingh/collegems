@@ -159,7 +159,7 @@ export default function HODDashboard() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6">
+      <div className="max-w-8xl mx-auto px-4 md:px-6 pt-6">
         <div className="flex space-x-1 bg-gray-800/50 rounded-xl p-1 mb-8">
           {tabs.map((tab) => (
             <button

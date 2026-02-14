@@ -10,6 +10,7 @@ import {
   TrendingUp,
   AlertCircle,
   Download,
+  Wallet,
   History,
 } from "lucide-react";
 
@@ -182,7 +183,21 @@ export default function StudentFee() {
 
   return (
     <div className="min-h-screen bg-gray-900 p-4 md:p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div
+          className="bg-linear-to-r from-[#0a295e] to-[#bd2323] p-6 rounded-2xl mb-6"
+          style={{ borderBottom: `3px solid #e6c235` }}
+        >
+          <h1 className="text-3xl font-bold text-white flex items-center">
+            <Wallet className="mr-3" size={32} />
+            Fee Management
+          </h1>
+          <p className="text-gray-200 mt-2">
+            View and manage your fee payments
+          </p>
+        </div>
+
         {message && (
           <div
             className={`mb-6 p-4 rounded-lg flex items-center ${
@@ -225,7 +240,7 @@ export default function StudentFee() {
         ) : (
           <>
             {/* Main Fee Card */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 mt-10">
               {/* Fee Summary */}
               <div className="lg:col-span-2">
                 <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">

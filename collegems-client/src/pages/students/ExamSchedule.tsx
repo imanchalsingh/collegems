@@ -73,7 +73,10 @@ const ExamSchedule: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div
+            className="bg-linear-to-r from-[#0a295e] to-[#bd2323] p-6 rounded-2xl"
+            style={{ borderBottom: `3px solid #e6c235` }}
+          >
             <div>
               <h1 className="text-3xl font-bold mb-2">
                 Exam Schedule Management
@@ -85,7 +88,7 @@ const ExamSchedule: React.FC = () => {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-col md:flex-row gap-4 mt-6">
+          <div className="flex flex-col md:flex-row gap-4 mt-10">
             <div className="flex-1">
               <div className="relative">
                 <svg
@@ -246,7 +249,7 @@ const ExamSchedule: React.FC = () => {
                     Course
                   </th>
                   <th className="text-left py-3 px-6 text-gray-400 font-medium">
-                   Time
+                    Time
                   </th>
                   <th className="text-left py-3 px-6 text-gray-400 font-medium">
                     Duration
