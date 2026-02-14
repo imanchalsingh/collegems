@@ -19,6 +19,7 @@ import TeacherAssignments from "./Assignment";
 import Students from "../../components/Students";
 import ExamSchedule from "../../components/ExamSchedule";
 import Classes from "../../components/Classes";
+import TeacherFee from "./Teacherfee";
 
 export default function TeacherDashboard() {
   const [data, setData] = useState<any>(null);
@@ -112,7 +113,7 @@ export default function TeacherDashboard() {
     { id: "assignments", label: "Assignments", icon: CheckSquare },
     { id: "attendance", label: "Attendance", icon: ClipboardList },
     { id: "examschedules", label: "Exam Schedules", icon: FileText },
-    { id: "reports", label: "Reports", icon: BarChart3 },
+    { id: "fees", label: "Fees", icon: BarChart3 },
     { id: "classes", label: "Classes", icon: Book },
     { id: "students", label: "Students", icon: Users },
   ];
@@ -302,71 +303,9 @@ export default function TeacherDashboard() {
               <ExamSchedule />
             </div>
           )}
-          {activeTab === "reports" && (
+          {activeTab === "fees" && (
             <div className="space-y-6">
-              <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
-                <h2 className="text-2xl font-bold mb-6">Analytics & Reports</h2>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="bg-gray-700/30 rounded-xl p-5">
-                    <h3 className="font-bold text-lg mb-4">
-                      Attendance Reports
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
-                        <div>
-                          <p className="font-medium">Monthly Report</p>
-                          <p className="text-sm text-gray-400">November 2024</p>
-                        </div>
-                        <button className="px-3 py-1 bg-[#e6c235] text-black rounded text-sm">
-                          Download
-                        </button>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
-                        <div>
-                          <p className="font-medium">Course-wise Report</p>
-                          <p className="text-sm text-gray-400">All courses</p>
-                        </div>
-                        <button className="px-3 py-1 bg-[#0a295e] text-white rounded text-sm">
-                          Generate
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-700/30 rounded-xl p-5">
-                    <h3 className="font-bold text-lg mb-4">
-                      Performance Analytics
-                    </h3>
-                    <div className="space-y-3">
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span>Overall Attendance Rate</span>
-                          <span className="font-bold text-[#10b981]">94%</span>
-                        </div>
-                        <div className="w-full bg-gray-600 rounded-full h-2">
-                          <div
-                            className="bg-[#10b981] h-2 rounded-full"
-                            style={{ width: "94%" }}
-                          ></div>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span>Assignment Submission Rate</span>
-                          <span className="font-bold text-[#e6c235]">87%</span>
-                        </div>
-                        <div className="w-full bg-gray-600 rounded-full h-2">
-                          <div
-                            className="bg-[#e6c235] h-2 rounded-full"
-                            style={{ width: "87%" }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <TeacherFee />
             </div>
           )}
           {activeTab === "classes" && (
