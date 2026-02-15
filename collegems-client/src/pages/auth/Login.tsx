@@ -41,7 +41,6 @@ export default function Login() {
         student: "/student/dashboard",
         teacher: "/teacher/dashboard",
         hod: "/hod/dashboard",
-        admin: "/admin/dashboard",
       };
 
       navigate(routes[role] || "/");

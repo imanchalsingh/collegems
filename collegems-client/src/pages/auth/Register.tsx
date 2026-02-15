@@ -25,6 +25,12 @@ export default function Register() {
     try {
       await api.post("/auth/register", { ...form, role });
       alert("Registered successfully");
+      const routes = {
+        student: "/student/dashboard",
+        teacher: "/teacher/dashboard",
+        hod: "/hod/dashboard",
+      };
+      navigate(routes[role] || "/");
       // Reset form after successful registration
       setForm({});
     } catch (err: any) {
@@ -62,7 +68,6 @@ export default function Register() {
                   { value: "student", label: "Student", color: "#bd2323" },
                   { value: "teacher", label: "Teacher", color: "#0a295e" },
                   { value: "hod", label: "HOD", color: "#e6c235" },
-                  { value: "admin", label: "Admin", color: "#000000" },
                 ].map((option) => (
                   <button
                     key={option.value}
@@ -134,6 +139,26 @@ export default function Register() {
               {role === "student" && (
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-1">
+                    Semester *
+                  </label>
+                  <input
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#bd2323] focus:ring-1 focus:ring-[#bd2323] transition-colors"
+                    name="semester"
+                    placeholder="Enter your Semester"
+                    value={form.semester || ""}
+                    onChange={handleChange}
+                  />
+                  <label className="block text-gray-300 text-sm font-medium mb-1">
+                    Course *
+                  </label>
+                  <input
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#bd2323] focus:ring-1 focus:ring-[#bd2323] transition-colors"
+                    name="course"
+                    placeholder="e.g.: BCA/MBA"
+                    value={form.course || ""}
+                    onChange={handleChange}
+                  />
+                  <label className="block text-gray-300 text-sm font-medium mb-1">
                     Student ID *
                   </label>
                   <input
@@ -158,6 +183,16 @@ export default function Register() {
                     value={form.teacherId || ""}
                     onChange={handleChange}
                   />
+                  <label className="block text-gray-300 text-sm font-medium mb-1">
+                    Department *
+                  </label>
+                  <input
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#0a295e] focus:ring-1 focus:ring-[#0a295e] transition-colors"
+                    name="department"
+                    placeholder="e.g.: BCA/BBA"
+                    value={form.department || ""}
+                    onChange={handleChange}
+                  />
                 </div>
               )}
 
@@ -171,22 +206,6 @@ export default function Register() {
                     name="departmentCode"
                     placeholder="Enter department code"
                     value={form.departmentCode || ""}
-                    onChange={handleChange}
-                  />
-                </div>
-              )}
-
-              {role === "admin" && (
-                <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-1">
-                    Admin Secret Key *
-                  </label>
-                  <input
-                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#000000] focus:ring-1 focus:ring-[#000000] transition-colors"
-                    type="password"
-                    name="adminSecret"
-                    placeholder="Enter admin secret key"
-                    value={form.adminSecret || ""}
                     onChange={handleChange}
                   />
                 </div>
