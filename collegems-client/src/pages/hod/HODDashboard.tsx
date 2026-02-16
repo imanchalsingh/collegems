@@ -6,7 +6,8 @@ import Teachers from "../../components/Teachers";
 import ExamSchedule from "../../components/ExamSchedule";
 import Classes from "../../components/Classes";
 import Hodfee from "./Hodfee";
-import HODSalary from "./HodSalary";
+import HODSalary from "./HODSalary";
+import Syllabus from "../../components/Syllabus";
 
 type TabType =
   | "overview"
@@ -14,6 +15,7 @@ type TabType =
   | "students"
   | "courses"
   | "classes"
+  | "syllabus"
   | "fees"
   | "salary"
   | "examSchedule";
@@ -56,6 +58,7 @@ export default function HODDashboard() {
     { id: "students" as TabType, label: "Students", icon: "👨‍🎓" },
     { id: "courses" as TabType, label: "Courses", icon: "📚" },
     { id: "classes" as TabType, label: "Classes", icon: "🏫" },
+    { id: "syllabus" as TabType, label: "Syllabus", icon: "🏫" },
     { id: "fees" as TabType, label: "Fees", icon: "💵" },
     { id: "salary" as TabType, label: "Salary", icon: "🪙" },
     {
@@ -316,7 +319,6 @@ export default function HODDashboard() {
               <Teachers />
             </div>
           )}
-
           {activeTab === "students" && (
             <div className="space-y-6">
               <Students />
@@ -330,6 +332,11 @@ export default function HODDashboard() {
           {activeTab === "salary" && (
             <div className="space-y-6">
               <HODSalary />
+            </div>
+          )}
+          {activeTab === "syllabus" && (
+            <div>
+              <Syllabus />
             </div>
           )}
           {activeTab === "courses" && (
