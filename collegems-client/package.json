@@ -18,6 +18,8 @@
     "@tanstack/react-query": "^5.90.20",
     "axios": "^1.13.4",
     "date-fns": "^4.1.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.1.0",
     "lucide-react": "^0.563.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
