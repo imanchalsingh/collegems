@@ -128,11 +128,17 @@ const Classes: React.FC = () => {
   const handleEdit = (classItem: ClassType) => {
     setEditingClass(classItem);
     setFormData({
-      courseName: classItem.courseName,
+      courseName:
+        typeof classItem.courseName === "object"
+          ? classItem.courseName._id
+          : classItem.courseName,
       name: classItem.name,
       semester: classItem.semester,
       schedule: classItem.schedule,
-      teacher: classItem.teacher,
+      teacher:
+        typeof classItem.teacher === "object"
+          ? classItem.teacher._id
+          : classItem.teacher,
     });
     setShowForm(true);
   };
@@ -310,7 +316,11 @@ const Classes: React.FC = () => {
                   </label>
                   <select
                     name="courseName"
-                    value={formData.courseName}
+                    value={
+                      typeof formData.courseName === "object"
+                        ? formData.courseName._id
+                        : formData.courseName
+                    }
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#bd2323] focus:ring-1 focus:ring-[#bd2323] transition-colors"
                   >
@@ -399,7 +409,11 @@ const Classes: React.FC = () => {
                   </label>
                   <select
                     name="teacher"
-                    value={formData.teacher}
+                    value={
+                      typeof formData.teacher === "object"
+                        ? formData.teacher._id
+                        : formData.teacher
+                    }
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#bd2323] focus:ring-1 focus:ring-[#bd2323] transition-colors"
                   >
@@ -566,7 +580,7 @@ const Classes: React.FC = () => {
                       {/* Header */}
                       <div className="flex justify-between items-start mb-3">
                         <h2 className="font-bold text-lg text-white">
-                          {typeof cls.courseName === "object"
+                          {cls.courseName && typeof cls.courseName === "object"
                             ? cls.courseName.name
                             : getCourseName(cls.courseName)}
                         </h2>
@@ -594,7 +608,7 @@ const Classes: React.FC = () => {
                             style={{ color: "#0a295e" }}
                           />
                           <span className="text-gray-300">
-                            {typeof cls.teacher === "object"
+                            {cls.teacher && typeof cls.teacher === "object"
                               ? cls.teacher.name
                               : getTeacherName(cls.teacher)}
                           </span>
