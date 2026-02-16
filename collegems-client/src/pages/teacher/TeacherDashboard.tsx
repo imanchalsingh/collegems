@@ -22,6 +22,7 @@ import ExamSchedule from "../../components/ExamSchedule";
 import Classes from "../../components/Classes";
 import TeacherFee from "./Teacherfee";
 import Salary from "./Salary";
+import Syllabus from "../../components/Syllabus";
 
 export default function TeacherDashboard() {
   const [data, setData] = useState<any>(null);
@@ -118,6 +119,7 @@ export default function TeacherDashboard() {
     { id: "fees", label: "Fees", icon: BarChart3 },
     { id: "salary", label: "Salary", icon: Coins },
     { id: "classes", label: "Classes", icon: Book },
+    { id: "syllabus", label: "Syllabus", icon: Book },
     { id: "students", label: "Students", icon: Users },
   ];
 
@@ -319,6 +321,11 @@ export default function TeacherDashboard() {
           {activeTab === "classes" && (
             <div className="space-y-6">
               <Classes />
+            </div>
+          )}
+             {activeTab === "syllabus" && (
+            <div className="space-y-6">
+              <Syllabus />
             </div>
           )}
           {activeTab === "students" && <Students />}

@@ -677,20 +677,6 @@ export default function Syllabus() {
             </div>
           )}
         </div>
-
-        {/* Color Palette Indicator */}
-        <div className="mt-8 flex justify-center space-x-2">
-          {["#bd2323", "#000000", "#e6c235", "#ffffff", "#0a295e"].map(
-            (color) => (
-              <div
-                key={color}
-                className="w-6 h-6 rounded-full border border-gray-700"
-                style={{ backgroundColor: color }}
-                title={color}
-              />
-            ),
-          )}
-        </div>
       </div>
     </div>
   );
