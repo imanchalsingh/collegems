@@ -1,4 +1,5 @@
 @import "tailwindcss";
 *{
     font-family: 'Kanit';
+    scrollbar-width: none;
 }
