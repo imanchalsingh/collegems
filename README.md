@@ -1,11 +1,11 @@
-# 🎓 College Management System (Full Stack)
+# College Management System (Full Stack)
 
 A feature-rich **College Management System** built using **React.js** and **Express.js**.  
 This project is designed for **academic use**, **real-world learning**, and **full-stack skill enhancement**.
 
 ---
 
-## 🚀 Tech Stack
+## Tech Stack
 
 ### Frontend
 - React
@@ -22,7 +22,7 @@ This project is designed for **academic use**, **real-world learning**, and **fu
 
 ---
 
-## 🔐 Core Features
+## Core Features
 
 ### Authentication & Security
 - JWT-based Authentication
@@ -81,7 +81,7 @@ This project is designed for **academic use**, **real-world learning**, and **fu
 
 ---
 
-## 🧪 Additional Features
+## Additional Features
 - API Documentation using Swagger  
 - Role Guards & Interceptors  
 - Centralized Error Handling  
@@ -90,14 +90,14 @@ This project is designed for **academic use**, **real-world learning**, and **fu
 
 ---
 
-## 🎓 Project Purpose
+## Project Purpose
 - College Academic Project  
 - Full Stack Learning (Angular + NestJS)  
 - Real-world ERP System Simulation  
 
 ---
 
-## 📌 Future Enhancements
+## Future Enhancements
 - Mobile App Integration  
 - Advanced AI Analytics  
 - Payment Gateway Integration  
@@ -105,7 +105,7 @@ This project is designed for **academic use**, **real-world learning**, and **fu
 
 ---
 
-## 🧑‍💻 Author
+## Author
 **Anchal Singh**  
 Aspiring Full Stack Developer  
 
