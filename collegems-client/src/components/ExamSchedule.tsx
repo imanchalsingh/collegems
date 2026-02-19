@@ -1,4 +1,22 @@
 import React, { useState, useEffect } from "react";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  BookOpen,
+  Search,
+  Filter,
+  ChevronDown,
+  Plus,
+  RefreshCw,
+  Edit,
+  Trash2,
+  X,
+  CheckCircle,
+  AlertCircle,
+  FileText,
+  Building2,
+} from "lucide-react";
 import api from "../api/axios";
 
 interface ExamSchedule {
@@ -32,6 +50,11 @@ const ExamSchedule: React.FC = () => {
   const [examSchedules, setExamSchedules] = useState<ExamSchedule[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCourse, setFilterCourse] = useState("all");
+  const [showFilters, setShowFilters] = useState(false);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   // Fetch exam schedules on component mount
   useEffect(() => {
@@ -49,7 +72,8 @@ const ExamSchedule: React.FC = () => {
     const matchesSearch =
       exam.examName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       exam.course.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      exam.location.toLowerCase().includes(searchTerm.toLowerCase());
+      exam.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      exam.venue.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCourse =
       filterCourse === "all" || exam.course === filterCourse;
     return matchesSearch && matchesCourse;
@@ -60,9 +84,13 @@ const ExamSchedule: React.FC = () => {
       setLoading(true);
       const response = await api.get("/examschedule/all");
       setExamSchedules(response.data || []);
+      setMessage(null);
     } catch (err: any) {
       console.error("Fetch exam error:", err);
-      alert(err?.response?.data?.message || "Failed to fetch exam schedules");
+      setMessage({
+        type: "error",
+        text: err?.response?.data?.message || "Failed to fetch exam schedules",
+      });
     } finally {
       setLoading(false);
     }
@@ -78,6 +106,7 @@ const ExamSchedule: React.FC = () => {
     setVenue("");
     setIsEditMode(false);
     setEditingId(null);
+    setMessage(null);
   };
 
   const openCreateModal = () => {
@@ -113,7 +142,10 @@ const ExamSchedule: React.FC = () => {
       !location ||
       !venue
     ) {
-      alert("All fields are required");
+      setMessage({
+        type: "error",
+        text: "All fields are required",
+      });
       return;
     }
 
@@ -129,12 +161,21 @@ const ExamSchedule: React.FC = () => {
         venue,
       });
 
-      alert("Exam schedule created ✅");
-      closeModal();
-      fetchExamSchedules();
+      setMessage({
+        type: "success",
+        text: "Exam schedule created successfully!",
+      });
+
+      setTimeout(() => {
+        closeModal();
+        fetchExamSchedules();
+      }, 1500);
     } catch (err: any) {
       console.error("Create exam error:", err);
-      alert(err?.response?.data?.message || "Failed to create exam schedule");
+      setMessage({
+        type: "error",
+        text: err?.response?.data?.message || "Failed to create exam schedule",
+      });
     } finally {
       setLoading(false);
     }
@@ -152,7 +193,10 @@ const ExamSchedule: React.FC = () => {
       !location ||
       !venue
     ) {
-      alert("All fields are required");
+      setMessage({
+        type: "error",
+        text: "All fields are required",
+      });
       return;
     }
 
@@ -168,12 +212,21 @@ const ExamSchedule: React.FC = () => {
         venue,
       });
 
-      alert("Exam schedule updated ✅");
-      closeModal();
-      fetchExamSchedules();
+      setMessage({
+        type: "success",
+        text: "Exam schedule updated successfully!",
+      });
+
+      setTimeout(() => {
+        closeModal();
+        fetchExamSchedules();
+      }, 1500);
     } catch (err: any) {
       console.error("Update exam error:", err);
-      alert(err?.response?.data?.message || "Failed to update exam schedule");
+      setMessage({
+        type: "error",
+        text: err?.response?.data?.message || "Failed to update exam schedule",
+      });
     } finally {
       setLoading(false);
     }
@@ -188,11 +241,19 @@ const ExamSchedule: React.FC = () => {
     try {
       setLoading(true);
       await api.delete(`/examschedule/delete/${id}`);
-      alert("Exam schedule deleted ✅");
+
+      setMessage({
+        type: "success",
+        text: "Exam schedule deleted successfully!",
+      });
+
       fetchExamSchedules();
     } catch (err: any) {
       console.error("Delete exam error:", err);
-      alert(err?.response?.data?.message || "Failed to delete exam schedule");
+      setMessage({
+        type: "error",
+        text: err?.response?.data?.message || "Failed to delete exam schedule",
+      });
     } finally {
       setLoading(false);
     }
@@ -219,660 +280,504 @@ const ExamSchedule: React.FC = () => {
     return `${hours}h ${minutes}m`;
   };
 
+  // Check if exam is upcoming
+  const isUpcoming = (date: string) => {
+    return new Date(date) > new Date();
+  };
+
+  const stats = {
+    total: examSchedules.length,
+    upcoming: examSchedules.filter((exam) => isUpcoming(exam.examDate)).length,
+    courses: uniqueCourses.length - 1,
+  };
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div
-            className="bg-linear-to-r from-[#0a295e] to-[#bd2323] p-6 rounded-2xl flex justify-between"
-            style={{ borderBottom: `3px solid #e6c235` }}
-          >
+    <div className="space-y-6">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <FileText className="w-5 h-5 text-blue-600" />
+            </div>
             <div>
-              <h1 className="text-3xl font-bold mb-2">
-                Exam Schedule Management
-              </h1>
-              <p className="text-gray-400">
-                Create and manage examination schedules
+              <p className="text-sm text-gray-500">Total Exams</p>
+              <p className="text-xl font-bold text-gray-900">{stats.total}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-amber-50 rounded-lg">
+              <Clock className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Upcoming Exams</p>
+              <p className="text-xl font-bold text-gray-900">
+                {stats.upcoming}
               </p>
             </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-emerald-50 rounded-lg">
+              <BookOpen className="w-5 h-5 text-emerald-600" />
+            </div>
             <div>
-              <button
-                onClick={openCreateModal}
-                className="mt-4 md:mt-0 px-6 py-2 rounded-lg flex items-center font-medium transition-all hover:scale-105 active:scale-95"
-                style={{
-                  background: "linear-gradient(135deg, #bd2323, #0a295e)",
-                  border: "1px solid #e6c235",
-                }}
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
-                Create New Exam
-              </button>
-            </div>
-          </div>
-
-          {/* Filters */}
-          <div className="flex flex-col md:flex-row gap-4 mt-10">
-            <div className="flex-1">
-              <div className="relative">
-                <svg
-                  className="absolute left-3 top-3 w-5 h-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Search exams by name, course, or location..."
-                  className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#bd2323] focus:ring-2 focus:ring-[#bd2323]/30 transition-all"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="w-full md:w-64">
-              <select
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#bd2323] focus:ring-2 focus:ring-[#bd2323]/30 transition-all"
-                value={filterCourse}
-                onChange={(e) => setFilterCourse(e.target.value)}
-              >
-                {uniqueCourses.map((course) => (
-                  <option key={course} value={course}>
-                    {course === "all" ? "All Courses" : course}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              onClick={fetchExamSchedules}
-              className="px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
-              Refresh
-            </button>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gray-800 rounded-xl p-6 border-l-4 border-[#0a295e]">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm">Total Exams</p>
-                <p className="text-3xl font-bold mt-2">
-                  {examSchedules.length}
-                </p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-[#0a295e]/20 flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-[#0a295e]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-800 rounded-xl p-6 border-l-4 border-[#e6c235]">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm">Upcoming Exams</p>
-                <p className="text-3xl font-bold mt-2">
-                  {
-                    examSchedules.filter(
-                      (exam) => new Date(exam.examDate) > new Date(),
-                    ).length
-                  }
-                </p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-[#e6c235]/20 flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-[#e6c235]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-800 rounded-xl p-6 border-l-4 border-[#bd2323]">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm">Active Courses</p>
-                <p className="text-3xl font-bold mt-2">
-                  {uniqueCourses.length - 1}
-                </p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-[#bd2323]/20 flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-[#bd2323]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                  />
-                </svg>
-              </div>
+              <p className="text-sm text-gray-500">Active Courses</p>
+              <p className="text-xl font-bold text-gray-900">{stats.courses}</p>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Exam Schedules Table */}
-        <div className="bg-gray-800 rounded-xl overflow-hidden mb-8">
-          <div className="p-6 border-b border-gray-700">
-            <h3 className="text-xl font-semibold">Exam Schedules</h3>
-            <p className="text-gray-400 text-sm mt-1">
-              Showing {filteredExams.length} exams
-            </p>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#bd2323]"></div>
-              <p className="mt-2 text-gray-400">Loading exam schedules...</p>
-            </div>
-          ) : filteredExams.length === 0 ? (
-            <div className="text-center py-12">
-              <svg
-                className="mx-auto h-12 w-12 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-              </svg>
-              <p className="mt-2 text-gray-400">No exam schedules found.</p>
-              <button
-                onClick={openCreateModal}
-                className="mt-4 px-4 py-2 bg-linear-to-r from-[#0a295e] to-[#bd2323] text-white rounded-lg hover:opacity-90 transition-opacity"
-              >
-                Create your first exam
-              </button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-750">
-                    <th className="text-left py-3 px-6 text-gray-400 font-medium">
-                      Exam Name
-                    </th>
-                    <th className="text-left py-3 px-6 text-gray-400 font-medium">
-                      Course
-                    </th>
-                    <th className="text-left py-3 px-6 text-gray-400 font-medium">
-                      Date & Time
-                    </th>
-                    <th className="text-left py-3 px-6 text-gray-400 font-medium">
-                      Duration
-                    </th>
-                    <th className="text-left py-3 px-6 text-gray-400 font-medium">
-                      Location
-                    </th>
-                    <th className="text-left py-3 px-6 text-gray-400 font-medium">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredExams.map((exam) => (
-                    <tr
-                      key={exam._id}
-                      className="border-b border-gray-700/50 hover:bg-gray-750/50 transition-colors group"
-                    >
-                      <td className="py-4 px-6">
-                        <div className="font-medium">{exam.examName}</div>
-                        <div className="text-sm text-gray-400">
-                          {exam.venue}
-                        </div>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[#0a295e]/20 text-[#4dabf7] border border-[#0a295e]/30">
-                          {exam.course}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="font-medium">
-                          {formatDate(exam.examDate)}
-                        </div>
-                        <div className="text-sm text-gray-400">
-                          {exam.startTime} - {exam.endTime}
-                        </div>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[#e6c235]/20 text-[#e6c235] border border-[#e6c235]/30">
-                          {calculateDuration(exam.startTime, exam.endTime)}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-2">
-                          <svg
-                            className="w-4 h-4 text-gray-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                          </svg>
-                          {exam.location}
-                        </div>
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => openEditModal(exam)}
-                            className="p-2 text-[#e6c235] hover:bg-[#e6c235]/10 rounded-lg transition-colors"
-                            title="Edit"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => deleteExamSchedule(exam._id)}
-                            className="p-2 text-[#ef4444] hover:bg-[#ef4444]/10 rounded-lg transition-colors"
-                            title="Delete"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Create/Edit Modal */}
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <div
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-              onClick={closeModal}
+      {/* Filters */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
             />
+            <input
+              type="text"
+              placeholder="Search exams by name, course, or location..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <Filter className="w-4 h-4" />
+            Filters
+            <ChevronDown
+              className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`}
+            />
+          </button>
+          <button
+            onClick={fetchExamSchedules}
+            className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </button>
+          <button
+            onClick={openCreateModal}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Create New Exam
+          </button>
+        </div>
 
-            {/* Modal Content */}
-            <div className="relative w-full max-w-2xl bg-gray-800 rounded-2xl shadow-2xl border border-gray-700 overflow-hidden animate-in fade-in zoom-in-95">
-              {/* Header */}
-              <div
-                className="p-6"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #0a295e 0%, rgba(189, 35, 35, 0.2) 100%)",
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-                }}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-white">
-                      {isEditMode
-                        ? "Edit Exam Schedule"
-                        : "Create New Exam Schedule"}
-                    </h3>
-                    <p className="text-gray-300 text-sm mt-1">
-                      {isEditMode
-                        ? "Update the exam details below"
-                        : "Fill in the exam details below"}
-                    </p>
-                  </div>
-                  <button
-                    onClick={closeModal}
-                    disabled={loading}
-                    className="text-gray-400 hover:text-white transition-colors disabled:opacity-50"
-                  >
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
+        {/* Expanded Filters */}
+        {showFilters && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Course
+                </label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={filterCourse}
+                  onChange={(e) => setFilterCourse(e.target.value)}
+                >
+                  {uniqueCourses.map((course) => (
+                    <option key={course} value={course}>
+                      {course === "all" ? "All Courses" : course}
+                    </option>
+                  ))}
+                </select>
               </div>
-
-              {/* Form */}
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Exam Name */}
-                  <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
-                      Exam Name *
-                    </label>
-                    <input
-                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#bd2323] focus:ring-2 focus:ring-[#bd2323]/30 transition-all"
-                      placeholder="e.g., Final Examination"
-                      value={examName}
-                      onChange={(e) => setExamName(e.target.value)}
-                      disabled={loading}
-                    />
-                  </div>
-
-                  {/* Course */}
-                  <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
-                      Course ID *
-                    </label>
-                    <input
-                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#bd2323] focus:ring-2 focus:ring-[#bd2323]/30 transition-all"
-                      placeholder="e.g., CS101"
-                      value={course}
-                      onChange={(e) => setCourse(e.target.value)}
-                      disabled={loading}
-                    />
-                  </div>
-
-                  {/* Exam Date */}
-                  <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
-                      Exam Date *
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#bd2323] focus:ring-2 focus:ring-[#bd2323]/30 transition-all appearance-none"
-                        value={examDate}
-                        onChange={(e) => setExamDate(e.target.value)}
-                        disabled={loading}
-                      />
-                      <svg
-                        className="absolute right-3 top-3 w-5 h-5 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {/* Start Time */}
-                  <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
-                      Start Time *
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="time"
-                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#bd2323] focus:ring-2 focus:ring-[#bd2323]/30 transition-all"
-                        value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
-                        disabled={loading}
-                      />
-                      <svg
-                        className="absolute right-3 top-3 w-5 h-5 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {/* End Time */}
-                  <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
-                      End Time *
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="time"
-                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#bd2323] focus:ring-2 focus:ring-[#bd2323]/30 transition-all"
-                        value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        disabled={loading}
-                      />
-                      <svg
-                        className="absolute right-3 top-3 w-5 h-5 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {/* Location */}
-                  <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
-                      Location *
-                    </label>
-                    <input
-                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#bd2323] focus:ring-2 focus:ring-[#bd2323]/30 transition-all"
-                      placeholder="e.g., Main Building"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      disabled={loading}
-                    />
-                  </div>
-
-                  {/* Venue */}
-                  <div className="md:col-span-2">
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
-                      Venue Details
-                    </label>
-                    <input
-                      className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#bd2323] focus:ring-2 focus:ring-[#bd2323]/30 transition-all"
-                      placeholder="e.g., Room 101, Ground Floor"
-                      value={venue}
-                      onChange={(e) => setVenue(e.target.value)}
-                      disabled={loading}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer Buttons */}
-              <div className="p-6 bg-gray-850 border-t border-gray-700">
-                <div className="flex justify-end gap-3">
-                  <button
-                    onClick={closeModal}
-                    disabled={loading}
-                    className="px-5 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={
-                      isEditMode ? updateExamSchedule : createExamSchedule
-                    }
-                    disabled={
-                      loading ||
-                      !examName ||
-                      !course ||
-                      !examDate ||
-                      !startTime ||
-                      !endTime ||
-                      !location ||
-                      !venue
-                    }
-                    className="px-5 py-2 bg-linear-to-r from-[#bd2323] to-[#0a295e] text-white rounded-lg hover:shadow-lg hover:shadow-[#bd2323]/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 min-w-30 justify-center"
-                  >
-                    {loading ? (
-                      <>
-                        <svg
-                          className="animate-spin h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
-                        </svg>
-                        {isEditMode ? "Updating..." : "Creating..."}
-                      </>
-                    ) : (
-                      <>
-                        {isEditMode ? (
-                          <>
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                            Update Exam
-                          </>
-                        ) : (
-                          <>
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                              />
-                            </svg>
-                            Create Exam
-                          </>
-                        )}
-                      </>
-                    )}
-                  </button>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date Range
+                </label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="all">All Dates</option>
+                  <option value="upcoming">Upcoming</option>
+                  <option value="past">Past</option>
+                  <option value="this-week">This Week</option>
+                  <option value="this-month">This Month</option>
+                </select>
               </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Message Display */}
+      {message && (
+        <div
+          className={`p-4 rounded-lg flex items-start gap-3 ${
+            message.type === "success"
+              ? "bg-green-50 text-green-800 border border-green-200"
+              : "bg-red-50 text-red-800 border border-red-200"
+          }`}
+        >
+          {message.type === "success" ? (
+            <CheckCircle className="w-5 h-5 shrink-0 mt-0.5" />
+          ) : (
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+          )}
+          <span className="text-sm flex-1">{message.text}</span>
+          <button
+            onClick={() => setMessage(null)}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Exam Schedules Table */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-gray-900">Exam Schedules</h3>
+            <span className="text-sm text-gray-500">
+              Showing {filteredExams.length} of {examSchedules.length} exams
+            </span>
+          </div>
+        </div>
+
+        {loading && !isModalOpen ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
+            <p className="mt-4 text-gray-500">Loading exam schedules...</p>
+          </div>
+        ) : filteredExams.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+              <FileText className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No exam schedules found
+            </h3>
+            <p className="text-gray-500 mb-6">
+              {searchTerm || filterCourse !== "all"
+                ? "Try adjusting your search or filters"
+                : "Get started by creating your first exam schedule"}
+            </p>
+            {searchTerm || filterCourse !== "all" ? (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilterCourse("all");
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <X className="w-4 h-4" />
+                Clear filters
+              </button>
+            ) : (
+              <button
+                onClick={openCreateModal}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Create your first exam
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Exam Details
+                  </th>
+                  <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Course
+                  </th>
+                  <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date & Time
+                  </th>
+                  <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Duration
+                  </th>
+                  <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Location
+                  </th>
+                  <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredExams.map((exam) => (
+                  <tr
+                    key={exam._id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="py-4 px-6">
+                      <div className="font-medium text-gray-900">
+                        {exam.examName}
+                      </div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        <span className="inline-flex items-center gap-1">
+                          <Building2 className="w-3 h-3" />
+                          {exam.venue}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {exam.course}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-900">
+                          {formatDate(exam.examDate)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm mt-1">
+                        <Clock className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-600">
+                          {exam.startTime} - {exam.endTime}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        {calculateDuration(exam.startTime, exam.endTime)}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2 text-sm">
+                        <MapPin className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-600">{exam.location}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => openEditModal(exam)}
+                          className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Edit exam"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteExamSchedule(exam._id)}
+                          className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete exam"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Create/Edit Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm"
+            onClick={closeModal}
+          />
+
+          {/* Modal Content */}
+          <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {isEditMode
+                      ? "Edit Exam Schedule"
+                      : "Create New Exam Schedule"}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {isEditMode
+                      ? "Update the exam details below"
+                      : "Fill in the exam details below"}
+                  </p>
+                </div>
+                <button
+                  onClick={closeModal}
+                  disabled={loading}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Form */}
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Exam Name */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Exam Name *
+                  </label>
+                  <input
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., Final Examination - Semester 1"
+                    value={examName}
+                    onChange={(e) => setExamName(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+
+                {/* Course */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Course *
+                  </label>
+                  <input
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., BCA, BBA, MBA"
+                    value={course}
+                    onChange={(e) => setCourse(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+
+                {/* Exam Date */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Exam Date *
+                  </label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={examDate}
+                    onChange={(e) => setExamDate(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+
+                {/* Start Time */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Start Time *
+                  </label>
+                  <input
+                    type="time"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+
+                {/* End Time */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    End Time *
+                  </label>
+                  <input
+                    type="time"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+
+                {/* Location */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Location *
+                  </label>
+                  <input
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., Main Building"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+
+                {/* Venue */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Venue Details *
+                  </label>
+                  <input
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., Room 101, Ground Floor"
+                    value={venue}
+                    onChange={(e) => setVenue(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              {/* Modal Message */}
+              {message && (
+                <div
+                  className={`mt-4 p-3 rounded-lg flex items-start gap-2 ${
+                    message.type === "success"
+                      ? "bg-green-50 text-green-800"
+                      : "bg-red-50 text-red-800"
+                  }`}
+                >
+                  {message.type === "success" ? (
+                    <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  )}
+                  <span className="text-sm">{message.text}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={closeModal}
+                  disabled={loading}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={isEditMode ? updateExamSchedule : createExamSchedule}
+                  disabled={
+                    loading ||
+                    !examName ||
+                    !course ||
+                    !examDate ||
+                    !startTime ||
+                    !endTime ||
+                    !location ||
+                    !venue
+                  }
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      {isEditMode ? "Updating..." : "Creating..."}
+                    </>
+                  ) : (
+                    <>{isEditMode ? "Update Exam" : "Create Exam"}</>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
