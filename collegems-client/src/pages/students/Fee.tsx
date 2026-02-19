@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import api from "../../api/axios";
 import {
   CreditCard,
   Calendar,
@@ -12,6 +11,12 @@ import {
   Download,
   Wallet,
   History,
+  ChevronRight,
+  Smartphone,
+  Landmark,
+  Receipt,
+  Shield,
+  ArrowLeft,
 } from "lucide-react";
 
 interface Installment {
@@ -99,7 +104,6 @@ export default function StudentFee() {
         text: `Payment of ₹${amount} successful! Transaction ID: ${res.data.transactionId}`,
       });
 
-      // Auto-hide success message after 5 seconds
       setTimeout(() => {
         setMessage(null);
       }, 5000);
@@ -117,26 +121,26 @@ export default function StudentFee() {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "paid":
-        return "text-green-400 bg-green-900/30 border-green-800";
+        return "bg-green-50 text-green-700 border-green-200";
       case "partial":
-        return "text-[#e6c235] bg-yellow-900/30 border-[#e6c235]";
+        return "bg-amber-50 text-amber-700 border-amber-200";
       case "unpaid":
-        return "text-[#bd2323] bg-red-900/30 border-[#bd2323]";
+        return "bg-red-50 text-red-700 border-red-200";
       default:
-        return "text-gray-400 bg-gray-800 border-gray-700";
+        return "bg-gray-50 text-gray-700 border-gray-200";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
       case "paid":
-        return <CheckCircle size={16} className="mr-1" />;
+        return <CheckCircle size={16} className="mr-1.5" />;
       case "partial":
-        return <Clock size={16} className="mr-1" />;
+        return <Clock size={16} className="mr-1.5" />;
       case "unpaid":
-        return <XCircle size={16} className="mr-1" />;
+        return <XCircle size={16} className="mr-1.5" />;
       default:
-        return <AlertCircle size={16} className="mr-1" />;
+        return <AlertCircle size={16} className="mr-1.5" />;
     }
   };
 
@@ -170,381 +174,429 @@ export default function StudentFee() {
     }).format(amount);
   };
 
+  const paymentMethods = [
+    { id: "card", label: "Credit/Debit Card", icon: CreditCard, color: "blue" },
+    { id: "upi", label: "UPI", icon: Smartphone, color: "green" },
+    { id: "netbanking", label: "Net Banking", icon: Landmark, color: "purple" },
+  ];
+
   if (loading && !fee) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bd2323] mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading fee details...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
+          <p className="mt-4 text-gray-600">Loading fee details...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Fee Management</h1>
+            <p className="text-gray-500 mt-1">View and manage your fee payments</p>
+          </div>
+          <button className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            <Download className="w-4 h-4" />
+            Download Statement
+          </button>
+        </div>
+      </div>
+
+      {/* Message Alert */}
+      {message && (
         <div
-          className="bg-linear-to-r from-[#0a295e] to-[#bd2323] p-6 rounded-2xl mb-6"
-          style={{ borderBottom: `3px solid #e6c235` }}
+          className={`p-4 rounded-lg flex items-start gap-3 ${
+            message.type === "success"
+              ? "bg-green-50 text-green-800 border border-green-200"
+              : message.type === "error"
+                ? "bg-red-50 text-red-800 border border-red-200"
+                : "bg-blue-50 text-blue-800 border border-blue-200"
+          }`}
         >
-          <h1 className="text-3xl font-bold text-white flex items-center">
-            <Wallet className="mr-3" size={32} />
-            Fee Management
-          </h1>
-          <p className="text-gray-200 mt-2">
-            View and manage your fee payments
+          {message.type === "success" && <CheckCircle size={20} className="shrink-0" />}
+          {message.type === "error" && <XCircle size={20} className="shrink-0" />}
+          {message.type === "info" && <AlertCircle size={20} className="shrink-0" />}
+          <span className="flex-1 text-sm">{message.text}</span>
+          <button
+            onClick={() => setMessage(null)}
+            className="shrink-0 text-gray-500 hover:text-gray-700"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {!fee ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+          <AlertCircle size={48} className="mx-auto mb-4 text-gray-300" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            No Fee Record Found
+          </h3>
+          <p className="text-gray-500">
+            Please contact the administration for fee details.
           </p>
         </div>
-
-        {message && (
-          <div
-            className={`mb-6 p-4 rounded-lg flex items-center ${
-              message.type === "success"
-                ? "bg-green-900/30 text-green-400 border border-green-800"
-                : message.type === "error"
-                  ? "bg-red-900/30 text-red-400 border border-red-800"
-                  : "bg-blue-900/30 text-blue-400 border border-blue-800"
-            }`}
-          >
-            {message.type === "success" && (
-              <CheckCircle size={20} className="mr-3 shrink-0" />
-            )}
-            {message.type === "error" && (
-              <XCircle size={20} className="mr-3 shrink-0" />
-            )}
-            {message.type === "info" && (
-              <AlertCircle size={20} className="mr-3 shrink-0" />
-            )}
-            <span className="flex-1">{message.text}</span>
-            <button
-              onClick={() => setMessage(null)}
-              className="ml-4 text-gray-400 hover:text-white"
-            >
-              ×
-            </button>
-          </div>
-        )}
-
-        {!fee ? (
-          <div className="bg-gray-800 rounded-xl border border-gray-700 p-12 text-center">
-            <AlertCircle size={48} className="mx-auto mb-4 text-gray-600" />
-            <h3 className="text-xl font-bold text-white mb-2">
-              No Fee Record Found
-            </h3>
-            <p className="text-gray-400">
-              Please contact the administration for fee details.
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* Main Fee Card */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 mt-10">
-              {/* Fee Summary */}
-              <div className="lg:col-span-2">
-                <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-                  <h2 className="text-xl font-bold mb-6 flex items-center">
-                    <TrendingUp className="mr-2" style={{ color: "#e6c235" }} />
-                    Fee Summary
-                  </h2>
-
-                  {/* Progress Bar */}
-                  <div className="mb-6">
-                    <div className="flex justify-between mb-2">
-                      <span className="text-gray-400">Payment Progress</span>
-                      <span className="text-white font-bold">
-                        {calculateProgress().toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-700 rounded-full h-3">
-                      <div
-                        className="h-3 rounded-full transition-all duration-500"
-                        style={{
-                          width: `${calculateProgress()}%`,
-                          background:
-                            "linear-gradient(90deg, #bd2323, #e6c235)",
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="p-4 bg-gray-700/50 rounded-lg">
-                      <div className="text-sm text-gray-400 mb-1">
-                        Total Fee
-                      </div>
-                      <div className="text-2xl font-bold text-white">
-                        {formatCurrency(fee.total)}
-                      </div>
-                    </div>
-                    <div className="p-4 bg-gray-700/50 rounded-lg">
-                      <div className="text-sm text-gray-400 mb-1">
-                        Paid Amount
-                      </div>
-                      <div className="text-2xl font-bold text-green-400">
-                        {formatCurrency(fee.paid)}
-                      </div>
-                    </div>
-                    <div className="p-4 bg-gray-700/50 rounded-lg">
-                      <div className="text-sm text-gray-400 mb-1">
-                        Remaining
-                      </div>
-                      <div className="text-2xl font-bold text-[#e6c235]">
-                        {formatCurrency(fee.total - fee.paid)}
-                      </div>
-                    </div>
-                    <div className="p-4 bg-gray-700/50 rounded-lg">
-                      <div className="text-sm text-gray-400 mb-1">Status</div>
-                      <div
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(fee.status)}`}
-                      >
-                        {getStatusIcon(fee.status)}
-                        <span className="capitalize ml-1">{fee.status}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Due Date Alert */}
-                  <div
-                    className={`p-4 rounded-lg border ${
-                      getDaysUntilDue() < 0
-                        ? "bg-red-900/30 border-red-800"
-                        : getDaysUntilDue() <= 7
-                          ? "bg-yellow-900/30 border-[#e6c235]"
-                          : "bg-gray-700/30 border-gray-700"
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <Calendar
-                        className="mr-3"
-                        size={20}
-                        style={{
-                          color:
-                            getDaysUntilDue() < 0
-                              ? "#bd2323"
-                              : getDaysUntilDue() <= 7
-                                ? "#e6c235"
-                                : "#ffffff",
-                        }}
-                      />
-                      <div>
-                        <div className="text-sm text-gray-400">Due Date</div>
-                        <div className="font-bold">
-                          {formatDate(fee.dueDate)}
-                        </div>
-                      </div>
-                      <div className="ml-auto">
-                        {getDaysUntilDue() < 0 ? (
-                          <span className="text-[#bd2323] font-medium">
-                            Overdue
-                          </span>
-                        ) : getDaysUntilDue() === 0 ? (
-                          <span className="text-[#e6c235] font-medium">
-                            Due Today
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">
-                            {getDaysUntilDue()} days left
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+      ) : (
+        <>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <Wallet className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Total Fee</p>
+                  <p className="text-xl font-bold text-gray-900">
+                    {formatCurrency(fee.total)}
+                  </p>
                 </div>
               </div>
-
-              {/* Payment Section */}
-              <div className="lg:col-span-1">
-                <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 sticky top-4">
-                  <h2 className="text-xl font-bold mb-6 flex items-center">
-                    <CreditCard className="mr-2" style={{ color: "#e6c235" }} />
-                    Make Payment
-                  </h2>
-
-                  <div className="space-y-4">
-                    {/* Payment Method Selection */}
-                    <div>
-                      <label className="block text-gray-300 text-sm font-medium mb-2">
-                        Payment Method
-                      </label>
-                      <select
-                        value={paymentMethod}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#bd2323]"
-                      >
-                        <option value="card">Credit/Debit Card</option>
-                        <option value="upi">UPI</option>
-                        <option value="netbanking">Net Banking</option>
-                      </select>
-                    </div>
-
-                    {/* Amount Input */}
-                    <div>
-                      <label className="block text-gray-300 text-sm font-medium mb-2">
-                        Amount to Pay
-                      </label>
-                      <div className="relative">
-                        <DollarSign
-                          className="absolute left-3 top-3 text-gray-400"
-                          size={18}
-                        />
-                        <input
-                          type="number"
-                          placeholder="Enter amount"
-                          value={amount}
-                          onChange={(e) => setAmount(Number(e.target.value))}
-                          min="1"
-                          max={fee.total - fee.paid}
-                          className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#bd2323]"
-                        />
-                      </div>
-                      {fee.total - fee.paid > 0 && (
-                        <div className="mt-2 flex justify-between text-sm">
-                          <span className="text-gray-400">Min: ₹1</span>
-                          <span className="text-gray-400">
-                            Max: {formatCurrency(fee.total - fee.paid)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Quick Amount Buttons */}
-                    <div className="grid grid-cols-3 gap-2">
-                      {[1000, 5000, 10000].map((quickAmount) => (
-                        <button
-                          key={quickAmount}
-                          onClick={() => setAmount(quickAmount)}
-                          className="px-2 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
-                          style={{
-                            border: "1px solid #374151",
-                            color:
-                              amount === quickAmount ? "#e6c235" : "#9CA3AF",
-                          }}
-                        >
-                          ₹{quickAmount}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Pay Button */}
-                    <button
-                      onClick={handlePay}
-                      disabled={
-                        loading ||
-                        !amount ||
-                        Number(amount) <= 0 ||
-                        Number(amount) > fee.total - fee.paid
-                      }
-                      className="w-full py-3 px-4 bg-linear-to-r from-[#bd2323] to-[#0a295e] text-white font-semibold rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      style={{ boxShadow: "0 4px 15px rgba(189, 35, 35, 0.3)" }}
-                    >
-                      {loading ? (
-                        <div className="flex items-center justify-center">
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                          Processing...
-                        </div>
-                      ) : (
-                        `Pay ${amount ? formatCurrency(Number(amount)) : ""}`
-                      )}
-                    </button>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-green-50 rounded-lg">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Paid Amount</p>
+                  <p className="text-xl font-bold text-green-600">
+                    {formatCurrency(fee.paid)}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-amber-50 rounded-lg">
+                  <Clock className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Remaining</p>
+                  <p className="text-xl font-bold text-amber-600">
+                    {formatCurrency(fee.total - fee.paid)}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <div className="flex items-center gap-3">
+                <div className={`p-3 rounded-lg ${
+                  fee.status === "paid" ? "bg-green-50" : 
+                  fee.status === "partial" ? "bg-amber-50" : "bg-red-50"
+                }`}>
+                  <TrendingUp className={`w-5 h-5 ${
+                    fee.status === "paid" ? "text-green-600" : 
+                    fee.status === "partial" ? "text-amber-600" : "text-red-600"
+                  }`} />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Status</p>
+                  <div className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${getStatusColor(fee.status)}`}>
+                    {getStatusIcon(fee.status)}
+                    <span className="capitalize">{fee.status}</span>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Installment History */}
-            <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-              <div className="p-6 border-b border-gray-700">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold flex items-center">
-                    <History className="mr-2" style={{ color: "#e6c235" }} />
-                    Payment History
-                  </h2>
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Fee Summary & Progress */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-6">
+                  Payment Progress
+                </h2>
+
+                {/* Progress Bar */}
+                <div className="mb-8">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm text-gray-500">Overall Progress</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {calculateProgress().toFixed(1)}% Complete
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2.5">
+                    <div
+                      className="h-2.5 rounded-full bg-blue-600 transition-all duration-500"
+                      style={{ width: `${calculateProgress()}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Due Date Alert */}
+                <div className={`p-4 rounded-lg border ${
+                  getDaysUntilDue() < 0
+                    ? "bg-red-50 border-red-200"
+                    : getDaysUntilDue() <= 7
+                      ? "bg-amber-50 border-amber-200"
+                      : "bg-gray-50 border-gray-200"
+                }`}>
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2 rounded-lg ${
+                      getDaysUntilDue() < 0
+                        ? "bg-red-100"
+                        : getDaysUntilDue() <= 7
+                          ? "bg-amber-100"
+                          : "bg-gray-200"
+                    }`}>
+                      <Calendar className={`w-5 h-5 ${
+                        getDaysUntilDue() < 0
+                          ? "text-red-600"
+                          : getDaysUntilDue() <= 7
+                            ? "text-amber-600"
+                            : "text-gray-600"
+                      }`} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-500">Due Date</p>
+                      <p className="font-medium text-gray-900">{formatDate(fee.dueDate)}</p>
+                    </div>
+                    <div>
+                      {getDaysUntilDue() < 0 ? (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                          Overdue
+                        </span>
+                      ) : getDaysUntilDue() === 0 ? (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                          Due Today
+                        </span>
+                      ) : (
+                        <span className="text-sm text-gray-500">
+                          {getDaysUntilDue()} days left
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Stats */}
+                <div className="grid grid-cols-2 gap-4 mt-6">
+                  {fee.scholarship && (
+                    <div className="p-3 bg-purple-50 rounded-lg">
+                      <p className="text-xs text-purple-600 mb-1">Scholarship</p>
+                      <p className="font-medium text-gray-900">{formatCurrency(fee.scholarship)}</p>
+                    </div>
+                  )}
+                  {fee.lateFee && (
+                    <div className="p-3 bg-red-50 rounded-lg">
+                      <p className="text-xs text-red-600 mb-1">Late Fee</p>
+                      <p className="font-medium text-gray-900">{formatCurrency(fee.lateFee)}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Section */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-xl border border-gray-200 p-6 sticky top-4">
+                <h2 className="text-lg font-semibold text-gray-900 mb-6">
+                  Make Payment
+                </h2>
+
+                <div className="space-y-5">
+                  {/* Payment Method Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Payment Method
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {paymentMethods.map((method) => {
+                        const Icon = method.icon;
+                        const isSelected = paymentMethod === method.id;
+                        return (
+                          <button
+                            key={method.id}
+                            type="button"
+                            onClick={() => setPaymentMethod(method.id)}
+                            className={`
+                              flex flex-col items-center gap-2 p-3 rounded-lg border transition-all
+                              ${isSelected 
+                                ? 'border-blue-600 bg-blue-50' 
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                              }
+                            `}
+                          >
+                            <Icon className={`w-5 h-5 ${
+                              isSelected ? 'text-blue-600' : 'text-gray-500'
+                            }`} />
+                            <span className={`text-xs ${
+                              isSelected ? 'text-blue-600 font-medium' : 'text-gray-500'
+                            }`}>
+                              {method.label.split(' ')[0]}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Amount Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Amount to Pay
+                    </label>
+                    <div className="relative">
+                      <DollarSign
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        size={18}
+                      />
+                      <input
+                        type="number"
+                        placeholder="Enter amount"
+                        value={amount}
+                        onChange={(e) => setAmount(Number(e.target.value))}
+                        min="1"
+                        max={fee.total - fee.paid}
+                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    {fee.total - fee.paid > 0 && (
+                      <div className="mt-2 flex justify-between text-xs">
+                        <span className="text-gray-500">Min: ₹1</span>
+                        <span className="text-gray-500">
+                          Max: {formatCurrency(fee.total - fee.paid)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Quick Amount Buttons */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {[1000, 5000, 10000].map((quickAmount) => (
+                      <button
+                        key={quickAmount}
+                        onClick={() => setAmount(quickAmount)}
+                        className={`
+                          px-3 py-2 text-sm font-medium rounded-lg border transition-colors
+                          ${amount === quickAmount
+                            ? 'border-blue-600 bg-blue-50 text-blue-600'
+                            : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+                          }
+                        `}
+                      >
+                        ₹{quickAmount.toLocaleString()}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Security Badge */}
+                  <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    <Shield className="w-4 h-4 text-gray-500" />
+                    <span className="text-xs text-gray-600">
+                      Secure payment powered by Razorpay
+                    </span>
+                  </div>
+
+                  {/* Pay Button */}
                   <button
-                    onClick={() => setShowPaymentHistory(!showPaymentHistory)}
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
+                    onClick={handlePay}
+                    disabled={
+                      loading ||
+                      !amount ||
+                      Number(amount) <= 0 ||
+                      Number(amount) > fee.total - fee.paid
+                    }
+                    className="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                   >
-                    {showPaymentHistory ? "Show Less" : "View All"}
+                    {loading ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                        Processing...
+                      </div>
+                    ) : (
+                      `Pay ${amount ? formatCurrency(Number(amount)) : ''}`
+                    )}
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
 
-              <div className="divide-y divide-gray-700">
-                {fee.installments && fee.installments.length > 0 ? (
-                  fee.installments
-                    .slice(0, showPaymentHistory ? undefined : 5)
-                    .map((installment, index) => (
-                      <div
-                        key={index}
-                        className="p-4 hover:bg-gray-750 transition-colors"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <div
-                              className="w-10 h-10 rounded-full flex items-center justify-center mr-3"
-                              style={{
-                                backgroundColor: "rgba(189, 35, 35, 0.1)",
-                              }}
-                            >
-                              <DollarSign
-                                size={18}
-                                style={{ color: "#bd2323" }}
-                              />
-                            </div>
-                            <div>
-                              <div className="font-medium text-white">
-                                {formatCurrency(installment.amount)}
-                              </div>
-                              <div className="text-sm text-gray-400">
-                                {formatDate(installment.paidOn)}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center">
-                            {installment.transactionId && (
-                              <span className="text-xs text-gray-500 mr-4">
-                                ID: {installment.transactionId.slice(0, 8)}...
-                              </span>
-                            )}
-                            <span className="px-3 py-1 text-xs rounded-full bg-green-900/30 text-green-400 border border-green-800">
-                              Success
-                            </span>
-                          </div>
-                        </div>
-                        {installment.paymentMethod && (
-                          <div className="mt-2 ml-13 pl-13">
-                            <span className="text-xs text-gray-500">
-                              Paid via {installment.paymentMethod}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    ))
-                ) : (
-                  <div className="p-12 text-center">
-                    <History size={48} className="mx-auto mb-4 text-gray-600" />
-                    <p className="text-gray-400">No payment history found</p>
-                  </div>
+          {/* Payment History */}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Payment History</h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {fee.installments?.length || 0} total transactions
+                  </p>
+                </div>
+                {fee.installments && fee.installments.length > 5 && (
+                  <button
+                    onClick={() => setShowPaymentHistory(!showPaymentHistory)}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                  >
+                    {showPaymentHistory ? 'Show Less' : 'View All'}
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
                 )}
               </div>
+            </div>
 
-              {/* Download Statement Button */}
-              {fee.installments && fee.installments.length > 0 && (
-                <div className="p-4 border-t border-gray-700">
-                  <button
-                    onClick={() => alert("Download fee statement")}
-                    className="flex items-center text-gray-400 hover:text-white transition-colors"
-                  >
-                    <Download size={18} className="mr-2" />
-                    Download Fee Statement
-                  </button>
+            <div className="divide-y divide-gray-100">
+              {fee.installments && fee.installments.length > 0 ? (
+                fee.installments
+                  .slice(0, showPaymentHistory ? undefined : 5)
+                  .map((installment, index) => (
+                    <div key={index} className="p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="p-2 bg-blue-50 rounded-lg">
+                            <Receipt className="w-4 h-4 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {formatCurrency(installment.amount)}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatDate(installment.paidOn)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          {installment.transactionId && (
+                            <span className="text-xs text-gray-400">
+                              ID: {installment.transactionId.slice(0, 8)}...
+                            </span>
+                          )}
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Success
+                          </span>
+                        </div>
+                      </div>
+                      {installment.paymentMethod && (
+                        <div className="mt-2 ml-12">
+                          <span className="text-xs text-gray-400">
+                            Paid via {installment.paymentMethod}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))
+              ) : (
+                <div className="p-12 text-center">
+                  <History className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">No payment history found</p>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Your payment transactions will appear here
+                  </p>
                 </div>
               )}
             </div>
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
