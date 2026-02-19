@@ -19,12 +19,27 @@ import {
   RadialBarChart,
   RadialBar,
 } from "recharts";
+import {
+  Calendar,
+  Filter,
+  RefreshCw,
+  CheckCircle,
+  XCircle,
+  Clock,
+  BookOpen,
+  TrendingUp,
+  Users,
+  Download,
+  ChevronDown,
+  Activity,
+} from "lucide-react";
 
 export default function StudentAttendance() {
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("month");
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     fetchAttendanceData();
@@ -113,7 +128,7 @@ export default function StudentAttendance() {
         : 0;
 
     const radialData = [
-      { name: "Attendance", value: attendancePercentage, fill: "#0a295e" },
+      { name: "Attendance", value: attendancePercentage, fill: "#2563eb" },
     ];
 
     return {
@@ -142,178 +157,143 @@ export default function StudentAttendance() {
   const subjects = [...new Set(attendanceData.map((a) => a.subject))];
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div>
-          <div
-            className="bg-linear-to-r from-[#0a295e] to-[#bd2323] p-6 rounded-2xl"
-            style={{ borderBottom: `3px solid #e6c235` }}
-          >
-            <h1 className="text-3xl font-bold mb-2">
-              Student Attendance Dashboard
-            </h1>
-            <p className="text-gray-400">
-              Track and analyze your attendance performance
-            </p>
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Attendance Dashboard</h1>
+              <p className="text-gray-500 mt-1">Track and analyze your attendance performance</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                <Download className="w-4 h-4" />
+                Export
+              </button>
+              <button
+                onClick={fetchAttendanceData}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Refresh
+              </button>
+            </div>
           </div>
 
           {/* Filters */}
-          <div className="flex flex-wrap gap-4 mt-10">
-            <div className="flex items-center space-x-2">
-              <span className="text-gray-300">Time Range:</span>
-              <select
-                className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:border-[#bd2323]"
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-              >
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="semester">This Semester</option>
-                <option value="all">All Time</option>
-              </select>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <span className="text-gray-300">Subject:</span>
-              <select
-                className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:border-[#bd2323]"
-                value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
-              >
-                <option value="all">All Subjects</option>
-                {subjects.map((subject) => (
-                  <option key={subject} value={subject}>
-                    {subject}
-                  </option>
-                ))}
-              </select>
-            </div>
-
+          <div className="mt-6">
             <button
-              onClick={fetchAttendanceData}
-              className="px-4 py-2 bg-linear-to-r from-[#bd2323] to-[#0a295e] rounded-lg hover:opacity-90 transition-opacity flex items-center"
+              onClick={() => setShowFilters(!showFilters)}
+              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              <svg
-                className="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
-              Refresh
+              <Filter className="w-4 h-4" />
+              Filters
+              <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
             </button>
+
+            {showFilters && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Time Range
+                    </label>
+                    <select
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={timeRange}
+                      onChange={(e) => setTimeRange(e.target.value)}
+                    >
+                      <option value="week">This Week</option>
+                      <option value="month">This Month</option>
+                      <option value="semester">This Semester</option>
+                      <option value="all">All Time</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Subject
+                    </label>
+                    <select
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={selectedSubject}
+                      onChange={(e) => setSelectedSubject(e.target.value)}
+                    >
+                      <option value="all">All Subjects</option>
+                      {subjects.map((subject) => (
+                        <option key={subject} value={subject}>
+                          {subject}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 mt-6">
-          <div className="bg-gray-800 rounded-xl p-6 border-l-4 border-[#10b981]">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm">Present Classes</p>
-                <p className="text-3xl font-bold mt-2">{presentCount}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-green-50 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-green-600" />
               </div>
-              <div className="w-12 h-12 rounded-full bg-[#10b981]/20 flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-[#10b981]"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+              <div>
+                <p className="text-sm text-gray-500">Present Classes</p>
+                <p className="text-xl font-bold text-gray-900">{presentCount}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gray-800 rounded-xl p-6 border-l-4 border-[#ef4444]">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm">Absent Classes</p>
-                <p className="text-3xl font-bold mt-2">{absentCount}</p>
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-red-50 rounded-lg">
+                <XCircle className="w-5 h-5 text-red-600" />
               </div>
-              <div className="w-12 h-12 rounded-full bg-[#ef4444]/20 flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-[#ef4444]"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+              <div>
+                <p className="text-sm text-gray-500">Absent Classes</p>
+                <p className="text-xl font-bold text-gray-900">{absentCount}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gray-800 rounded-xl p-6 border-l-4 border-[#e6c235]">
-            <div className="flex items-center justify-between">
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-amber-50 rounded-lg">
+                <Clock className="w-5 h-5 text-amber-600" />
+              </div>
               <div>
-                <p className="text-gray-400 text-sm">Total Classes</p>
-                <p className="text-3xl font-bold mt-2">
+                <p className="text-sm text-gray-500">Total Classes</p>
+                <p className="text-xl font-bold text-gray-900">
                   {presentCount + absentCount}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-[#e6c235]/20 flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-[#e6c235]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
             </div>
           </div>
 
-          <div className="bg-gray-800 rounded-xl p-6 border-l-4 border-[#0a295e]">
-            <div className="flex items-center justify-between">
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-blue-600" />
+              </div>
               <div>
-                <p className="text-gray-400 text-sm">Attendance Rate</p>
-                <p className="text-3xl font-bold mt-2">
+                <p className="text-sm text-gray-500">Attendance Rate</p>
+                <p className="text-xl font-bold text-gray-900">
                   {attendancePercentage}%
                 </p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-[#0a295e]/20 flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-[#0a295e]"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
               </div>
             </div>
           </div>
         </div>
 
         {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Pie Chart */}
-          <div className="bg-gray-800 rounded-xl p-6">
-            <h3 className="text-xl font-semibold mb-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Attendance Distribution
             </h3>
             <div className="h-80">
@@ -337,9 +317,11 @@ export default function StudentAttendance() {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1f2937",
-                      borderColor: "#4b5563",
-                      color: "white",
+                      backgroundColor: "white",
+                      borderColor: "#e5e7eb",
+                      color: "#111827",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
                   <Legend />
@@ -349,21 +331,23 @@ export default function StudentAttendance() {
           </div>
 
           {/* Bar Chart */}
-          <div className="bg-gray-800 rounded-xl p-6">
-            <h3 className="text-xl font-semibold mb-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Attendance by Subject
             </h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={barData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#4b5563" />
-                  <XAxis dataKey="subject" stroke="#9ca3af" />
-                  <YAxis stroke="#9ca3af" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="subject" stroke="#6b7280" />
+                  <YAxis stroke="#6b7280" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1f2937",
-                      borderColor: "#4b5563",
-                      color: "white",
+                      backgroundColor: "white",
+                      borderColor: "#e5e7eb",
+                      color: "#111827",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
                   <Legend />
@@ -385,21 +369,23 @@ export default function StudentAttendance() {
           </div>
 
           {/* Line Chart */}
-          <div className="bg-gray-800 rounded-xl p-6">
-            <h3 className="text-xl font-semibold mb-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Monthly Attendance Trend
             </h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={lineData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#4b5563" />
-                  <XAxis dataKey="month" stroke="#9ca3af" />
-                  <YAxis stroke="#9ca3af" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="month" stroke="#6b7280" />
+                  <YAxis stroke="#6b7280" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1f2937",
-                      borderColor: "#4b5563",
-                      color: "white",
+                      backgroundColor: "white",
+                      borderColor: "#e5e7eb",
+                      color: "#111827",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                     formatter={(value) => [`${value}%`, "Attendance Rate"]}
                   />
@@ -408,16 +394,16 @@ export default function StudentAttendance() {
                     type="monotone"
                     dataKey="attendance"
                     name="Attendance %"
-                    stroke="#e6c235"
+                    stroke="#2563eb"
                     strokeWidth={3}
-                    dot={{ r: 4 }}
+                    dot={{ r: 4, fill: "#2563eb" }}
                     activeDot={{ r: 6 }}
                   />
                   <Line
                     type="monotone"
                     dataKey="classes"
                     name="Classes Held"
-                    stroke="#0a295e"
+                    stroke="#d97706"
                     strokeWidth={2}
                     strokeDasharray="5 5"
                   />
@@ -427,31 +413,33 @@ export default function StudentAttendance() {
           </div>
 
           {/* Area Chart */}
-          <div className="bg-gray-800 rounded-xl p-6">
-            <h3 className="text-xl font-semibold mb-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Daily Attendance (Last 15 Days)
             </h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={dailyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#4b5563" />
-                  <XAxis dataKey="date" stroke="#9ca3af" />
-                  <YAxis stroke="#9ca3af" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="date" stroke="#6b7280" />
+                  <YAxis stroke="#6b7280" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1f2937",
-                      borderColor: "#4b5563",
-                      color: "white",
+                      backgroundColor: "white",
+                      borderColor: "#e5e7eb",
+                      color: "#111827",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
                   <Legend />
                   <Area
                     type="monotone"
                     dataKey="status"
-                    name="Present (1=Yes)"
-                    stroke="#bd2323"
-                    fill="#bd2323"
-                    fillOpacity={0.3}
+                    name="Present"
+                    stroke="#2563eb"
+                    fill="#2563eb"
+                    fillOpacity={0.1}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -460,14 +448,14 @@ export default function StudentAttendance() {
         </div>
 
         {/* Radial Chart */}
-        <div className="bg-gray-800 rounded-xl p-6 mb-8">
-          <h3 className="text-xl font-semibold mb-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Overall Attendance Percentage
           </h3>
-          <div className="h-80">
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <RadialBarChart
-                innerRadius="10%"
+                innerRadius="20%"
                 outerRadius="80%"
                 data={radialData}
                 startAngle={180}
@@ -475,7 +463,7 @@ export default function StudentAttendance() {
               >
                 <RadialBar
                   minAngle={15}
-                  label={{ fill: "#ffffff", position: "insideStart" }}
+                  label={{ fill: "#111827", position: "insideStart" }}
                   background
                   dataKey="value"
                 />
@@ -487,9 +475,11 @@ export default function StudentAttendance() {
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "#1f2937",
-                    borderColor: "#4b5563",
-                    color: "white",
+                    backgroundColor: "white",
+                    borderColor: "#e5e7eb",
+                    color: "#111827",
+                    borderRadius: "8px",
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                   }}
                   formatter={(value) => [`${value}%`, "Attendance"]}
                 />
@@ -499,131 +489,94 @@ export default function StudentAttendance() {
         </div>
 
         {/* Detailed Attendance List */}
-        <div className="bg-gray-800 rounded-xl p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold">
-              Detailed Attendance Records
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Recent Attendance Records
             </h3>
-            <span className="text-gray-400">
+            <span className="text-sm text-gray-500">
               Total Records: {attendanceData.length}
             </span>
           </div>
 
           {loading ? (
             <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#bd2323]"></div>
-              <p className="mt-2 text-gray-400">Loading attendance data...</p>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
+              <p className="mt-2 text-gray-500">Loading attendance data...</p>
             </div>
           ) : attendanceData.length === 0 ? (
             <div className="text-center py-12">
-              <svg
-                className="mx-auto h-12 w-12 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-              <p className="mt-2 text-gray-400">No attendance records found.</p>
+              <Activity className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">No attendance records found</p>
+              <p className="text-sm text-gray-400 mt-1">
+                Your attendance data will appear here
+              </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-700">
-                    <th className="text-left py-3 px-4 text-gray-400 font-medium">
-                      Date
-                    </th>
-                    <th className="text-left py-3 px-4 text-gray-400 font-medium">
-                      Subject
-                    </th>
-                    <th className="text-left py-3 px-4 text-gray-400 font-medium">
-                      Time
-                    </th>
-                    <th className="text-left py-3 px-4 text-gray-400 font-medium">
-                      Status
-                    </th>
-                    <th className="text-left py-3 px-4 text-gray-400 font-medium">
-                      Remarks
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {attendanceData.slice(0, 10).map((record, index) => (
-                    <tr
-                      key={index}
-                      className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors"
-                    >
-                      <td className="py-3 px-4">
-                        {new Date(record.date).toLocaleDateString("en-US", {
-                          weekday: "short",
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </td>
-                      <td className="py-3 px-4">{record.subject || "N/A"}</td>
-                      <td className="py-3 px-4">
-                        {record.time ||
-                          new Date(record.date).toLocaleTimeString()}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                            record.status === "present"
-                              ? "bg-green-500/20 text-green-400"
-                              : "bg-red-500/20 text-red-400"
-                          }`}
-                        >
-                          {record.status === "present" ? (
-                            <svg
-                              className="w-3 h-3 mr-1"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          ) : (
-                            <svg
-                              className="w-3 h-3 mr-1"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          )}
-                          {record.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-gray-400">
-                        {record.remarks || "-"}
-                      </td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Date</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Subject</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Time</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Status</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Remarks</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {attendanceData.slice(0, 10).map((record, index) => (
+                      <tr
+                        key={index}
+                        className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="py-3 px-4 text-gray-900">
+                          {new Date(record.date).toLocaleDateString("en-US", {
+                            weekday: "short",
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </td>
+                        <td className="py-3 px-4 text-gray-900">{record.subject || "N/A"}</td>
+                        <td className="py-3 px-4 text-gray-500">
+                          {record.time ||
+                            new Date(record.date).toLocaleTimeString()}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
+                              record.status === "present"
+                                ? "bg-green-50 text-green-700"
+                                : "bg-red-50 text-red-700"
+                            }`}
+                          >
+                            {record.status === "present" ? (
+                              <CheckCircle className="w-3 h-3" />
+                            ) : (
+                              <XCircle className="w-3 h-3" />
+                            )}
+                            {record.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-gray-500">
+                          {record.remarks || "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
               {attendanceData.length > 10 && (
                 <div className="text-center mt-4">
-                  <button className="text-[#e6c235] hover:text-[#bd2323] transition-colors">
+                  <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
                     View All Records ({attendanceData.length})
                   </button>
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
       </div>
