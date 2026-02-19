@@ -13,6 +13,10 @@ import {
   XCircle,
   Clock,
   RefreshCw,
+  ArrowUpRight,
+  FileText,
+  MoreHorizontal,
+  ChevronDown,
 } from "lucide-react";
 
 interface Student {
@@ -40,13 +44,13 @@ interface Fee {
 
 // Course options for filter
 const courses = [
-  { id: "bca", name: "BCA", color: "#bd2323" },
-  { id: "bba", name: "BBA", color: "#0a295e" },
-  { id: "mba", name: "MBA", color: "#e6c235" },
-  { id: "bcom", name: "B.Com", color: "#000000" },
-  { id: "mcom", name: "M.Com", color: "#bd2323" },
-  { id: "bsc", name: "B.Sc", color: "#0a295e" },
-  { id: "msc", name: "M.Sc", color: "#e6c235" },
+  { id: "bca", name: "BCA", color: "#2563eb" },
+  { id: "bba", name: "BBA", color: "#7c3aed" },
+  { id: "mba", name: "MBA", color: "#db2777" },
+  { id: "bcom", name: "B.Com", color: "#059669" },
+  { id: "mcom", name: "M.Com", color: "#dc2626" },
+  { id: "bsc", name: "B.Sc", color: "#d97706" },
+  { id: "msc", name: "M.Sc", color: "#0891b2" },
 ];
 
 // Semester options
@@ -57,6 +61,7 @@ export default function TeacherFee() {
   const [filteredFees, setFilteredFees] = useState<Fee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -75,6 +80,7 @@ export default function TeacherFee() {
     pendingFees: 0,
     overdueFees: 0,
     totalStudents: 0,
+    collectionRate: 0,
   });
 
   const fetchAllFees = async () => {
@@ -91,10 +97,10 @@ export default function TeacherFee() {
     }
   };
 
-  // fetch
   useEffect(() => {
     fetchAllFees();
   }, []);
+
   // Calculate statistics
   useEffect(() => {
     const totalFees = fees.reduce((sum, fee) => sum + fee.total, 0);
@@ -105,6 +111,8 @@ export default function TeacherFee() {
     );
     const overdueFees = fees.filter((f) => f.status === "overdue").length;
     const totalStudents = new Set(fees.map((f) => f.student?._id)).size;
+    const collectionRate =
+      totalFees > 0 ? (collectedFees / totalFees) * 100 : 0;
 
     setStats({
       totalFees,
@@ -112,6 +120,7 @@ export default function TeacherFee() {
       pendingFees,
       overdueFees,
       totalStudents,
+      collectionRate,
     });
   }, [fees]);
 
@@ -119,7 +128,6 @@ export default function TeacherFee() {
   useEffect(() => {
     let filtered = [...fees];
 
-    // Search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (fee) =>
@@ -133,26 +141,22 @@ export default function TeacherFee() {
       );
     }
 
-    // Course filter
     if (selectedCourse !== "all") {
       filtered = filtered.filter(
         (fee) => fee.student?.course === selectedCourse,
       );
     }
 
-    // Semester filter
     if (selectedSemester !== "all") {
       filtered = filtered.filter(
         (fee) => fee.student?.semester === parseInt(selectedSemester),
       );
     }
 
-    // Status filter
     if (selectedStatus !== "all") {
       filtered = filtered.filter((fee) => fee.status === selectedStatus);
     }
 
-    // Date range filter
     if (dateRange.start) {
       filtered = filtered.filter(
         (fee) =>
@@ -176,52 +180,61 @@ export default function TeacherFee() {
     dateRange,
   ]);
 
-  // Get status badge color and icon
+  // Get status badge styles
   const getStatusDetails = (status: string) => {
     switch (status) {
       case "paid":
         return {
-          color: "bg-green-900/30 text-green-400 border-green-800",
-          icon: <CheckCircle size={14} className="mr-1" />,
+          bg: "bg-emerald-50",
+          text: "text-emerald-700",
+          border: "border-emerald-200",
+          icon: <CheckCircle size={14} className="text-emerald-600" />,
           label: "Paid",
         };
       case "partial":
         return {
-          color: "bg-yellow-900/30 text-yellow-400 border-yellow-800",
-          icon: <Clock size={14} className="mr-1" />,
+          bg: "bg-amber-50",
+          text: "text-amber-700",
+          border: "border-amber-200",
+          icon: <Clock size={14} className="text-amber-600" />,
           label: "Partial",
         };
       case "pending":
         return {
-          color: "bg-blue-900/30 text-blue-400 border-blue-800",
-          icon: <Clock size={14} className="mr-1" />,
+          bg: "bg-blue-50",
+          text: "text-blue-700",
+          border: "border-blue-200",
+          icon: <Clock size={14} className="text-blue-600" />,
           label: "Pending",
         };
       case "overdue":
         return {
-          color: "bg-red-900/30 text-red-400 border-red-800",
-          icon: <XCircle size={14} className="mr-1" />,
+          bg: "bg-red-50",
+          text: "text-red-700",
+          border: "border-red-200",
+          icon: <XCircle size={14} className="text-red-600" />,
           label: "Overdue",
         };
       default:
         return {
-          color: "bg-gray-900/30 text-gray-400 border-gray-800",
+          bg: "bg-gray-50",
+          text: "text-gray-700",
+          border: "border-gray-200",
           icon: null,
           label: status,
         };
     }
   };
 
-  // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
       minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
-  // Export to CSV
   const exportToCSV = () => {
     const headers = [
       "Student Name",
@@ -235,13 +248,13 @@ export default function TeacherFee() {
     ];
     const data = filteredFees.map((fee) => [
       fee.student?.name || "N/A",
-      fee.student?.course || "N/A",
+      fee.student?.course?.toUpperCase() || "N/A",
       fee.student?.semester || "N/A",
       fee.total,
       fee.paid,
       fee.total - fee.paid,
-      fee.status,
-      fee.dueDate ? new Date(fee.dueDate).toLocaleDateString() : "N/A",
+      fee.status.toUpperCase(),
+      fee.dueDate ? new Date(fee.dueDate).toLocaleDateString("en-IN") : "N/A",
     ]);
 
     const csvContent = [headers, ...data]
@@ -256,7 +269,6 @@ export default function TeacherFee() {
     a.click();
   };
 
-  // Clear all filters
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedCourse("all");
@@ -266,502 +278,568 @@ export default function TeacherFee() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div
-            className="bg-linear-to-r from-[#0a295e] to-[#bd2323] p-6 rounded-2xl"
-            style={{ borderBottom: `3px solid #e6c235` }}
-          >
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold text-white flex items-center">
-                  <DollarSign className="mr-3" size={32} />
-                  Fee Management
-                </h1>
-                <p className="text-gray-200 mt-2">
-                  View and manage student fees across courses and semesters
-                </p>
-              </div>
-              <button
-                onClick={fetchAllFees}
-                className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
-                title="Refresh data"
-              >
-                <RefreshCw size={20} className="text-white" />
-              </button>
+    <div className="space-y-6">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-gray-500">Total Fees</span>
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <DollarSign className="w-4 h-4 text-blue-600" />
             </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-900">
+            {formatCurrency(stats.totalFees)}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">Across all students</div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-gray-500">Collected</span>
+            <div className="p-2 bg-emerald-50 rounded-lg">
+              <TrendingUp className="w-4 h-4 text-emerald-600" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-emerald-600">
+            {formatCurrency(stats.collectedFees)}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            {stats.collectionRate.toFixed(1)}% collection rate
           </div>
         </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 mt-10">
-          <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-gray-400 text-sm">Total Fees</div>
-              <DollarSign size={18} style={{ color: "#e6c235" }} />
-            </div>
-            <div className="text-2xl font-bold text-white">
-              {formatCurrency(stats.totalFees)}
-            </div>
-            <div className="text-xs text-gray-500 mt-1">
-              Across all students
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-gray-500">Pending</span>
+            <div className="p-2 bg-amber-50 rounded-lg">
+              <Clock className="w-4 h-4 text-amber-600" />
             </div>
           </div>
-
-          <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-gray-400 text-sm">Collected</div>
-              <TrendingUp size={18} style={{ color: "#22c55e" }} />
-            </div>
-            <div className="text-2xl font-bold text-green-400">
-              {formatCurrency(stats.collectedFees)}
-            </div>
-            <div className="text-xs text-gray-500 mt-1">
-              {((stats.collectedFees / stats.totalFees) * 100 || 0).toFixed(1)}%
-              of total
-            </div>
+          <div className="text-2xl font-bold text-amber-600">
+            {formatCurrency(stats.pendingFees)}
           </div>
-
-          <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-gray-400 text-sm">Pending</div>
-              <Clock size={18} style={{ color: "#eab308" }} />
-            </div>
-            <div className="text-2xl font-bold text-yellow-400">
-              {formatCurrency(stats.pendingFees)}
-            </div>
-            <div className="text-xs text-gray-500 mt-1">
-              {((stats.pendingFees / stats.totalFees) * 100 || 0).toFixed(1)}%
-              of total
-            </div>
-          </div>
-
-          <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-gray-400 text-sm">Overdue</div>
-              <XCircle size={18} style={{ color: "#ef4444" }} />
-            </div>
-            <div className="text-2xl font-bold text-red-400">
-              {stats.overdueFees}
-            </div>
-            <div className="text-xs text-gray-500 mt-1">
-              Students with overdue fees
-            </div>
-          </div>
-
-          <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-gray-400 text-sm">Students</div>
-              <Users size={18} style={{ color: "#3b82f6" }} />
-            </div>
-            <div className="text-2xl font-bold text-blue-400">
-              {stats.totalStudents}
-            </div>
-            <div className="text-xs text-gray-500 mt-1">Active students</div>
+          <div className="text-xs text-gray-500 mt-1">
+            {((stats.pendingFees / stats.totalFees) * 100 || 0).toFixed(1)}% of
+            total
           </div>
         </div>
 
-        {/* Filters Section */}
-        <div className="bg-gray-800 rounded-xl border border-gray-700 p-5 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white flex items-center">
-              <Filter className="mr-2" size={20} style={{ color: "#e6c235" }} />
-              Filters
-            </h2>
-            <button
-              onClick={clearFilters}
-              className="text-sm text-gray-400 hover:text-white transition-colors"
-            >
-              Clear all filters
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            {/* Search */}
-            <div className="col-span-1 md:col-span-2">
-              <label className="block text-gray-400 text-sm mb-1">Search</label>
-              <div className="relative">
-                <Search
-                  className="absolute left-3 top-2.5 text-gray-400"
-                  size={18}
-                />
-                <input
-                  type="text"
-                  placeholder="Search by name, email, enrollment..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#bd2323]"
-                />
-              </div>
-            </div>
-
-            {/* Course Filter */}
-            <div>
-              <label className="block text-gray-400 text-sm mb-1">Course</label>
-              <select
-                value={selectedCourse}
-                onChange={(e) => setSelectedCourse(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#bd2323]"
-              >
-                <option value="all">All Courses</option>
-                {courses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Semester Filter */}
-            <div>
-              <label className="block text-gray-400 text-sm mb-1">
-                Semester
-              </label>
-              <select
-                value={selectedSemester}
-                onChange={(e) => setSelectedSemester(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#bd2323]"
-              >
-                <option value="all">All Semesters</option>
-                {semesters.map((sem) => (
-                  <option key={sem} value={sem}>
-                    Semester {sem}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Status Filter */}
-            <div>
-              <label className="block text-gray-400 text-sm mb-1">Status</label>
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#bd2323]"
-              >
-                <option value="all">All Status</option>
-                <option value="paid">Paid</option>
-                <option value="partial">Partial</option>
-                <option value="pending">Pending</option>
-                <option value="overdue">Overdue</option>
-              </select>
-            </div>
-
-            {/* Date Range - Start */}
-            <div>
-              <label className="block text-gray-400 text-sm mb-1">
-                Due Date From
-              </label>
-              <input
-                type="date"
-                value={dateRange.start}
-                onChange={(e) =>
-                  setDateRange({ ...dateRange, start: e.target.value })
-                }
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#bd2323]"
-              />
-            </div>
-
-            {/* Date Range - End */}
-            <div>
-              <label className="block text-gray-400 text-sm mb-1">
-                Due Date To
-              </label>
-              <input
-                type="date"
-                value={dateRange.end}
-                onChange={(e) =>
-                  setDateRange({ ...dateRange, end: e.target.value })
-                }
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-[#bd2323]"
-              />
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-gray-500">Overdue</span>
+            <div className="p-2 bg-red-50 rounded-lg">
+              <XCircle className="w-4 h-4 text-red-600" />
             </div>
           </div>
-
-          {/* Active Filters */}
-          {(searchTerm ||
-            selectedCourse !== "all" ||
-            selectedSemester !== "all" ||
-            selectedStatus !== "all" ||
-            dateRange.start ||
-            dateRange.end) && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              <span className="text-sm text-gray-400 mr-2">
-                Active filters:
-              </span>
-              {searchTerm && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-[#bd2323] bg-opacity-20 text-[#ff6b6b] border border-[#bd2323]">
-                  Search: {searchTerm}
-                </span>
-              )}
-              {selectedCourse !== "all" && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-[#0a295e] bg-opacity-20 text-blue-400 border border-[#0a295e]">
-                  Course: {courses.find((c) => c.id === selectedCourse)?.name}
-                </span>
-              )}
-              {selectedSemester !== "all" && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-[#e6c235] bg-opacity-20 text-yellow-400 border border-[#e6c235]">
-                  Semester: {selectedSemester}
-                </span>
-              )}
-            </div>
-          )}
+          <div className="text-2xl font-bold text-red-600">
+            {stats.overdueFees}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">Students overdue</div>
         </div>
 
-        {/* Export Button */}
-        <div className="flex justify-end mb-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-gray-500">Active Students</span>
+            <div className="p-2 bg-purple-50 rounded-lg">
+              <Users className="w-4 h-4 text-purple-600" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-purple-600">
+            {stats.totalStudents}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">Enrolled students</div>
+        </div>
+      </div>
+
+      {/* Filters Section */}
+      <div className="bg-white rounded-xl border border-gray-200">
+        <div className="p-5 border-b border-gray-200">
           <button
-            onClick={exportToCSV}
-            className="flex items-center px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors"
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center justify-between w-full"
           >
-            <Download size={18} className="mr-2" />
-            Export Report
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-gray-500" />
+              <span className="font-medium text-gray-700">Filters</span>
+            </div>
+            <div className="flex items-center gap-4">
+              {(searchTerm ||
+                selectedCourse !== "all" ||
+                selectedSemester !== "all" ||
+                selectedStatus !== "all" ||
+                dateRange.start ||
+                dateRange.end) && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearFilters();
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-700"
+                >
+                  Clear all
+                </button>
+              )}
+              <ChevronDown
+                className={`w-5 h-5 text-gray-500 transition-transform ${showFilters ? "rotate-180" : ""}`}
+              />
+            </div>
           </button>
         </div>
 
-        {/* Fee Table */}
-        <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-750 border-b border-gray-700">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">
-                    Student
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">
-                    Course
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">
-                    Semester
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">
-                    Total Fee
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">
-                    Paid
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">
-                    Remaining
-                  </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-400">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">
-                    Due Date
-                  </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-400">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-700">
-                {loading ? (
-                  <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center">
-                      <div className="flex justify-center items-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#bd2323]"></div>
-                        <span className="ml-3 text-gray-400">
-                          Loading fee data...
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                ) : error ? (
-                  <tr>
-                    <td
-                      colSpan={9}
-                      className="px-4 py-8 text-center text-red-400"
-                    >
-                      {error}
-                    </td>
-                  </tr>
-                ) : filteredFees.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center">
-                      <div className="text-gray-400">
-                        <DollarSign
-                          size={48}
-                          className="mx-auto mb-4 opacity-50"
-                        />
-                        No fee records found
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredFees.map((fee) => {
-                    const statusDetails = getStatusDetails(fee.status);
-                    const remaining = fee.total - fee.paid;
-
-                    return (
-                      <tr
-                        key={fee._id}
-                        className="hover:bg-gray-750 transition-colors"
-                      >
-                        <td className="px-4 py-3">
-                          <div className="font-medium text-white">
-                            {fee.student?.name || "Deleted Student"}
-                          </div>
-                          {fee.student?.email && (
-                            <div className="text-xs text-gray-400">
-                              {fee.student.email}
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          {fee.student?.course ? (
-                            <span
-                              className="px-2 py-1 text-xs rounded-full"
-                              style={{
-                                backgroundColor:
-                                  courses.find(
-                                    (c) => c.id === fee.student.course,
-                                  )?.color + "20" || "#374151",
-                                color:
-                                  courses.find(
-                                    (c) => c.id === fee.student.course,
-                                  )?.color || "#9CA3AF",
-                                border: `1px solid ${courses.find((c) => c.id === fee.student.course)?.color || "#374151"}`,
-                              }}
-                            >
-                              {fee.student.course.toUpperCase()}
-                            </span>
-                          ) : (
-                            <span className="text-gray-500">Not set</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          {fee.student?.semester ? (
-                            <span className="text-gray-300">
-                              Sem {fee.student.semester}
-                            </span>
-                          ) : (
-                            <span className="text-gray-500">-</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-right font-medium text-white">
-                          {formatCurrency(fee.total)}
-                        </td>
-                        <td className="px-4 py-3 text-right font-medium text-green-400">
-                          {formatCurrency(fee.paid)}
-                        </td>
-                        <td className="px-4 py-3 text-right font-medium">
-                          <span
-                            className={
-                              remaining > 0
-                                ? "text-yellow-400"
-                                : "text-green-400"
-                            }
-                          >
-                            {formatCurrency(remaining)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div
-                            className={`flex items-center justify-center px-2 py-1 text-xs rounded-full border ${statusDetails.color}`}
-                          >
-                            {statusDetails.icon}
-                            {statusDetails.label}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          {fee.dueDate ? (
-                            <div className="text-sm text-gray-300">
-                              {new Date(fee.dueDate).toLocaleDateString(
-                                "en-IN",
-                                {
-                                  day: "numeric",
-                                  month: "short",
-                                  year: "numeric",
-                                },
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-gray-500">No due date</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex justify-center space-x-2">
-                            <button
-                              className="p-1 hover:bg-gray-700 rounded transition-colors"
-                              title="View Details"
-                            >
-                              <Eye
-                                size={18}
-                                className="text-gray-400 hover:text-white"
-                              />
-                            </button>
-                            <button
-                              className="p-1 hover:bg-gray-700 rounded transition-colors"
-                              title="Download Receipt"
-                            >
-                              <Download
-                                size={18}
-                                className="text-gray-400 hover:text-white"
-                              />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Table Footer */}
-          <div className="px-4 py-3 bg-gray-750 border-t border-gray-700 flex justify-between items-center">
-            <div className="text-sm text-gray-400">
-              Showing {filteredFees.length} of {fees.length} records
-            </div>
-            <div className="text-sm text-gray-400">
-              Last updated: {new Date().toLocaleString()}
-            </div>
-          </div>
-        </div>
-
-        {/* Course-wise Summary */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {courses.slice(0, 4).map((course) => {
-            const courseFees = fees.filter(
-              (f) => f.student?.course === course.id,
-            );
-            const total = courseFees.reduce((sum, f) => sum + f.total, 0);
-            const paid = courseFees.reduce((sum, f) => sum + f.paid, 0);
-            const pending = total - paid;
-
-            return (
-              <div
-                key={course.id}
-                className="bg-gray-800 p-4 rounded-xl border border-gray-700"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium" style={{ color: course.color }}>
-                    {course.name}
-                  </span>
-                  <GraduationCap size={18} style={{ color: course.color }} />
-                </div>
-                <div className="text-lg font-bold text-white">
-                  {formatCurrency(pending)}
-                </div>
-                <div className="text-xs text-gray-400">
-                  Pending out of {formatCurrency(total)} • {courseFees.length}{" "}
-                  students
-                </div>
-                <div className="mt-2 h-1 bg-gray-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{
-                      width: `${(paid / total) * 100 || 0}%`,
-                      backgroundColor: course.color,
-                    }}
+        {showFilters && (
+          <div className="p-5 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Search */}
+              <div className="col-span-1 md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Search
+                </label>
+                <div className="relative">
+                  <Search
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={18}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search by name, email, enrollment..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               </div>
-            );
-          })}
+
+              {/* Course Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Course
+                </label>
+                <select
+                  value={selectedCourse}
+                  onChange={(e) => setSelectedCourse(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">All Courses</option>
+                  {courses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Semester Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Semester
+                </label>
+                <select
+                  value={selectedSemester}
+                  onChange={(e) => setSelectedSemester(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">All Semesters</option>
+                  {semesters.map((sem) => (
+                    <option key={sem} value={sem}>
+                      Semester {sem}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Status Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">All Status</option>
+                  <option value="paid">Paid</option>
+                  <option value="partial">Partial</option>
+                  <option value="pending">Pending</option>
+                  <option value="overdue">Overdue</option>
+                </select>
+              </div>
+
+              {/* Date Range */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  From Date
+                </label>
+                <input
+                  type="date"
+                  value={dateRange.start}
+                  onChange={(e) =>
+                    setDateRange({ ...dateRange, start: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  To Date
+                </label>
+                <input
+                  type="date"
+                  value={dateRange.end}
+                  onChange={(e) =>
+                    setDateRange({ ...dateRange, end: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Active Filters Tags */}
+            {(searchTerm ||
+              selectedCourse !== "all" ||
+              selectedSemester !== "all" ||
+              selectedStatus !== "all" ||
+              dateRange.start ||
+              dateRange.end) && (
+              <div className="flex flex-wrap gap-2 pt-3">
+                <span className="text-sm text-gray-500">Active filters:</span>
+                {searchTerm && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs bg-blue-50 text-blue-700 border border-blue-200">
+                    Search: {searchTerm}
+                  </span>
+                )}
+                {selectedCourse !== "all" && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs bg-purple-50 text-purple-700 border border-purple-200">
+                    Course: {courses.find((c) => c.id === selectedCourse)?.name}
+                  </span>
+                )}
+                {selectedSemester !== "all" && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs bg-amber-50 text-amber-700 border border-amber-200">
+                    Semester: {selectedSemester}
+                  </span>
+                )}
+                {selectedStatus !== "all" && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    Status: {selectedStatus}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Fee Table */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Student
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Course
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Sem
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Total Fee
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Paid
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Remaining
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Due Date
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {loading ? (
+                <tr>
+                  <td colSpan={9} className="px-4 py-8 text-center">
+                    <div className="flex justify-center items-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
+                      <span className="ml-3 text-gray-500">
+                        Loading fee data...
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td
+                    colSpan={9}
+                    className="px-4 py-8 text-center text-red-600"
+                  >
+                    {error}
+                  </td>
+                </tr>
+              ) : filteredFees.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="px-4 py-12 text-center">
+                    <div className="text-gray-400">
+                      <DollarSign
+                        size={48}
+                        className="mx-auto mb-4 opacity-50"
+                      />
+                      <p className="text-gray-600 font-medium">
+                        No fee records found
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Try adjusting your filters or add new fees
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredFees.map((fee) => {
+                  const statusDetails = getStatusDetails(fee.status);
+                  const remaining = fee.total - fee.paid;
+
+                  return (
+                    <tr
+                      key={fee._id}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-gray-900">
+                          {fee.student?.name || "Deleted Student"}
+                        </div>
+                        {fee.student?.email && (
+                          <div className="text-xs text-gray-500">
+                            {fee.student.email}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {fee.student?.course ? (
+                          <span
+                            className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium"
+                            style={{
+                              backgroundColor:
+                                courses.find((c) => c.id === fee.student.course)
+                                  ?.color + "15",
+                              color: courses.find(
+                                (c) => c.id === fee.student.course,
+                              )?.color,
+                            }}
+                          >
+                            {fee.student.course.toUpperCase()}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {fee.student?.semester
+                          ? `Sem ${fee.student.semester}`
+                          : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-right font-medium text-gray-900">
+                        {formatCurrency(fee.total)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-medium text-emerald-600">
+                        {formatCurrency(fee.paid)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-medium">
+                        <span
+                          className={
+                            remaining > 0
+                              ? "text-amber-600"
+                              : "text-emerald-600"
+                          }
+                        >
+                          {formatCurrency(remaining)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-center">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${statusDetails.bg} ${statusDetails.text} ${statusDetails.border}`}
+                          >
+                            {statusDetails.icon}
+                            {statusDetails.label}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        {fee.dueDate ? (
+                          <div className="text-sm text-gray-600">
+                            {new Date(fee.dueDate).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-center space-x-2">
+                          <button
+                            className="p-1 hover:bg-gray-100 rounded transition-colors"
+                            title="View Details"
+                          >
+                            <Eye size={16} className="text-gray-500" />
+                          </button>
+                          <button
+                            className="p-1 hover:bg-gray-100 rounded transition-colors"
+                            title="Download Receipt"
+                          >
+                            <FileText size={16} className="text-gray-500" />
+                          </button>
+                          <button
+                            className="p-1 hover:bg-gray-100 rounded transition-colors"
+                            title="More Options"
+                          >
+                            <MoreHorizontal
+                              size={16}
+                              className="text-gray-500"
+                            />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Table Footer */}
+        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-2">
+          <div className="text-sm text-gray-600">
+            Showing <span className="font-medium">{filteredFees.length}</span>{" "}
+            of <span className="font-medium">{fees.length}</span> records
+          </div>
+          <div className="text-sm text-gray-500">
+            Last updated: {new Date().toLocaleString("en-IN")}
+          </div>
+          <button
+            onClick={exportToCSV}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Export Report
+          </button>
+        </div>
+      </div>
+
+      {/* Course-wise Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {courses.slice(0, 4).map((course) => {
+          const courseFees = fees.filter(
+            (f) => f.student?.course === course.id,
+          );
+          const total = courseFees.reduce((sum, f) => sum + f.total, 0);
+          const paid = courseFees.reduce((sum, f) => sum + f.paid, 0);
+          const pending = total - paid;
+          const collectionRate = total > 0 ? (paid / total) * 100 : 0;
+
+          return (
+            <div
+              key={course.id}
+              className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition-shadow"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: course.color }}
+                  />
+                  <span className="font-medium text-gray-900">
+                    {course.name}
+                  </span>
+                </div>
+                <GraduationCap size={16} style={{ color: course.color }} />
+              </div>
+              <div className="flex items-baseline justify-between mb-1">
+                <span className="text-2xl font-bold text-gray-900">
+                  {formatCurrency(pending)}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {courseFees.length} students
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm mb-3">
+                <span className="text-gray-500">
+                  Pending of {formatCurrency(total)}
+                </span>
+                <span
+                  className={
+                    collectionRate > 70 ? "text-emerald-600" : "text-amber-600"
+                  }
+                >
+                  {collectionRate.toFixed(0)}% collected
+                </span>
+              </div>
+              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${collectionRate}%`,
+                    backgroundColor: course.color,
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Recent Payments */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-gray-900">Recent Payments</h3>
+          <button className="text-sm text-blue-600 hover:text-blue-700">
+            View all
+          </button>
+        </div>
+        <div className="space-y-3">
+          {fees
+            .filter((f) => f.paymentHistory?.length)
+            .slice(0, 3)
+            .map((fee, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-0"
+              >
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <ArrowUpRight className="w-4 h-4 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    {fee.student?.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {fee.paymentHistory?.[0]?.date
+                      ? new Date(fee.paymentHistory[0].date).toLocaleDateString(
+                          "en-IN",
+                        )
+                      : "Today"}{" "}
+                    • {fee.paymentHistory?.[0]?.method || "Online"}
+                  </p>
+                </div>
+                <span className="text-sm font-medium text-emerald-600">
+                  {formatCurrency(fee.paymentHistory?.[0]?.amount || 0)}
+                </span>
+              </div>
+            ))}
         </div>
       </div>
     </div>
