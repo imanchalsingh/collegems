@@ -1,12 +1,12 @@
 // controllers/teacher.attendance.controller.js
 import TeacherAttendance from "../models/TeacherAttendance.js";
-import Teacher from "../models/Teacher.js";
+import User from "../models/User.model.js"; // Assuming Teacher is a type of User
 
 // For teachers to mark their own attendance
 export const markMyAttendance = async (req, res) => {
   try {
     const { date, status } = req.body;
-    const teacherId = req.user.teacherId; // Assuming teacher ID is stored in req.user
+    const teacherId = req.user.id;
 
     // Validate status
     if (!["Present", "Absent", "Late"].includes(status)) {
@@ -30,27 +30,27 @@ export const markMyAttendance = async (req, res) => {
     if (existingAttendance) {
       // Update existing attendance
       existingAttendance.status = status;
-      existingAttendance.markedBy = req.user._id;
+      existingAttendance.markedBy = req.user.id;
       existingAttendance.markedAt = new Date();
       await existingAttendance.save();
-      
-      return res.json({ 
-        message: "Attendance updated successfully", 
-        attendance: existingAttendance 
+
+      return res.json({
+        message: "Attendance updated successfully",
+        attendance: existingAttendance,
       });
     }
 
     // Create new attendance record
     const attendance = await TeacherAttendance.create({
-      teacher: teacherId,
+      teacher: req.user.id,
       date: startOfDay,
       status,
-      markedBy: req.user._id,
+      markedBy: req.user.id,
     });
 
-    res.status(201).json({ 
-      message: "Attendance marked successfully", 
-      attendance 
+    res.status(201).json({
+      message: "Attendance marked successfully",
+      attendance,
     });
   } catch (err) {
     console.error("Error marking attendance:", err);
@@ -61,7 +61,7 @@ export const markMyAttendance = async (req, res) => {
 // For teachers to get their own attendance history
 export const getMyAttendance = async (req, res) => {
   try {
-    const teacherId = req.user.teacherId;
+    const teacherId = req.user.id;
     const { month, year } = req.query;
 
     let query = { teacher: teacherId };
@@ -97,7 +97,7 @@ export const getAllTeachersAttendance = async (req, res) => {
       searchDate.setHours(0, 0, 0, 0);
       const nextDate = new Date(searchDate);
       nextDate.setDate(nextDate.getDate() + 1);
-      
+
       query.date = {
         $gte: searchDate,
         $lt: nextDate,
@@ -131,7 +131,7 @@ export const getAttendanceStats = async (req, res) => {
     const { startDate, endDate } = req.query;
 
     const matchStage = {};
-    
+
     if (startDate && endDate) {
       matchStage.date = {
         $gte: new Date(startDate),
@@ -150,7 +150,7 @@ export const getAttendanceStats = async (req, res) => {
     ]);
 
     // Get total teachers count
-    const totalTeachers = await Teacher.countDocuments();
+    const totalTeachers = await User.countDocuments();
 
     // Get department-wise stats
     const deptStats = await TeacherAttendance.aggregate([
@@ -187,9 +187,9 @@ export const getAttendanceStats = async (req, res) => {
     });
 
     const formattedStats = {
-      present: stats.find(s => s._id === "Present")?.count || 0,
-      absent: stats.find(s => s._id === "Absent")?.count || 0,
-      late: stats.find(s => s._id === "Late")?.count || 0,
+      present: stats.find((s) => s._id === "Present")?.count || 0,
+      absent: stats.find((s) => s._id === "Absent")?.count || 0,
+      late: stats.find((s) => s._id === "Late")?.count || 0,
       totalTeachers,
       departmentWise,
     };
