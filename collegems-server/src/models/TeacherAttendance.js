@@ -1,3 +1,4 @@
+// models/TeacherAttendance.js
 import mongoose from "mongoose";
 
 const TeacherAttendanceSchema = new mongoose.Schema(
@@ -16,13 +17,20 @@ const TeacherAttendanceSchema = new mongoose.Schema(
       enum: ["Present", "Absent", "Late"],
       required: true,
     },
+    markedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    markedAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-const TeacherAttendance = mongoose.model(
-  "TeacherAttendance",
-  TeacherAttendanceSchema,
-);
+TeacherAttendanceSchema.index({ teacher: 1, date: 1 }, { unique: true });
 
+const TeacherAttendance = mongoose.model("TeacherAttendance", TeacherAttendanceSchema);
 export default TeacherAttendance;
