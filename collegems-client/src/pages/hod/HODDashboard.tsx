@@ -29,10 +29,12 @@ import Classes from "../../components/Classes";
 import Hodfee from "./Hodfee";
 import HODSalary from "./HODSalary";
 import Syllabus from "../../components/Syllabus";
+import HODTeacherAttendance from "./HodTeacherAttendance";
 
 type TabType =
   | "overview"
   | "teachers"
+  | "teachers-attendance"
   | "students"
   | "courses"
   | "classes"
@@ -77,6 +79,7 @@ export default function HODDashboard() {
   const navigationItems = [
     { id: "overview" as TabType, label: "Overview", icon: LayoutGrid },
     { id: "teachers" as TabType, label: "Teachers", icon: Users },
+    {id: "teachers-attendance" as TabType, label: "Teachers Attendance", icon: Users },
     { id: "students" as TabType, label: "Students", icon: GraduationCap },
     { id: "courses" as TabType, label: "Courses", icon: BookOpen },
     { id: "classes" as TabType, label: "Classes", icon: Building2 },
@@ -392,6 +395,7 @@ export default function HODDashboard() {
           )}
 
           {activeTab === "teachers" && <Teachers />}
+          {activeTab === "teachers-attendance" && <HODTeacherAttendance/>}
           {activeTab === "students" && <Students />}
           {activeTab === "fees" && <Hodfee />}
           {activeTab === "salary" && <HODSalary />}
