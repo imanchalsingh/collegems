@@ -27,10 +27,13 @@ const TeacherAttendanceSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 TeacherAttendanceSchema.index({ teacher: 1, date: 1 }, { unique: true });
 
-const TeacherAttendance = mongoose.model("TeacherAttendance", TeacherAttendanceSchema);
+const TeacherAttendance = mongoose.model(
+  "TeacherAttendance",
+  TeacherAttendanceSchema,
+);
 export default TeacherAttendance;
