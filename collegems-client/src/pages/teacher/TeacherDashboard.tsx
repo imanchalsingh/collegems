@@ -30,6 +30,7 @@ import Classes from "../../components/Classes";
 import TeacherFee from "./Teacherfee";
 import Salary from "./Salary";
 import Syllabus from "../../components/Syllabus";
+import MyAttendance from "./MyAttendance";
 
 export default function TeacherDashboard() {
   const [data, setData] = useState<any>(null);
@@ -109,6 +110,7 @@ export default function TeacherDashboard() {
 
   const navigationItems = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "myattendance", label: "My Attendance", icon: ClipboardList },
     { id: "courses", label: "My Courses", icon: BookMarked },
     { id: "assignments", label: "Assignments", icon: CheckSquare },
     { id: "attendance", label: "Attendance", icon: ClipboardList },
@@ -457,6 +459,7 @@ export default function TeacherDashboard() {
               </div>
             </div>
           )}
+          {activeTab === "myattendance" && <MyAttendance />}
 
           {activeTab === "courses" && <HodCourses />}
           {activeTab === "assignments" && (
