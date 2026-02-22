@@ -19,6 +19,7 @@ import {
   LogOut,
   Settings,
   Home,
+  CalendarDays,
 } from "lucide-react";
 import api from "../../api/axios";
 import HodCourses from "../../components/Courses";
@@ -30,6 +31,7 @@ import Hodfee from "./Hodfee";
 import HODSalary from "./HODSalary";
 import Syllabus from "../../components/Syllabus";
 import HODTeacherAttendance from "./HodTeacherAttendance";
+import OrganizeEvents from "../../components/OrganizeEvents";
 
 type TabType =
   | "overview"
@@ -41,7 +43,8 @@ type TabType =
   | "syllabus"
   | "fees"
   | "salary"
-  | "examSchedule";
+  | "examSchedule"
+  | "events";
 
 interface Data {
   cards: Array<{
@@ -79,7 +82,11 @@ export default function HODDashboard() {
   const navigationItems = [
     { id: "overview" as TabType, label: "Overview", icon: LayoutGrid },
     { id: "teachers" as TabType, label: "Teachers", icon: Users },
-    {id: "teachers-attendance" as TabType, label: "Teachers Attendance", icon: Users },
+    {
+      id: "teachers-attendance" as TabType,
+      label: "Teachers Attendance",
+      icon: Users,
+    },
     { id: "students" as TabType, label: "Students", icon: GraduationCap },
     { id: "courses" as TabType, label: "Courses", icon: BookOpen },
     { id: "classes" as TabType, label: "Classes", icon: Building2 },
@@ -87,12 +94,20 @@ export default function HODDashboard() {
     { id: "fees" as TabType, label: "Fees", icon: Wallet },
     { id: "salary" as TabType, label: "Salary", icon: DollarSign },
     { id: "examSchedule" as TabType, label: "Exam Schedule", icon: Calendar },
+    { id: "events" as TabType, label: "Organize Events", icon: CalendarDays },
   ];
 
   const statsCards = data?.cards.map((card, index) => ({
     ...card,
     icon: [Users, GraduationCap, BookOpen, Building2][index % 4],
-    color: index === 0 ? "blue" : index === 1 ? "amber" : index === 2 ? "emerald" : "purple",
+    color:
+      index === 0
+        ? "blue"
+        : index === 1
+          ? "amber"
+          : index === 2
+            ? "emerald"
+            : "purple",
   }));
 
   if (loading) {
@@ -190,7 +205,9 @@ export default function HODDashboard() {
                       }
                     `}
                   >
-                    <Icon className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-gray-500"}`} />
+                    <Icon
+                      className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-gray-500"}`}
+                    />
                     <span>{item.label}</span>
                     {isActive && (
                       <ChevronRight className="w-4 h-4 ml-auto text-blue-600" />
@@ -300,8 +317,12 @@ export default function HODDashboard() {
                     >
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">{card.title}</p>
-                          <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                          <p className="text-sm text-gray-500 mb-1">
+                            {card.title}
+                          </p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {card.value}
+                          </p>
                         </div>
                         <div className={`p-3 rounded-lg ${colorClasses}`}>
                           <Icon className="w-5 h-5" />
@@ -348,7 +369,8 @@ export default function HODDashboard() {
                     const colorClasses = {
                       blue: "bg-blue-50 text-blue-700 hover:bg-blue-100",
                       amber: "bg-amber-50 text-amber-700 hover:bg-amber-100",
-                      emerald: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+                      emerald:
+                        "bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
                     }[action.color];
 
                     return (
@@ -377,7 +399,10 @@ export default function HODDashboard() {
                 </h2>
                 <div className="space-y-4">
                   {[1, 2, 3].map((_, i) => (
-                    <div key={i} className="flex items-start gap-4 py-3 border-b border-gray-100 last:border-0">
+                    <div
+                      key={i}
+                      className="flex items-start gap-4 py-3 border-b border-gray-100 last:border-0"
+                    >
                       <div className="p-2 bg-gray-100 rounded-lg">
                         <Home className="w-4 h-4 text-gray-600" />
                       </div>
@@ -385,7 +410,9 @@ export default function HODDashboard() {
                         <p className="text-sm text-gray-900">
                           New teacher application submitted
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          2 hours ago
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -395,7 +422,7 @@ export default function HODDashboard() {
           )}
 
           {activeTab === "teachers" && <Teachers />}
-          {activeTab === "teachers-attendance" && <HODTeacherAttendance/>}
+          {activeTab === "teachers-attendance" && <HODTeacherAttendance />}
           {activeTab === "students" && <Students />}
           {activeTab === "fees" && <Hodfee />}
           {activeTab === "salary" && <HODSalary />}
@@ -403,6 +430,7 @@ export default function HODDashboard() {
           {activeTab === "courses" && <HodCourses />}
           {activeTab === "examSchedule" && <ExamSchedule />}
           {activeTab === "classes" && <Classes />}
+          {activeTab === "classes" && <OrganizeEvents />}
         </main>
       </div>
     </div>
