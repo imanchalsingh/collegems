@@ -21,6 +21,7 @@ import {
   LogOut,
   Settings,
   GraduationCap,
+  CalendarDays,
 } from "lucide-react";
 import HodCourses from "../../components/Courses";
 import TeacherAssignments from "./Assignment";
@@ -31,6 +32,7 @@ import TeacherFee from "./Teacherfee";
 import Salary from "./Salary";
 import Syllabus from "../../components/Syllabus";
 import MyAttendance from "./MyAttendance";
+import OrganizeEvents from "../../components/OrganizeEvents";
 
 export default function TeacherDashboard() {
   const [data, setData] = useState<any>(null);
@@ -120,6 +122,7 @@ export default function TeacherDashboard() {
     { id: "classes", label: "Classes", icon: Book },
     { id: "syllabus", label: "Syllabus", icon: FileText },
     { id: "students", label: "Students", icon: Users },
+    { id: "events", label: "Organize Events", icon: CalendarDays },
   ];
 
   const getNotificationIcon = (type: string) => {
@@ -183,7 +186,9 @@ export default function TeacherDashboard() {
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Teacher Portal</h2>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Teacher Portal
+                </h2>
                 <p className="text-sm text-gray-500 mt-1">Faculty Dashboard</p>
               </div>
               <button
@@ -193,7 +198,7 @@ export default function TeacherDashboard() {
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
-            
+
             {/* Teacher Info */}
             <div className="mt-4 flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
               <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
@@ -233,7 +238,9 @@ export default function TeacherDashboard() {
                       }
                     `}
                   >
-                    <Icon className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-gray-500"}`} />
+                    <Icon
+                      className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-gray-500"}`}
+                    />
                     <span>{item.label}</span>
                     {isActive && (
                       <ChevronRight className="w-4 h-4 ml-auto text-blue-600" />
@@ -322,10 +329,30 @@ export default function TeacherDashboard() {
               {/* Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                  { label: "Total Courses", value: courses.length, icon: BookMarked, color: "blue" },
-                  { label: "Total Students", value: "124", icon: Users, color: "amber" },
-                  { label: "Classes Today", value: "4", icon: Clock, color: "emerald" },
-                  { label: "Pending Tasks", value: "8", icon: CheckSquare, color: "purple" },
+                  {
+                    label: "Total Courses",
+                    value: courses.length,
+                    icon: BookMarked,
+                    color: "blue",
+                  },
+                  {
+                    label: "Total Students",
+                    value: "124",
+                    icon: Users,
+                    color: "amber",
+                  },
+                  {
+                    label: "Classes Today",
+                    value: "4",
+                    icon: Clock,
+                    color: "emerald",
+                  },
+                  {
+                    label: "Pending Tasks",
+                    value: "8",
+                    icon: CheckSquare,
+                    color: "purple",
+                  },
                 ].map((stat, index) => {
                   const Icon = stat.icon;
                   const colorClasses = {
@@ -342,8 +369,12 @@ export default function TeacherDashboard() {
                     >
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">{stat.label}</p>
-                          <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                          <p className="text-sm text-gray-500 mb-1">
+                            {stat.label}
+                          </p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {stat.value}
+                          </p>
                         </div>
                         <div className={`p-3 rounded-lg ${colorClasses}`}>
                           <Icon className="w-5 h-5" />
@@ -360,8 +391,10 @@ export default function TeacherDashboard() {
                   {/* My Courses */}
                   <div className="bg-white rounded-xl border border-gray-200 p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-lg font-semibold text-gray-900">My Courses</h2>
-                      <button 
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        My Courses
+                      </h2>
+                      <button
                         onClick={() => setActiveTab("courses")}
                         className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                       >
@@ -380,11 +413,17 @@ export default function TeacherDashboard() {
                               <BookMarked className="w-4 h-4 text-blue-700" />
                             </div>
                             <div>
-                              <p className="font-medium text-gray-900">{course.name}</p>
-                              <p className="text-sm text-gray-500">Course Code: CS{101 + index}</p>
+                              <p className="font-medium text-gray-900">
+                                {course.name}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                Course Code: CS{101 + index}
+                              </p>
                             </div>
                           </div>
-                          <span className="text-sm text-gray-500">32 students</span>
+                          <span className="text-sm text-gray-500">
+                            32 students
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -395,7 +434,9 @@ export default function TeacherDashboard() {
                 <div className="space-y-6">
                   {/* Upcoming Classes */}
                   <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Today's Schedule</h2>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                      Today's Schedule
+                    </h2>
                     <div className="space-y-3">
                       {upcomingClasses.map((classItem) => (
                         <div
@@ -403,7 +444,9 @@ export default function TeacherDashboard() {
                           className="p-4 bg-gray-50 rounded-lg border border-gray-100"
                         >
                           <div className="flex justify-between items-start mb-2">
-                            <h3 className="font-medium text-gray-900">{classItem.course}</h3>
+                            <h3 className="font-medium text-gray-900">
+                              {classItem.course}
+                            </h3>
                             <span
                               className={`px-2 py-1 rounded text-xs font-medium ${
                                 classItem.status === "upcoming"
@@ -433,7 +476,9 @@ export default function TeacherDashboard() {
                   {/* Notifications */}
                   <div className="bg-white rounded-xl border border-gray-200 p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-lg font-semibold text-gray-900">Notifications</h2>
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        Notifications
+                      </h2>
                       <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">
                         3 new
                       </span>
@@ -444,12 +489,18 @@ export default function TeacherDashboard() {
                           key={notification.id}
                           className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
                         >
-                          <div className={`p-2 rounded-lg ${getNotificationColor(notification.type)}`}>
+                          <div
+                            className={`p-2 rounded-lg ${getNotificationColor(notification.type)}`}
+                          >
                             {getNotificationIcon(notification.type)}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-gray-900">{notification.message}</p>
-                            <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                            <p className="text-sm text-gray-900">
+                              {notification.message}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {notification.time}
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -474,6 +525,7 @@ export default function TeacherDashboard() {
           {activeTab === "classes" && <Classes />}
           {activeTab === "syllabus" && <Syllabus />}
           {activeTab === "students" && <Students />}
+          {activeTab === "events" && <OrganizeEvents />}
         </main>
       </div>
     </div>
