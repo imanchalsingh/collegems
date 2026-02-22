@@ -13,7 +13,7 @@ import feeRoutes from "./routes/fee.routes.js";
 import examScheduleRoutes from "./routes/examschedule.routes.js";
 import classRoutes from "./routes/class.route.js";
 import teacherAttendanceRoutes from "./routes/teacher.attendance.route.js";
-import eventRoute from "./routes/event.route.js";
+import eventRoute from "./routes/event.routes.js";
 
 // Admin / HOD
 import courseRoutes from "./routes/course.routes.js";
