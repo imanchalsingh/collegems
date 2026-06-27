@@ -153,12 +153,12 @@ const ResourceManagement: React.FC = () => {
             <h2 className="text-xl font-bold mb-4">Add New Resource</h2>
             <form onSubmit={handleCreateResource} className="space-y-4">
               <div>
-                <label htmlFor="resource-name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input id="resource-name" required type="text" value={name} onChange={e => setName(e.target.value)} className="w-full border p-2 rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. Lab 1, Projector A" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input required type="text" value={name} onChange={e => setName(e.target.value)} className="w-full border p-2 rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. Lab 1, Projector A" />
               </div>
               <div>
-                <label htmlFor="resource-type" className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                <select id="resource-type" value={type} onChange={e => setType(e.target.value)} className="w-full border p-2 rounded focus:ring-blue-500 focus:border-blue-500">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select value={type} onChange={e => setType(e.target.value)} className="w-full border p-2 rounded focus:ring-blue-500 focus:border-blue-500">
                   <option value="classroom">Classroom</option>
                   <option value="lab">Lab</option>
                   <option value="seminar_hall">Seminar Hall</option>
@@ -168,24 +168,24 @@ const ResourceManagement: React.FC = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="resource-capacity" className="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
-                  <input id="resource-capacity" type="number" min="0" value={capacity} onChange={e => setCapacity(e.target.value)} className="w-full border p-2 rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. 60" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
+                  <input type="number" min="0" value={capacity} onChange={e => setCapacity(e.target.value)} className="w-full border p-2 rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. 60" />
                 </div>
                 <div>
-                  <label htmlFor="resource-status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <select id="resource-status" value={status} onChange={e => setStatus(e.target.value)} className="w-full border p-2 rounded focus:ring-blue-500 focus:border-blue-500">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <select value={status} onChange={e => setStatus(e.target.value)} className="w-full border p-2 rounded focus:ring-blue-500 focus:border-blue-500">
                     <option value="active">Active</option>
                     <option value="maintenance">Maintenance</option>
                   </select>
                 </div>
               </div>
               <div>
-                <label htmlFor="resource-location" className="block text-sm font-medium text-gray-700 mb-1">Location / Room Number</label>
-                <input id="resource-location" type="text" value={location} onChange={e => setLocation(e.target.value)} className="w-full border p-2 rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. Building A, Floor 2" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Location / Room Number</label>
+                <input type="text" value={location} onChange={e => setLocation(e.target.value)} className="w-full border p-2 rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. Building A, Floor 2" />
               </div>
               <div>
-                <label htmlFor="resource-features" className="block text-sm font-medium text-gray-700 mb-1">Features (comma separated)</label>
-                <input id="resource-features" type="text" value={features} onChange={e => setFeatures(e.target.value)} className="w-full border p-2 rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. AC, Whiteboard, Smart TV" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Features (comma separated)</label>
+                <input type="text" value={features} onChange={e => setFeatures(e.target.value)} className="w-full border p-2 rounded focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. AC, Whiteboard, Smart TV" />
               </div>
               <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>

@@ -257,11 +257,10 @@ export default function PlagiarismChecker() {
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
         <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_auto] gap-3">
           <div>
-            <label htmlFor="plagiarism-assignment" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Assignment
             </label>
             <select
-              id="plagiarism-assignment"
               className={inputCls}
               value={selectedAssignment}
               onChange={(e) => setSelectedAssignment(e.target.value)}
@@ -276,13 +275,12 @@ export default function PlagiarismChecker() {
           </div>
 
           <div>
-            <label htmlFor="plagiarism-threshold" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Flag Threshold (%)
             </label>
             <div className="relative">
               <Sliders className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
-                id="plagiarism-threshold"
                 type="number"
                 min={10}
                 max={100}

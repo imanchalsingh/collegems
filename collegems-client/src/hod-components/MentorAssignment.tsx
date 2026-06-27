@@ -56,9 +56,8 @@ export default function MentorAssignment() {
         <h2 className="text-xl font-bold mb-4 dark:text-white flex items-center gap-2"><Users className="w-5 h-5"/> Assign Mentor</h2>
         <form onSubmit={handleAssign} className="flex gap-4 items-end">
           <div className="flex-1">
-            <label htmlFor="mentor-teacher" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mentor (Teacher)</label>
-            <select
-              id="mentor-teacher"
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mentor (Teacher)</label>
+            <select 
               className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
               value={selectedMentor}
               onChange={e => setSelectedMentor(e.target.value)}
@@ -71,9 +70,8 @@ export default function MentorAssignment() {
             </select>
           </div>
           <div className="flex-1">
-            <label htmlFor="mentor-mentee" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mentee (Student)</label>
-            <select
-              id="mentor-mentee"
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mentee (Student)</label>
+            <select 
               className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
               value={selectedMentee}
               onChange={e => setSelectedMentee(e.target.value)}
