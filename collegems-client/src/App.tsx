@@ -18,6 +18,7 @@ import QuickAccessAll from "./pages/QuickAccessAll";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ReportGenerator from "./pages/ReportGenerator";
 import ExaminationFormPage from "./pages/ExaminationFormPage";
+import Visitors from "./hod-components/visitors";
 
 import DashboardLayout from "./layouts/DashboardLayout"; 
 export default function App() {
@@ -78,6 +79,9 @@ export default function App() {
           element={<RoleRoute role="hod"><ReportGenerator /></RoleRoute>}
         />
 
+       <Route path="/hod/visitors"
+           element={<RoleRoute role = "hod"><Visitors /></RoleRoute> }
+/>
       </Routes>
     </BrowserRouter>
   );

@@ -17,6 +17,7 @@ import Library from "../common-components-management/Library";
 import HODSettings from "../hod-components/Settings";
 import HODCourses from "../hod-components/Courses";
 import HODExamForms from "../hod-components/ExamForms";
+import Visitors from "../hod-components/visitors";
 
 type TabType =
   | "overview"
@@ -34,7 +35,8 @@ type TabType =
   | "library"
   | "settings"
   | "reports"
-  | "exam-forms";
+  | "exam-forms"
+  | "visitors";
 
 interface Data {
   cards: Array<{ title: string; value: number }>;
@@ -218,6 +220,7 @@ export default function HODDashboard() {
     { id: "library" as TabType, label: "Library Catalog", icon: BookOpen },
     { id: "reports" as TabType, label: "Report Generator", icon: FileText },
     { id: "exam-forms" as TabType, label: "Exam Forms", icon: FileText },
+    {id: "visitors" as TabType,label: "Visitors",icon: Users,},
   ];
 
   const statsCards = data?.cards.map((card, index) => ({
@@ -542,6 +545,7 @@ export default function HODDashboard() {
           {activeTab === "courses" && <HODCourses />}
           {activeTab === "settings" && <HODSettings />}
           {activeTab === "exam-forms" && <HODExamForms />}
+          {activeTab === "visitors" && <Visitors />}
         </main>
       </div>
     </div>
