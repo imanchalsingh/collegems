@@ -1,9 +1,10 @@
 import express from "express";
-import { protect } from "../middlewares/auth.middleware.js";
-import { getDashboardData } from "../controllers/dashboard.controller.js";
+   import { protect } from "../middlewares/auth.middleware.js";
+   import { getDashboardData, getSemesterComparison } from "../controllers/dashboard.controller.js";
 
-const router = express.Router();
+   const router = express.Router();
 
-router.get("/", protect, getDashboardData);
+   router.get("/", protect, getDashboardData);
+   router.get("/semester-comparison", protect, getSemesterComparison);
 
-export default router;
+   export default router;

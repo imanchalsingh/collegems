@@ -14,6 +14,7 @@ import {
   Wallet,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface Student {
   _id: string;
@@ -45,8 +46,8 @@ export default function Hodfee() {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/users/students");
-      setStudents(response.data);
+      const response = await api.get("/users/students?limit=0");
+      setStudents(extractArray(response.data));
       setMessage(null);
     } catch (error) {
       console.error("Error fetching students:", error);

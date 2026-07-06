@@ -14,6 +14,7 @@ const classSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  room: { type: String, default: "TBD" },
 });
 
 export default mongoose.model("Class", classSchema);

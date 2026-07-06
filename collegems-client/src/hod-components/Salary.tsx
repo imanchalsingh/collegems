@@ -21,6 +21,7 @@ import {
   PieChart,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface Teacher {
   _id: string;
@@ -68,7 +69,7 @@ export default function Salary() {
     try {
       setLoading(true);
       const response = await api.get("/users/teachers");
-      setTeachers(response.data);
+      setTeachers(extractArray(response.data));
       setMessage(null);
     } catch (error) {
       console.error("Error fetching teachers:", error);
@@ -85,7 +86,7 @@ export default function Salary() {
   const fetchSalaries = async () => {
     try {
       const res = await api.get("/salary/all");
-      setSalaries(res.data);
+      setSalaries(extractArray(res.data));
     } catch (err: any) {
       console.error("Fetch salaries error:", err.response?.data || err.message);
       setMessage({

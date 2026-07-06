@@ -5,25 +5,49 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon server.js",
+    "microservices": "concurrently \"SERVICE_NAME=auth PORT=5001 node microservices.js\" \"SERVICE_NAME=finance PORT=5002 node microservices.js\" \"SERVICE_NAME=notification PORT=5003 node microservices.js\" \"SERVICE_NAME=academics PORT=5004 node microservices.js\" \"SERVICE_NAME=gateway PORT=5000 node microservices.js\"",
+    "seed": "node src/utils/seeder.js",
+    "seed:fresh": "node src/utils/seeder.js --destroy",
+    "test": "node --test src/tests/*.test.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "amqplib": "^2.0.1",
     "bcryptjs": "^3.0.3",
+    "concurrently": "^10.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "express-http-context": "^2.0.1",
+    "express-rate-limit": "^8.5.2",
+    "express-validator": "^7.3.2",
+    "http-proxy-middleware": "^4.1.1",
     "jsonwebtoken": "^9.0.3",
+    "mammoth": "^1.12.0",
     "mongodb": "^7.1.0",
     "mongoose": "^9.1.6",
     "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
     "nodemailer": "^8.0.0",
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "pdf-parse": "^1.1.1",
+    "pdfkit": "^0.18.0",
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.8.3",
+    "uuid": "^14.0.0",
+    "winston": "^3.19.0",
+    "xss": "^1.0.15",
+    "y-protocols": "^1.0.7",
+    "yjs": "^13.6.31"
   },
   "devDependencies": {
-    "@types/node": "^25.2.0"
+    "@types/node": "^25.2.0",
+    "mongodb-memory-server": "^11.2.0",
+    "supertest": "^7.2.2"
   }
 }

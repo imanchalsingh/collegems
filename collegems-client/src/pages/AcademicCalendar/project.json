@@ -1,0 +1,8 @@
+{
+  "title": "Academic Calendar Module",
+  "entry": "src/pages/AcademicCalendar/AcademicCalendar.tsx",
+  "author": {
+    "name": "Jagriti",
+    "github": "YOUR_GITHUB_USERNAME"
+  }
+}

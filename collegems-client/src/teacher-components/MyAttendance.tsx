@@ -12,6 +12,7 @@ import {
   UserMinus,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface AttendanceRecord {
   _id: string;
@@ -43,7 +44,7 @@ export default function MyAttendance() {
     try {
       setLoading(true);
       const res = await api.get("/teacher-attendance/my-attendance");
-      setAttendanceHistory(res.data);
+      setAttendanceHistory(extractArray(res.data));
     } catch (err) {
       setError("Failed to load attendance history");
     } finally {

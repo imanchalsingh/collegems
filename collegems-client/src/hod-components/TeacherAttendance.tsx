@@ -18,6 +18,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface TeacherAttendance {
   _id: string;

@@ -19,6 +19,7 @@ import {
   ReceiptText,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface Salary {
   _id: string;
@@ -51,8 +52,9 @@ export default function HODSalary() {
   const fetchSalary = async () => {
     try {
       setLoading(true);
-      const res = await api.get<Salary>("/salary/me");
-      setSalary(res.data);
+      const res = await api.get<any>("/salary/me");
+      const salaryData = res.data?.data || res.data;
+      setSalary(Array.isArray(salaryData) ? salaryData[0] : salaryData);
       setError(null);
     } catch (err: any) {
       console.error(err.response?.data || err.message);

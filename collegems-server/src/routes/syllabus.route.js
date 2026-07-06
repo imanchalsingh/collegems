@@ -1,6 +1,6 @@
 import express from "express";
-import Syllabus from "../models/Syllabus.js";
-import authMiddleware from "../middleware/auth.js";
+import Syllabus from "../models/Syllabus.model.js";
+import { authenticate as authMiddleware } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 

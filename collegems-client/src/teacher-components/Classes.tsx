@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import {
   BookOpen,
   Plus,
@@ -17,6 +18,7 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface Course {
   _id: string;
@@ -34,6 +36,7 @@ interface ClassType {
   name: string;
   semester: number;
   schedule: string;
+  room?: string;
   teacher: string | Teacher;
   courseName: string | Course;
 }
@@ -49,10 +52,13 @@ const Classes: React.FC = () => {
   const [filterSemester, setFilterSemester] = useState<number | "all">("all");
   const [filterCourse, setFilterCourse] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<{id: string, name: string} | null>(null);
   const [formData, setFormData] = useState<ClassType>({
     name: "",
     semester: 1,
     schedule: "",
+    room: "",
     teacher: "",
     courseName: "",
   });
@@ -61,7 +67,7 @@ const Classes: React.FC = () => {
   const fetchCourses = async () => {
     try {
       const res = await api.get("/courses/all");
-      setCourses(res.data);
+      setCourses(extractArray(res.data));
     } catch (error) {
       console.error("Error fetching courses:", error);
     }
@@ -72,7 +78,7 @@ const Classes: React.FC = () => {
     try {
       setLoading(true);
       const response = await api.get("/classes/all");
-      setClasses(response.data);
+      setClasses(extractArray(response.data));
     } catch (error) {
       console.error("Error fetching classes:", error);
     } finally {
@@ -84,7 +90,7 @@ const Classes: React.FC = () => {
   const fetchTeachers = async () => {
     try {
       const response = await api.get("/users/teachers");
-      setTeachers(response.data);
+      setTeachers(extractArray(response.data));
     } catch (error) {
       console.error("Error fetching teachers:", error);
     }
@@ -112,6 +118,7 @@ const Classes: React.FC = () => {
       name: "",
       semester: 1,
       schedule: "",
+      room: "",
       teacher: "",
     });
     setEditingClass(null);
@@ -129,6 +136,7 @@ const Classes: React.FC = () => {
       name: classItem.name,
       semester: classItem.semester,
       schedule: classItem.schedule,
+      room: classItem.room || "",
       teacher:
         typeof classItem.teacher === "object"
           ? classItem.teacher._id
@@ -144,6 +152,7 @@ const Classes: React.FC = () => {
       !formData.name ||
       !formData.semester ||
       !formData.schedule ||
+      !formData.room ||
       !formData.teacher
     ) {
       alert("Please fill in all fields");
@@ -181,20 +190,23 @@ const Classes: React.FC = () => {
   };
 
   // Delete class
-  const handleDeleteClass = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this class?")) return;
+  const handleDeleteClick = (id: string, name: string) => {
+  setClassToDelete({ id, name });
+  setDeleteModalOpen(true);
+};
 
-    try {
-      setLoading(true);
-      await api.delete(`/classes/delete/${id}`);
-      fetchClasses();
-    } catch (error) {
-      console.error("Error deleting class:", error);
-      alert("Failed to delete class");
-    } finally {
-      setLoading(false);
-    }
-  };
+const handleDeleteClass = async () => {
+  if (!classToDelete) return;
+  try {
+    await api.delete(`/classes/delete/${classToDelete.id}`);
+    setClasses(prev => prev.filter(c => c._id !== classToDelete.id));
+    setDeleteModalOpen(false);
+    setClassToDelete(null);
+  } catch (err) {
+    console.error("Failed to delete class", err);
+    setDeleteModalOpen(false);
+  }
+};
 
   // Filter classes
   const filteredClasses = classes.filter((cls) => {
@@ -472,7 +484,7 @@ const Classes: React.FC = () => {
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => cls._id && handleDeleteClass(cls._id)}
+                  onClick={() => cls._id && handleDeleteClick(cls._id, cls.name || "this class")}
                   className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   title="Delete Class"
                 >
@@ -587,28 +599,43 @@ const Classes: React.FC = () => {
                 </div>
               </div>
 
-              {/* Teacher Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Assign Teacher *
-                </label>
-                <select
-                  name="teacher"
-                  value={
-                    typeof formData.teacher === "object"
-                      ? formData.teacher._id
-                      : formData.teacher
-                  }
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select a teacher</option>
-                  {teachers.map((teacher) => (
-                    <option key={teacher._id} value={teacher._id}>
-                      {teacher.name}
-                    </option>
-                  ))}
-                </select>
+              {/* Teacher Selection and Room */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Assign Teacher *
+                  </label>
+                  <select
+                    name="teacher"
+                    value={
+                      typeof formData.teacher === "object"
+                        ? formData.teacher._id
+                        : formData.teacher
+                    }
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select a teacher</option>
+                    {teachers.map((teacher) => (
+                      <option key={teacher._id} value={teacher._id}>
+                        {teacher.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Room *
+                  </label>
+                  <input
+                    type="text"
+                    name="room"
+                    value={formData.room}
+                    onChange={handleInputChange}
+                    placeholder="e.g., Room 101"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
               </div>
             </div>
 
@@ -641,6 +668,12 @@ const Classes: React.FC = () => {
           </div>
         </div>
       )}
+      <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        onConfirm={handleDeleteClass}
+        onCancel={() => { setDeleteModalOpen(false); setClassToDelete(null); }}
+        itemName={classToDelete?.name}
+      />
     </div>
   );
 };

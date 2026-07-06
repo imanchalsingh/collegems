@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
+import snapshotPlugin from "../plugins/snapshotPlugin.js";
 
 const ResultsSchema = new mongoose.Schema({
     studentId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Student",
+        ref: "User",
         required: true,
     },
 
@@ -35,9 +36,11 @@ const ResultsSchema = new mongoose.Schema({
 
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Teacher",
+        ref: "User",
     }
 
 }, { timestamps: true });
+
+ResultsSchema.plugin(snapshotPlugin);
 
 export default mongoose.model("Results", ResultsSchema);

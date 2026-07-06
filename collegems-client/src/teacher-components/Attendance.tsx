@@ -13,8 +13,11 @@ import {
   UserCheck,
   UserX,
   RefreshCw,
+  AlertTriangle,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
+import EmptyState from "../components/EmptyState";
 
 // interface Attendance {
 //   studentId: string;
@@ -36,6 +39,12 @@ export default function TeacherAttendance() {
   const [search, setSearch] = useState("");
   const [subject, setSubject] = useState("");
   const [subjects, setSubjects] = useState<string[]>([]);
+  const [activeView, setActiveView] = useState<"mark" | "low">("mark");
+  const [lowAttendanceStudents, setLowAttendanceStudents] = useState<any[]>([]);
+  const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [filterSubject, setFilterSubject] = useState("");
 
   useEffect(() => {
     fetchStudents();
@@ -45,8 +54,8 @@ export default function TeacherAttendance() {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/users/students");
-      setStudents(res.data);
+      const res = await api.get("/users/students?limit=0");
+      setStudents(extractArray(res.data));
 
       // Initialize all students as present by default
       const initialAttendance: any = {};
@@ -71,6 +80,50 @@ export default function TeacherAttendance() {
       "Computer Science",
       "English",
     ]);
+  };
+
+  const fetchLowAttendance = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/attendance/low");
+      setLowAttendanceStudents(extractArray(res.data));
+    } catch (error) {
+      console.error("Error fetching low attendance:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeView === "low") {
+      fetchLowAttendance();
+    }
+  }, [activeView]);
+
+  const fetchAttendanceRecords = async () => {
+    if (!startDate || !endDate) {
+      alert("Please select both start and end date");
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await api.get(
+        `/attendance/records?startDate=${startDate}&endDate=${endDate}${filterSubject ? `&subject=${filterSubject}` : ""}`
+      );
+      setAttendanceRecords(extractArray(res.data));
+    } catch (error) {
+      console.error("Error fetching attendance records:", error);
+      setAttendanceRecords([]);
+    } finally {
+      setLoading(false);
+    }
+    };
+
+  const clearFilter = () => {
+    setStartDate("");
+    setEndDate("");
+    setFilterSubject("");
+    setAttendanceRecords([]);
   };
 
   const handleAttendanceChange = (studentId: string, status: string) => {
@@ -172,11 +225,105 @@ export default function TeacherAttendance() {
     (status: any) => status === "present",
   ).length;
   const absentCount = students.length - presentCount;
+  const hasActiveFilters = filter !== "all" || Boolean(search);
+  const showMarkCta = !hasActiveFilters && students.length === 0;
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* View Toggle */}
+      <div className="flex bg-gray-100 p-1 rounded-lg w-fit">
+        <button
+          onClick={() => setActiveView("mark")}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+            activeView === "mark" ? "bg-white text-blue-600 shadow-sm" : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          Mark Attendance
+        </button>
+        <button
+          onClick={() => setActiveView("low")}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
+            activeView === "low" ? "bg-white text-red-600 shadow-sm" : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <AlertTriangle className="w-4 h-4" />
+          Low Attendance Report
+        </button>
+        <button
+          onClick={() => setActiveView("records" as any)}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
+            activeView === ("records" as any) ? "bg-white text-green-600 shadow-sm" : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <Filter className="w-4 h-4" />
+          View Records
+        </button>
+      </div>
+
+      {activeView === "low" ? (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Students with Low Attendance</h2>
+              <p className="text-sm text-gray-500">Students whose attendance is below 75%</p>
+            </div>
+            <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
+              {lowAttendanceStudents.length} Students at Risk
+            </span>
+          </div>
+          <div className="p-6">
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-red-600 border-t-transparent"></div>
+                <p className="mt-2 text-gray-500">Loading report...</p>
+              </div>
+            ) : lowAttendanceStudents.length === 0 ? (
+              <div className="text-center py-12">
+                <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-3" />
+                <p className="text-gray-500">All students are maintaining good attendance!</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Student</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">ID / Course</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Classes Attended</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Attendance %</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {lowAttendanceStudents.map((record, index) => (
+                      <tr key={index} className="hover:bg-red-50/50 transition-colors">
+                        <td className="py-3 px-4">
+                          <div className="font-medium text-gray-900">{record.student?.name}</div>
+                          <div className="text-sm text-gray-500">{record.student?.email}</div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="text-sm text-gray-900">{record.student?.studentId || "N/A"}</div>
+                          <div className="text-xs text-gray-500">{record.student?.course} {record.student?.semester ? `(Sem ${record.student.semester})` : ""}</div>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-600">
+                          {record.presentClasses} / {record.totalClasses}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            {Math.round(record.percentage)}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-blue-50 rounded-lg">
@@ -231,7 +378,7 @@ export default function TeacherAttendance() {
       {/* Controls Card */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {/* Main Controls */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200" id="mark-attendance-controls">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -336,13 +483,29 @@ export default function TeacherAttendance() {
               <p className="mt-2 text-gray-500">Loading students...</p>
             </div>
           ) : filteredStudents.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="mx-auto h-12 w-12 text-gray-300 mb-3" />
-              <p className="text-gray-500">No students found</p>
-              <p className="text-sm text-gray-400 mt-1">
-                Try adjusting your search or filters
-              </p>
-            </div>
+            showMarkCta ? (
+              <EmptyState
+                icon={<Users className="w-7 h-7 text-blue-600" />}
+                title="No students to mark yet"
+                description="Add students first, then return here to mark attendance for the class."
+                actionLabel="Mark Attendance"
+                onAction={() => {
+                  document.getElementById("mark-attendance-controls")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }}
+                actionHint="Jumps back to the attendance controls."
+              />
+            ) : (
+              <div className="text-center py-12">
+                <Users className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+                <p className="text-gray-500">No students found</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Try adjusting your search or filters
+                </p>
+              </div>
+            )
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -530,6 +693,115 @@ export default function TeacherAttendance() {
           </div>
         </div>
       </div>
+      </>
+      )}
+
+      {/* View Records Tab */}
+      {activeView === ("records" as any) && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Attendance Records
+          </h2>
+
+          {/* Date Range Filter */}
+          <div className="flex flex-wrap gap-3 items-end">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                End Date
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Subject (optional)
+              </label>
+              <select
+                value={filterSubject}
+                onChange={(e) => setFilterSubject(e.target.value)}
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Subjects</option>
+                {subjects.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={fetchAttendanceRecords}
+              disabled={loading}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              <Filter className="w-4 h-4" />
+              Apply Filter
+            </button>
+            {(startDate || endDate || filterSubject) && (
+              <button
+                onClick={clearFilter}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Clear
+              </button>
+            )}
+          </div>
+
+          {/* Results */}
+          {attendanceRecords.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Student</th>
+                    <th className="px-4 py-3 font-medium">Date</th>
+                    <th className="px-4 py-3 font-medium">Subject</th>
+                    <th className="px-4 py-3 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {attendanceRecords.map((record: any, idx: number) => (
+                    <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td className="px-4 py-3 text-gray-900 dark:text-white">{record.studentName || record.studentId}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{new Date(record.date).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{record.subject || "-"}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          record.status === "present"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}>
+                          {record.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+              <Calendar className="w-12 h-12 mx-auto mb-3 opacity-40" />
+              <p className="text-sm">Select a date range and click Apply Filter to view records</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
+

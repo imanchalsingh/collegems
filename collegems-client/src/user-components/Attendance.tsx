@@ -1,5 +1,7 @@
+import { extractArray } from "../utils/apiHelpers";
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { useAutoSave } from "../hooks/useAutoSave";
 import {
   PieChart,
   Pie,
@@ -156,15 +158,15 @@ export default function StudentAttendance() {
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        {/* Header - FIXED */}
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Attendance Dashboard</h1>
-              <p className="text-gray-500 mt-1">Track and analyze your attendance performance</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Attendance Dashboard</h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">Track and analyze your attendance performance</p>
             </div>
             <div className="flex items-center gap-3">
-              <button className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+              <button className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 <Download className="w-4 h-4" />
                 Export
               </button>
@@ -178,11 +180,11 @@ export default function StudentAttendance() {
             </div>
           </div>
 
-          {/* Filters */}
+          {/* Filters - FIXED */}
           <div className="mt-6">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               <Filter className="w-4 h-4" />
               Filters
@@ -190,14 +192,14 @@ export default function StudentAttendance() {
             </button>
 
             {showFilters && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Time Range
                     </label>
                     <select
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={timeRange}
                       onChange={(e) => setTimeRange(e.target.value)}
                     >
@@ -209,11 +211,11 @@ export default function StudentAttendance() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Subject
                     </label>
                     <select
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={selectedSubject}
                       onChange={(e) => setSelectedSubject(e.target.value)}
                     >
@@ -231,54 +233,54 @@ export default function StudentAttendance() {
           </div>
         </div>
 
-        {/* Summary Cards */}
+        {/* Summary Cards - FIXED */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-green-50 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+              <div className="p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Present Classes</p>
-                <p className="text-xl font-bold text-gray-900">{presentCount}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Present Classes</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{presentCount}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-red-50 rounded-lg">
-                <XCircle className="w-5 h-5 text-red-600" />
+              <div className="p-3 bg-red-50 dark:bg-red-900/30 rounded-lg">
+                <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Absent Classes</p>
-                <p className="text-xl font-bold text-gray-900">{absentCount}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Absent Classes</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{absentCount}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-amber-50 rounded-lg">
-                <Clock className="w-5 h-5 text-amber-600" />
+              <div className="p-3 bg-amber-50 dark:bg-amber-900/30 rounded-lg">
+                <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Total Classes</p>
-                <p className="text-xl font-bold text-gray-900">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total Classes</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">
                   {presentCount + absentCount}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-blue-600" />
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Attendance Rate</p>
-                <p className="text-xl font-bold text-gray-900">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Attendance Rate</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">
                   {attendancePercentage}%
                 </p>
               </div>
@@ -286,11 +288,11 @@ export default function StudentAttendance() {
           </div>
         </div>
 
-        {/* Charts Grid */}
+        {/* Charts Grid - FIXED */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Pie Chart */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Attendance Distribution
             </h3>
             <div className="h-80">
@@ -320,16 +322,17 @@ export default function StudentAttendance() {
                       borderRadius: "8px",
                       boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
+                    itemStyle={{ color: "#111827" }}
                   />
-                  <Legend />
+                  <Legend wrapperStyle={{ color: "#6b7280" }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Bar Chart */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Attendance by Subject
             </h3>
             <div className="h-80">
@@ -347,7 +350,7 @@ export default function StudentAttendance() {
                       boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
-                  <Legend />
+                  <Legend wrapperStyle={{ color: "#6b7280" }} />
                   <Bar
                     dataKey="present"
                     name="Present"
@@ -366,8 +369,8 @@ export default function StudentAttendance() {
           </div>
 
           {/* Line Chart */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Monthly Attendance Trend
             </h3>
             <div className="h-80">
@@ -386,7 +389,7 @@ export default function StudentAttendance() {
                     }}
                     formatter={(value) => [`${value}%`, "Attendance Rate"]}
                   />
-                  <Legend />
+                  <Legend wrapperStyle={{ color: "#6b7280" }} />
                   <Line
                     type="monotone"
                     dataKey="attendance"
@@ -410,8 +413,8 @@ export default function StudentAttendance() {
           </div>
 
           {/* Area Chart */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Daily Attendance (Last 15 Days)
             </h3>
             <div className="h-80">
@@ -429,7 +432,7 @@ export default function StudentAttendance() {
                       boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
-                  <Legend />
+                  <Legend wrapperStyle={{ color: "#6b7280" }} />
                   <Area
                     type="monotone"
                     dataKey="status"
@@ -444,9 +447,9 @@ export default function StudentAttendance() {
           </div>
         </div>
 
-        {/* Radial Chart */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        {/* Radial Chart - FIXED */}
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Overall Attendance Percentage
           </h3>
           <div className="h-64">
@@ -467,7 +470,7 @@ export default function StudentAttendance() {
                   iconSize={10}
                   layout="vertical"
                   verticalAlign="middle"
-                  wrapperStyle={{ right: 20 }}
+                  wrapperStyle={{ right: 20, color: "#6b7280" }}
                 />
                 <Tooltip
                   contentStyle={{
@@ -484,13 +487,13 @@ export default function StudentAttendance() {
           </div>
         </div>
 
-        {/* Detailed Attendance List */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        {/* Detailed Attendance List - FIXED */}
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Recent Attendance Records
             </h3>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               Total Records: {attendanceData.length}
             </span>
           </div>
@@ -498,13 +501,13 @@ export default function StudentAttendance() {
           {loading ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
-              <p className="mt-2 text-gray-500">Loading attendance data...</p>
+              <p className="mt-2 text-gray-500 dark:text-gray-400">Loading attendance data...</p>
             </div>
           ) : attendanceData.length === 0 ? (
             <div className="text-center py-12">
-              <Activity className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">No attendance records found</p>
-              <p className="text-sm text-gray-400 mt-1">
+              <Activity className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400">No attendance records found</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
                 Your attendance data will appear here
               </p>
             </div>
@@ -513,21 +516,21 @@ export default function StudentAttendance() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Date</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Subject</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Time</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Status</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Remarks</th>
+                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">Date</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">Subject</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">Time</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">Status</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">Remarks</th>
                     </tr>
                   </thead>
                   <tbody>
                     {attendanceData.slice(0, 10).map((record, index) => (
                       <tr
                         key={index}
-                        className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                        className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                       >
-                        <td className="py-3 px-4 text-gray-900">
+                        <td className="py-3 px-4 text-gray-900 dark:text-white">
                           {new Date(record.date).toLocaleDateString("en-US", {
                             weekday: "short",
                             year: "numeric",
@@ -535,8 +538,8 @@ export default function StudentAttendance() {
                             day: "numeric",
                           })}
                         </td>
-                        <td className="py-3 px-4 text-gray-900">{record.subject || "N/A"}</td>
-                        <td className="py-3 px-4 text-gray-500">
+                        <td className="py-3 px-4 text-gray-900 dark:text-white">{record.subject || "N/A"}</td>
+                        <td className="py-3 px-4 text-gray-500 dark:text-gray-400">
                           {record.time ||
                             new Date(record.date).toLocaleTimeString()}
                         </td>
@@ -544,8 +547,8 @@ export default function StudentAttendance() {
                           <span
                             className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
                               record.status === "present"
-                                ? "bg-green-50 text-green-700"
-                                : "bg-red-50 text-red-700"
+                                ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                                : "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300"
                             }`}
                           >
                             {record.status === "present" ? (
@@ -556,7 +559,7 @@ export default function StudentAttendance() {
                             {record.status}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-gray-500">
+                        <td className="py-3 px-4 text-gray-500 dark:text-gray-400">
                           {record.remarks || "-"}
                         </td>
                       </tr>
@@ -567,7 +570,7 @@ export default function StudentAttendance() {
 
               {attendanceData.length > 10 && (
                 <div className="text-center mt-4">
-                  <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                  <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium">
                     View All Records ({attendanceData.length})
                   </button>
                 </div>

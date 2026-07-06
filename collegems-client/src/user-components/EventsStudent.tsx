@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "../api/axios";
+import { addRecentHistory } from "../api/history";
+import { Scanner } from '@yudiel/react-qr-scanner';
 import {
   Calendar,
   MapPin,
@@ -23,6 +25,8 @@ import {
   Info,
   AlertCircle,
   Loader2,
+  QrCode,
+  CheckCircle,
 } from 'lucide-react';
 
 interface Event {
@@ -62,6 +66,11 @@ export default function EventsStudent() {
     const [showFilters, setShowFilters] = useState<boolean>(false);
     const [selectedevent, setSelectedevent] = useState<Event | null>(null);
     const [showModal, setShowModal] = useState<boolean>(false);
+
+    // Scanner state
+    const [showScanner, setShowScanner] = useState<boolean>(false);
+    const [checkingIn, setCheckingIn] = useState<boolean>(false);
+    const [checkInMessage, setCheckInMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
     // Get unique categories
     const categories = ["all", ...new Set(events.map(w => w.category))];
@@ -122,6 +131,12 @@ export default function EventsStudent() {
     const handleViewDetails = (event: Event) => {
         setSelectedevent(event);
         setShowModal(true);
+        addRecentHistory({
+            entityType: "Event",
+            entityId: event._id,
+            displayName: event.title,
+            url: `/events` // or a direct link if there is one
+        }).catch(console.error);
     };
 
     const closeModal = () => {
@@ -129,21 +144,39 @@ export default function EventsStudent() {
         setSelectedevent(null);
     };
 
+    const handleScan = async (data: any) => {
+        if (data && data.length > 0 && data[0].rawValue && !checkingIn) {
+            const qrCodeValue = data[0].rawValue;
+            setCheckingIn(true);
+            try {
+                const res = await axios.post('/events/check-in', { qrCode: qrCodeValue });
+                setCheckInMessage({ type: 'success', text: res.data.message });
+                setShowScanner(false);
+            } catch (err: any) {
+                setCheckInMessage({ type: 'error', text: err.response?.data?.message || 'Check-in failed' });
+                setShowScanner(false);
+            } finally {
+                setCheckingIn(false);
+            }
+        }
+    };
+
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
             weekday: 'short',
             year: 'numeric',
             month: 'short',
-            day: 'numeric'
+            day: 'numeric',
+            timeZone: 'UTC'
         });
     };
 
     const getModeColor = (mode: string) => {
         switch (mode) {
-            case 'online': return 'bg-blue-50 text-blue-700 border-blue-200';
-            case 'offline': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-            case 'hybrid': return 'bg-purple-50 text-purple-700 border-purple-200';
-            default: return 'bg-gray-50 text-gray-700 border-gray-200';
+            case 'online': return 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800';
+            case 'offline': return 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+            case 'hybrid': return 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800';
+            default: return 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700';
         }
     };
 
@@ -158,10 +191,10 @@ export default function EventsStudent() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
                 <div className="text-center">
-                    <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" />
-                    <p className="mt-4 text-gray-600">Loading events...</p>
+                    <Loader2 className="w-12 h-12 animate-spin text-blue-600 dark:text-blue-400 mx-auto" />
+                    <p className="mt-4 text-gray-600 dark:text-gray-400">Loading events...</p>
                 </div>
             </div>
         );
@@ -169,15 +202,15 @@ export default function EventsStudent() {
 
     if (error) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
                 <div className="text-center max-w-md mx-auto px-4">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-rose-100 flex items-center justify-center">
-                        <AlertCircle className="w-8 h-8 text-rose-600" />
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+                        <AlertCircle className="w-8 h-8 text-rose-600 dark:text-rose-400" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                         Unable to load events
                     </h3>
-                    <p className="text-gray-600 mb-6">{error}</p>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
                     <button
                         onClick={fetchEvents}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -192,50 +225,50 @@ export default function EventsStudent() {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
+            {/* Header - FIXED */}
             <div>
-                <h1 className="text-2xl font-bold text-gray-900">Events & Events</h1>
-                <p className="text-gray-500 mt-1">Discover and join upcoming events, seminars, and webinars</p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Events & Events</h1>
+                <p className="text-gray-500 dark:text-gray-400 mt-1">Discover and join upcoming events, seminars, and webinars</p>
             </div>
 
-            {/* Search and Filter Bar */}
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
+            {/* Search and Filter Bar - FIXED */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
                 <div className="flex flex-col lg:flex-row gap-4">
                     {/* Search */}
                     <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
                         <input
                             type="text"
                             placeholder="Search by title, speaker, organization..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-9 pr-10 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-9 pr-10 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         />
                         {searchTerm && (
                             <button
                                 onClick={() => setSearchTerm("")}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                             >
                                 <X className="w-4 h-4" />
                             </button>
                         )}
                     </div>
 
-                    {/* Filter Toggle Button */}
+                    {/* Filter Toggle Button - FIXED */}
                     <button
                         onClick={() => setShowFilters(!showFilters)}
-                        className="lg:hidden px-4 py-2 border border-gray-200 rounded-lg flex items-center justify-center gap-2 text-gray-600 hover:bg-gray-50 transition-colors"
+                        className="lg:hidden px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     >
                         <Filter className="w-4 h-4" />
                         Filters
                     </button>
 
-                    {/* Desktop Filters */}
+                    {/* Desktop Filters - FIXED */}
                     <div className="hidden lg:flex items-center gap-3">
                         <select
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                            className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                         >
                             {categories.map(cat => (
                                 <option key={cat} value={cat}>
@@ -247,7 +280,7 @@ export default function EventsStudent() {
                         <select
                             value={selectedMode}
                             onChange={(e) => setSelectedMode(e.target.value)}
-                            className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                            className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                         >
                             {modes.map(mode => (
                                 <option key={mode} value={mode}>
@@ -259,7 +292,7 @@ export default function EventsStudent() {
                         {(searchTerm || selectedCategory !== "all" || selectedMode !== "all") && (
                             <button
                                 onClick={clearFilters}
-                                className="px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm flex items-center gap-1"
+                                className="px-3 py-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors text-sm flex items-center gap-1"
                             >
                                 <X className="w-4 h-4" />
                                 Clear
@@ -268,13 +301,13 @@ export default function EventsStudent() {
                     </div>
                 </div>
 
-                {/* Mobile Filters */}
+                {/* Mobile Filters - FIXED */}
                 {showFilters && (
-                    <div className="lg:hidden mt-4 space-y-3 pt-4 border-t border-gray-200">
+                    <div className="lg:hidden mt-4 space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <select
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                         >
                             {categories.map(cat => (
                                 <option key={cat} value={cat}>
@@ -286,7 +319,7 @@ export default function EventsStudent() {
                         <select
                             value={selectedMode}
                             onChange={(e) => setSelectedMode(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                         >
                             {modes.map(mode => (
                                 <option key={mode} value={mode}>
@@ -298,7 +331,7 @@ export default function EventsStudent() {
                         {(searchTerm || selectedCategory !== "all" || selectedMode !== "all") && (
                             <button
                                 onClick={clearFilters}
-                                className="w-full px-4 py-2 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors text-sm"
+                                className="w-full px-4 py-2 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-sm"
                             >
                                 Clear All Filters
                             </button>
@@ -307,23 +340,42 @@ export default function EventsStudent() {
                 )}
             </div>
 
-            {/* Results Stats */}
+            {/* Results Stats - FIXED */}
             <div className="flex justify-between items-center">
-                <p className="text-sm text-gray-500">
-                    Showing <span className="font-medium text-gray-700">{filteredEvents.length}</span> events
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Showing <span className="font-medium text-gray-700 dark:text-gray-300">{filteredEvents.length}</span> events
                 </p>
-                <button className="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2">
-                    <Download className="w-4 h-4" />
-                    Export
-                </button>
+                <div className="flex gap-2">
+                    <button onClick={() => setShowScanner(true)} className="px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium shadow-sm">
+                        <QrCode className="w-4 h-4" />
+                        Scan Check-in QR
+                    </button>
+                    <button className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors flex items-center gap-2 hidden md:flex">
+                        <Download className="w-4 h-4" />
+                        Export
+                    </button>
+                </div>
             </div>
 
-            {/* events Grid */}
+            {/* Check-in Message Toast - FIXED */}
+            {checkInMessage && (
+                <div className={`p-4 rounded-xl border flex items-center justify-between ${checkInMessage.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300' : 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300'}`}>
+                    <div className="flex items-center gap-3">
+                        {checkInMessage.type === 'success' ? <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> : <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400" />}
+                        <span className="font-medium">{checkInMessage.text}</span>
+                    </div>
+                    <button onClick={() => setCheckInMessage(null)} className="p-1 hover:bg-white/50 dark:hover:bg-gray-800 rounded-lg">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
+
+            {/* events Grid - FIXED */}
             {filteredEvents.length === 0 ? (
-                <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                    <CalendarDays className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No events found</h3>
-                    <p className="text-gray-500 mb-6">Try adjusting your search or filters</p>
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
+                    <CalendarDays className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No events found</h3>
+                    <p className="text-gray-500 dark:text-gray-400 mb-6">Try adjusting your search or filters</p>
                     <button
                         onClick={clearFilters}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
@@ -336,10 +388,10 @@ export default function EventsStudent() {
                     {filteredEvents.map((event) => (
                         <div
                             key={event._id}
-                            className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
+                            className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
                         >
-                            {/* Image Container */}
-                            <div className="relative h-48 overflow-hidden bg-gray-100">
+                            {/* Image Container - FIXED */}
+                            <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-800">
                                 <img
                                     src={event.coverImage || 'https://via.placeholder.com/800x400?text=event'}
                                     alt={event.title}
@@ -349,14 +401,14 @@ export default function EventsStudent() {
                                     }}
                                 />
 
-                                {/* Category Badge */}
+                                {/* Category Badge - FIXED */}
                                 <div className="absolute top-3 left-3">
-                                    <span className="px-2 py-1 bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-medium rounded-lg border border-gray-200">
+                                    <span className="px-2 py-1 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-700">
                                         {event.category}
                                     </span>
                                 </div>
 
-                                {/* Mode Badge */}
+                                {/* Mode Badge - FIXED */}
                                 <div className="absolute top-3 right-3">
                                     <span className={`px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 border ${getModeColor(event.mode)}`}>
                                         {getModeIcon(event.mode)}
@@ -365,43 +417,43 @@ export default function EventsStudent() {
                                 </div>
                             </div>
 
-                            {/* Content */}
+                            {/* Content - FIXED */}
                             <div className="p-5">
-                                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">
+                                <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-1">
                                     {event.title}
                                 </h3>
 
-                                <p className="text-sm text-gray-500 mb-4 line-clamp-2">
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">
                                     {event.shortDescription}
                                 </p>
 
-                                {/* Speaker & Organization */}
+                                {/* Speaker & Organization - FIXED */}
                                 <div className="space-y-2 mb-4">
                                     <div className="flex items-center gap-2 text-sm">
-                                        <User className="w-4 h-4 text-gray-400" />
-                                        <span className="text-gray-600">{event.speaker}</span>
+                                        <User className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                                        <span className="text-gray-600 dark:text-gray-400">{event.speaker}</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-sm">
-                                        <Building className="w-4 h-4 text-gray-400" />
-                                        <span className="text-gray-600">{event.organization}</span>
+                                        <Building className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                                        <span className="text-gray-600 dark:text-gray-400">{event.organization}</span>
                                     </div>
                                 </div>
 
-                                {/* Date & Time */}
-                                <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-                                    <Calendar className="w-4 h-4 text-gray-400" />
+                                {/* Date & Time - FIXED */}
+                                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
+                                    <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                                     <span>{formatDate(event.date)}</span>
-                                    <Clock className="w-4 h-4 text-gray-400 ml-2" />
+                                    <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500 ml-2" />
                                     <span>{event.startTime}</span>
                                 </div>
 
-                                {/* Tags */}
+                                {/* Tags - FIXED */}
                                 {event.tags && (
                                     <div className="flex flex-wrap gap-2 mb-4">
                                         {event.tags.split(',').map((tag, index) => (
                                             <span
                                                 key={index}
-                                                className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-lg flex items-center gap-1"
+                                                className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs rounded-lg flex items-center gap-1"
                                             >
                                                 <Tag className="w-3 h-3" />
                                                 {tag.trim()}
@@ -410,7 +462,7 @@ export default function EventsStudent() {
                                     </div>
                                 )}
 
-                                {/* Action Buttons */}
+                                {/* Action Buttons - FIXED */}
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => handleViewDetails(event)}
@@ -425,7 +477,7 @@ export default function EventsStudent() {
                                             href={event.meetingLink}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                                            className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm font-medium text-gray-600 dark:text-gray-400"
                                         >
                                             <ExternalLink className="w-4 h-4" />
                                         </a>
@@ -437,12 +489,12 @@ export default function EventsStudent() {
                 </div>
             )}
 
-            {/* event Details Modal */}
+            {/* event Details Modal - FIXED */}
             {showModal && selectedevent && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-                        {/* Modal Header */}
-                        <div className="relative h-56 bg-gray-100">
+                    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                        {/* Modal Header - FIXED */}
+                        <div className="relative h-56 bg-gray-100 dark:bg-gray-800">
                             <img
                                 src={selectedevent.coverImage || 'https://via.placeholder.com/1200x400?text=event'}
                                 alt={selectedevent.title}
@@ -450,14 +502,14 @@ export default function EventsStudent() {
                             />
                             <button
                                 onClick={closeModal}
-                                className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-lg hover:bg-gray-100 transition-colors border border-gray-200"
+                                className="absolute top-4 right-4 p-2 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700"
                             >
-                                <X className="w-4 h-4 text-gray-600" />
+                                <X className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                             </button>
 
-                            {/* Badges */}
+                            {/* Badges - FIXED */}
                             <div className="absolute bottom-4 left-4 flex gap-2">
-                                <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-gray-700 text-sm font-medium rounded-lg border border-gray-200">
+                                <span className="px-3 py-1 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg border border-gray-200 dark:border-gray-700">
                                     {selectedevent.category}
                                 </span>
                                 <span className={`px-3 py-1 rounded-lg text-sm font-medium flex items-center gap-1 border ${getModeColor(selectedevent.mode)}`}>
@@ -467,88 +519,88 @@ export default function EventsStudent() {
                             </div>
                         </div>
 
-                        {/* Modal Content */}
+                        {/* Modal Content - FIXED */}
                         <div className="p-6">
-                            <h2 className="text-xl font-bold text-gray-900 mb-4">{selectedevent.title}</h2>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{selectedevent.title}</h2>
 
-                            {/* Key Info Grid */}
+                            {/* Key Info Grid - FIXED */}
                             <div className="grid grid-cols-2 gap-4 mb-6">
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <User className="w-4 h-4 text-gray-400" />
+                                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                    <User className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                                     <span className="font-medium">Speaker:</span> {selectedevent.speaker}
                                 </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <Building className="w-4 h-4 text-gray-400" />
+                                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                    <Building className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                                     <span className="font-medium">Organization:</span> {selectedevent.organization}
                                 </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <Calendar className="w-4 h-4 text-gray-400" />
+                                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                    <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                                     <span className="font-medium">Date:</span> {formatDate(selectedevent.date)}
                                 </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <Clock className="w-4 h-4 text-gray-400" />
+                                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                    <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                                     <span className="font-medium">Time:</span> {selectedevent.startTime} - {selectedevent.endTime}
                                 </div>
                             </div>
 
-                            {/* Description */}
+                            {/* Description - FIXED */}
                             <div className="space-y-4">
                                 <div>
-                                    <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                                        <Info className="w-4 h-4 text-gray-400" />
+                                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                                        <Info className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                                         About this event
                                     </h3>
-                                    <p className="text-sm text-gray-600 leading-relaxed">{selectedevent.description}</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{selectedevent.description}</p>
                                 </div>
 
                                 {selectedevent.prerequisites && (
                                     <div>
-                                        <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                                            <BookOpen className="w-4 h-4 text-gray-400" />
+                                        <h3 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                                            <BookOpen className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                                             Prerequisites
                                         </h3>
-                                        <p className="text-sm text-gray-600">{selectedevent.prerequisites}</p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedevent.prerequisites}</p>
                                     </div>
                                 )}
 
                                 {selectedevent.targetAudience && (
                                     <div>
-                                        <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                                            <Users className="w-4 h-4 text-gray-400" />
+                                        <h3 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                                            <Users className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                                             Target Audience
                                         </h3>
-                                        <p className="text-sm text-gray-600">{selectedevent.targetAudience}</p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedevent.targetAudience}</p>
                                     </div>
                                 )}
 
                                 {selectedevent.mode !== 'online' && selectedevent.venue && (
                                     <div>
-                                        <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                                            <MapPin className="w-4 h-4 text-gray-400" />
+                                        <h3 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                                            <MapPin className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                                             Venue
                                         </h3>
-                                        <p className="text-sm text-gray-600">{selectedevent.venue}</p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">{selectedevent.venue}</p>
                                     </div>
                                 )}
 
-                                {/* Contact Information */}
-                                <div className="border-t border-gray-200 pt-4">
-                                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                        <Users className="w-4 h-4 text-gray-400" />
+                                {/* Contact Information - FIXED */}
+                                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                    <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                        <Users className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                                         Contact Information
                                     </h3>
                                     <div className="grid grid-cols-2 gap-3">
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                            <User className="w-4 h-4 text-gray-400" />
+                                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                            <User className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                                             {selectedevent.contactName}
                                         </div>
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                            <Mail className="w-4 h-4 text-gray-400" />
+                                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                            <Mail className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                                             {selectedevent.contactEmail}
                                         </div>
                                         {selectedevent.contactPhone && (
-                                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                <Phone className="w-4 h-4 text-gray-400" />
+                                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                                <Phone className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                                                 {selectedevent.contactPhone}
                                             </div>
                                         )}
@@ -556,13 +608,13 @@ export default function EventsStudent() {
                                 </div>
 
                                 {selectedevent.registrationRequired && (
-                                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
                                         <div className="flex items-start gap-3">
-                                            <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+                                            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />
                                             <div>
-                                                <p className="font-medium text-amber-800">Registration Required</p>
+                                                <p className="font-medium text-amber-800 dark:text-amber-300">Registration Required</p>
                                                 {selectedevent.maxParticipants && (
-                                                    <p className="text-sm text-amber-600 mt-1">
+                                                    <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
                                                         Maximum participants: {selectedevent.maxParticipants}
                                                     </p>
                                                 )}
@@ -572,11 +624,11 @@ export default function EventsStudent() {
                                 )}
                             </div>
 
-                            {/* Modal Footer */}
-                            <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end gap-3">
+                            {/* Modal Footer - FIXED */}
+                            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
                                 <button
                                     onClick={closeModal}
-                                    className="px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm"
+                                    className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm"
                                 >
                                     Close
                                 </button>
@@ -592,6 +644,58 @@ export default function EventsStudent() {
                                     </a>
                                 )}
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* QR Scanner Modal - FIXED */}
+            {showScanner && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-md w-full overflow-hidden">
+                        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
+                            <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                <QrCode className="w-5 h-5 text-blue-600 dark:text-blue-400" /> Event Check-in
+                            </h3>
+                            <button onClick={() => setShowScanner(false)} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                            </button>
+                        </div>
+                        <div className="p-6 flex flex-col items-center">
+                            {checkingIn ? (
+                                <div className="py-12 flex flex-col items-center">
+                                    <Loader2 className="w-12 h-12 text-blue-600 dark:text-blue-400 animate-spin mb-4" />
+                                    <p className="text-gray-600 dark:text-gray-400 font-medium">Verifying check-in...</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 text-center">Point your camera at the event QR code to check in.</p>
+                                    <div className="w-full max-w-[300px] aspect-square rounded-2xl overflow-hidden border-4 border-blue-100 dark:border-blue-900 shadow-inner relative bg-gray-900 mb-4">
+                                        <Scanner onScan={handleScan} />
+                                    </div>
+                                    <div className="w-full max-w-[300px]">
+                                        <p className="text-xs text-gray-400 dark:text-gray-500 mb-2 text-center">Or enter code manually for testing:</p>
+                                        <div className="flex gap-2">
+                                            <input 
+                                                id="manual-qr-input"
+                                                type="text" 
+                                                className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                                                placeholder="Paste QR secret"
+                                            />
+                                            <button 
+                                                id="manual-qr-submit"
+                                                onClick={() => {
+                                                    const val = (document.getElementById('manual-qr-input') as HTMLInputElement).value;
+                                                    if(val) handleScan([{rawValue: val}]);
+                                                }}
+                                                className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                                            >
+                                                Submit
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

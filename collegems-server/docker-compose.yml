@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: collegems-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # In a full deployment, each microservice would have its own Dockerfile/container
+  # For local development, we run the microservices via Node directly, or we can use this compose file just for infrastructure.
+
+  mongodb:
+    image: mongo:latest
+    container_name: collegems-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: collegems
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:

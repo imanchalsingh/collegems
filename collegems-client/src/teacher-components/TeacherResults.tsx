@@ -13,11 +13,12 @@ import {
   Calculator,
   Beaker,
   FileText,
-  Eye,
-  EyeOff,
   PenSquare,
+  Send,
+  AlertTriangle,
 } from "lucide-react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 
 interface Student {
   _id: string;
@@ -49,11 +50,26 @@ interface ResultForm {
   practicalMarks: number | '';
   totalMarks: number | '';
   grade: string;
-  status: 'draft' | 'published';
 }
 
 interface ApiError {
   message: string;
+}
+
+interface PublishPreviewData {
+  course: { name: string; code: string };
+  semester: string;
+  totalStudents: number;
+  students: Array<{
+    _id: string;
+    name: string;
+    studentId: string;
+    internalMarks: number;
+    externalMarks: number;
+    practicalMarks: number;
+    totalMarks: number;
+    grade: string;
+  }>;
 }
 
 export default function TeacherResult() {
@@ -70,6 +86,14 @@ export default function TeacherResult() {
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [existingResults, setExistingResults] = useState<Set<string>>(new Set());
 
+  const [publishCourseId, setPublishCourseId] = useState("");
+  const [publishSemester, setPublishSemester] = useState("");
+  const [publishPreviewData, setPublishPreviewData] = useState<PublishPreviewData | null>(null);
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [publishingAll, setPublishingAll] = useState(false);
+  const [publishError, setPublishError] = useState("");
+  const [publishSuccess, setPublishSuccess] = useState("");
+
   const [form, setForm] = useState<ResultForm>({
     studentId: "",
     courseId: "",
@@ -79,7 +103,6 @@ export default function TeacherResult() {
     practicalMarks: '',
     totalMarks: '',
     grade: "",
-    status: 'draft',
   });
 
   const grades = [
@@ -111,9 +134,9 @@ export default function TeacherResult() {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/users/students");
-      setStudents(response.data);
-      setFilteredStudents(response.data);
+      const response = await api.get("/users/students?limit=0");
+      setStudents(extractArray(response.data));
+      setFilteredStudents(extractArray(response.data));
     } catch (error) {
       console.error("Error fetching students:", error);
       setError("Failed to load students");
@@ -125,7 +148,7 @@ export default function TeacherResult() {
   const fetchCourses = async () => {
     try {
       const res = await api.get("/courses/all");
-      setCourses(res.data);
+      setCourses(extractArray(res.data));
     } catch (error) {
       console.error("Error fetching courses:", error);
       setError("Failed to load courses");
@@ -262,7 +285,6 @@ export default function TeacherResult() {
         practicalMarks: '',
         totalMarks: '',
         grade: '',
-        status: 'draft',
       }));
       
     } catch (err) {
@@ -290,6 +312,46 @@ export default function TeacherResult() {
   const isExistingResult = form.studentId && form.courseId && form.semester 
     ? existingResults.has(`${form.studentId}-${form.courseId}-${form.semester}`)
     : false;
+
+  const handlePublishPreview = async () => {
+    if (!publishCourseId || !publishSemester) {
+      setPublishError("Please select both course and semester");
+      return;
+    }
+    try {
+      setPublishError("");
+      setPublishSuccess("");
+      setPublishPreviewData(null);
+      const res = await api.post("/results/publish-preview", {
+        courseId: publishCourseId,
+        semester: publishSemester,
+      });
+      setPublishPreviewData(res.data);
+      setShowPublishModal(true);
+    } catch (err: any) {
+      setPublishError(err.response?.data?.message || "Failed to generate preview");
+    }
+  };
+
+  const handlePublishAll = async () => {
+    if (!publishPreviewData) return;
+    try {
+      setPublishingAll(true);
+      setPublishError("");
+      await api.post("/results/publish-all", {
+        courseId: publishCourseId,
+        semester: publishSemester,
+      });
+      setShowPublishModal(false);
+      setPublishPreviewData(null);
+      setPublishSuccess(`Successfully published ${publishPreviewData.totalStudents} result(s)`);
+      setTimeout(() => setPublishSuccess(""), 5000);
+    } catch (err: any) {
+      setPublishError(err.response?.data?.message || "Bulk publish failed");
+    } finally {
+      setPublishingAll(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -476,36 +538,7 @@ export default function TeacherResult() {
                     </div>
                   </div>
 
-                  {/* Status Selection */}
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Result Status</label>
-                    <div className="flex gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setForm({ ...form, status: 'draft' })}
-                        className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${
-                          form.status === 'draft'
-                            ? 'bg-gray-100 border-gray-300 text-gray-700'
-                            : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                        }`}
-                      >
-                        <EyeOff className="w-3 h-3" />
-                        Draft
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setForm({ ...form, status: 'published' })}
-                        className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${
-                          form.status === 'published'
-                            ? 'bg-blue-50 border-blue-300 text-blue-700'
-                            : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                        }`}
-                      >
-                        <Eye className="w-3 h-3" />
-                        Published
-                      </button>
-                    </div>
-                  </div>
+
                 </div>
               )}
 
@@ -701,6 +734,188 @@ export default function TeacherResult() {
           </div>
         </div>
       </div>
+
+      {/* Publish Results Section */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="p-2 bg-emerald-100 rounded-lg">
+            <Send className="w-5 h-5 text-emerald-600" />
+          </div>
+          <h2 className="text-lg font-semibold text-gray-900">Publish Results</h2>
+        </div>
+
+        {publishSuccess && (
+          <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-2 rounded-lg mb-4">
+            <CheckCircle className="w-4 h-4" />
+            <span className="text-sm">{publishSuccess}</span>
+          </div>
+        )}
+
+        {publishError && (
+          <div className="flex items-center gap-2 text-rose-600 bg-rose-50 px-3 py-2 rounded-lg mb-4">
+            <AlertCircle className="w-4 h-4" />
+            <span className="text-sm">{publishError}</span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Course
+            </label>
+            <div className="relative">
+              <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <select
+                value={publishCourseId}
+                onChange={(e) => setPublishCourseId(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none bg-white"
+              >
+                <option value="">Choose a course</option>
+                {courses.map((course) => (
+                  <option key={course._id} value={course._id}>
+                    {course.name} ({course.code})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Semester
+            </label>
+            <div className="relative">
+              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <select
+                value={publishSemester}
+                onChange={(e) => setPublishSemester(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none bg-white"
+              >
+                <option value="">Select semester</option>
+                {semesters.map((sem) => (
+                  <option key={sem} value={sem}>
+                    Semester {sem}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-end">
+            <button
+              onClick={handlePublishPreview}
+              disabled={!publishCourseId || !publishSemester}
+              className="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <Send className="w-4 h-4" />
+              Preview Publish
+            </button>
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-400 mt-3">
+          Preview all draft results for the selected course and semester before publishing them.
+          Published results become visible to students and lock their academic records.
+        </p>
+      </div>
+
+      {/* Publish Preview Modal */}
+      {showPublishModal && publishPreviewData && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] flex flex-col shadow-xl">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900">
+                Publish Preview
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {publishPreviewData.course.name} ({publishPreviewData.course.code}) — Semester {publishPreviewData.semester}
+              </p>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
+                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-800">
+                    {publishPreviewData.totalStudents} student{publishPreviewData.totalStudents !== 1 ? "s" : ""} will be affected
+                  </p>
+                  <p className="text-xs text-amber-600">
+                    Published results are immediately visible to students and cannot be reverted.
+                  </p>
+                </div>
+              </div>
+
+              {publishPreviewData.totalStudents > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                        <th className="pb-2 pr-4">Student</th>
+                        <th className="pb-2 pr-4">ID</th>
+                        <th className="pb-2 pr-4 text-right">Internal</th>
+                        <th className="pb-2 pr-4 text-right">External</th>
+                        <th className="pb-2 pr-4 text-right">Practical</th>
+                        <th className="pb-2 pr-4 text-right">Total</th>
+                        <th className="pb-2 text-right">Grade</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {publishPreviewData.students.map((s) => (
+                        <tr key={s._id} className="text-sm hover:bg-gray-50">
+                          <td className="py-2.5 pr-4 font-medium text-gray-900">{s.name}</td>
+                          <td className="py-2.5 pr-4 text-gray-500">{s.studentId}</td>
+                          <td className="py-2.5 pr-4 text-right text-gray-700">{s.internalMarks ?? "-"}</td>
+                          <td className="py-2.5 pr-4 text-right text-gray-700">{s.externalMarks ?? "-"}</td>
+                          <td className="py-2.5 pr-4 text-right text-gray-700">{s.practicalMarks ?? "-"}</td>
+                          <td className="py-2.5 pr-4 text-right font-medium text-gray-900">{s.totalMarks ?? "-"}</td>
+                          <td className="py-2.5 text-right">
+                            <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
+                              s.grade === "F" ? "bg-rose-100 text-rose-700" : "bg-emerald-100 text-emerald-700"
+                            }`}>
+                              {s.grade || "-"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-8">No draft results to publish.</p>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex items-center justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowPublishModal(false);
+                  setPublishPreviewData(null);
+                }}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePublishAll}
+                disabled={publishingAll || publishPreviewData.totalStudents === 0}
+                className="px-5 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {publishingAll ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    Confirm Publish ({publishPreviewData.totalStudents})
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { extractArray } from "../utils/apiHelpers";
 import {
   Search,
   Filter,
@@ -86,7 +87,7 @@ export default function TeacherFee() {
     try {
       setLoading(true);
       const res = await api.get("/fee/all");
-      setFees(res.data);
+      setFees(extractArray(res.data));
       setError(null);
     } catch (err) {
       console.error(err);

@@ -1,7 +1,7 @@
 // controllers/teacher.attendance.controller.js
 import TeacherAttendance from "../models/TeacherAttendance.js";
 import User from "../models/User.model.js"; // Assuming Teacher is a type of User
-
+import { logAction } from "../utils/auditService.js";
 // For teachers to mark their own attendance
 export const markMyAttendance = async (req, res) => {
   try {
@@ -34,10 +34,14 @@ export const markMyAttendance = async (req, res) => {
       existingAttendance.markedAt = new Date();
       await existingAttendance.save();
 
-      return res.json({
+      res.json({
         message: "Attendance updated successfully",
         attendance: existingAttendance,
       });
+
+      // Log update action
+      await logAction(req.user.id, "MARK_TEACHER_ATTENDANCE", "Attendance", teacherId, { status, date: existingAttendance.date });
+      return;
     }
 
     // Create new attendance record
@@ -52,6 +56,9 @@ export const markMyAttendance = async (req, res) => {
       message: "Attendance marked successfully",
       attendance,
     });
+
+    // Log mark action
+    await logAction(req.user.id, "MARK_TEACHER_ATTENDANCE", "Attendance", teacherId, { status, date: startOfDay });
   } catch (err) {
     console.error("Error marking attendance:", err);
     res.status(500).json({ message: "Failed to mark attendance" });

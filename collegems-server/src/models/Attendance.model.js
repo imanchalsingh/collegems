@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import snapshotPlugin from "../plugins/snapshotPlugin.js";
 
 const attendanceSchema = new mongoose.Schema(
   {
@@ -29,5 +30,9 @@ attendanceSchema.index(
   { student: 1, course: 1, date: 1 },
   { unique: true }
 );
+
+attendanceSchema.index({ course: 1, date: -1 });
+attendanceSchema.index({ student: 1, date: -1 });
+attendanceSchema.plugin(snapshotPlugin);
 
 export default mongoose.model("Attendance", attendanceSchema);

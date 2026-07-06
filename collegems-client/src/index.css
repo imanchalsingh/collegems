@@ -1,5 +1,7 @@
 @import "tailwindcss";
-*{
-    font-family: 'Righteous';
-    scrollbar-width: none;
+@custom-variant dark (&:where(.dark, .dark *));
+
+* {
+  font-family: 'Righteous';
+  scrollbar-width: none;
 }
