@@ -563,15 +563,45 @@ const handleDeleteAssignment = (assignmentToDelete: any) => {
             className="w-full md:w-1/2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-
 <div className="space-y-3">
-          {/* Changed assignments to filteredAssignments */}
           {filteredAssignments.length === 0 ? (
-            <div className="flex flex-col items-center py-6 text-center">
-              {/* ... empty state ... */}
-            </div>
+            // 1. Check if they have zero assignments in total
+            assignments.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-gray-50/50 rounded-xl border-2 border-dashed border-gray-200 my-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-5 shadow-sm">
+                  <FileText className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  No assignments created yet!
+                </h3>
+                <p className="text-sm text-gray-500 max-w-sm mx-auto mb-6 leading-relaxed">
+                  Your course is looking a little empty. Create your very first assignment to start engaging with your students.
+                </p>
+                {hasCourseId ? (
+                  <button
+                    onClick={() => setOpen(true)}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Create Your First Assignment
+                  </button>
+                ) : (
+                  <p className="text-sm font-medium text-amber-700 bg-amber-50 px-4 py-2 rounded-lg border border-amber-200">
+                    Please select a course first to create an assignment.
+                  </p>
+                )}
+              </div>
+            ) : (
+              // 2. If they have assignments, but the search filtered them all out
+              <div className="flex flex-col items-center justify-center py-12 text-center bg-white rounded-lg border border-gray-100">
+                <div className="p-3 bg-gray-50 rounded-full mb-3">
+                  <FileText className="w-6 h-6 text-gray-400" />
+                </div>
+                <p className="text-gray-900 font-medium mb-1">No assignments match your search</p>
+                <p className="text-sm text-gray-500">Try typing a different keyword or title.</p>
+              </div>
+            )
           ) : (
-            /* Changed assignments to filteredAssignments */
             [...filteredAssignments]
               .sort((a, b) => {
                 const aTime = new Date(a.createdAt || a.dueDate || 0).getTime();
