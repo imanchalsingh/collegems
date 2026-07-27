@@ -58,6 +58,7 @@ import feedbackRoutes from "./feedback.routes.js";
 import jobBoardRoutes from "./jobBoard.routes.js";
 import placementRoutes from "./placement.routes.js";
 import alumniRoutes from "./alumni.routes.js";
+import resumeRoutes from "./resume.routes.js";
 
 // Resources & Facilities
 import libraryRoutes from "./library.routes.js";
@@ -164,6 +165,7 @@ authenticatedRouter.use("/feedback", feedbackRoutes);
 authenticatedRouter.use("/jobs", jobBoardRoutes);
 authenticatedRouter.use("/placements", placementRoutes);
 authenticatedRouter.use("/alumni", alumniRoutes);
+authenticatedRouter.use("/resume", resumeRoutes);
 
 // Resources & Facilities
 authenticatedRouter.use("/library", libraryRoutes);
