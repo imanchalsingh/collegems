@@ -33,4 +33,4 @@ const timetableSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("Timetable", timetableSchema);
+export default mongoose.models.User || mongoose.model("User", userSchema);

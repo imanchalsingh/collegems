@@ -29,6 +29,7 @@ import {
   GraduationCap,
   Users,
   UserCircle,
+  User,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import api from "../api/axios";
@@ -81,7 +82,7 @@ import AnnouncementsView from "../user-components/AnnouncementsView";
 import SemesterComparison from "../user-components/SemesterComparison";
 import UserWorkflows from "../user-components/UserWorkflows";
 import StudentQuizList from "../user-components/StudentQuizList";
-
+import StudentProfile from "../user-components/StudentProfile";
 // HOD Components
 import Teachers from "../hod-components/Teachers";
 
@@ -113,7 +114,9 @@ type TabType =
   | "user-workflows"
   | "settings"
   | "grade-trend"
-  | "online-exams";
+  | "online-exams"
+  | "profile"
+  ;
 
 const navigationItems: {
   id: TabType;
@@ -146,6 +149,7 @@ const navigationItems: {
   { id: "user-workflows", label: "My Workflows", icon: FileText },
   { id: "grade-trend", label: "Grade Trend", icon: BarChart },
   { id: "online-exams", label: "Online Exams", icon: FileText },
+  { id: "profile", label: "My Profile", icon: User },
 ];
 
 export default function StudentDashboard() {
@@ -765,7 +769,7 @@ export default function StudentDashboard() {
               {activeTab === "placement" && <PlacementEligibility />}
               {activeTab === "user-workflows" && <UserWorkflows />}
               {activeTab === "online-exams" && <StudentQuizList />}
-
+              {activeTab === "profile" && <StudentProfile />}
               {activeTab === "settings" && (
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   Settings are not available yet for student accounts.

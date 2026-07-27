@@ -10,6 +10,10 @@ export const applyScholarship = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
+    if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) {
+      return res.status(400).json({ message: "Amount must be a positive number" });
+    }
+
     const scholarship = await Scholarship.create({
       studentId: req.user.id,
       scholarshipName,
@@ -85,6 +89,13 @@ export const reviewScholarship = async (req, res) => {
     const scholarship = await Scholarship.findById(id);
     if (!scholarship) {
       return res.status(404).json({ message: "Scholarship application not found" });
+    }
+
+    if (
+      status === "Approved" &&
+      (typeof scholarship.amount !== "number" || !Number.isFinite(scholarship.amount) || scholarship.amount <= 0)
+    ) {
+      return res.status(400).json({ message: "Cannot approve an application with an invalid amount" });
     }
 
     scholarship.status = status;

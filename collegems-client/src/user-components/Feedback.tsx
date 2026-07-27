@@ -1,9 +1,4 @@
 // FILE: collegems-client/src/user-components/Feedback.tsx
-// Fixes:
-// 1. Renamed internal fetch fn to loadFeedback (avoid collision with browser fetch)
-// 2. Added console.error so you can see exact API errors in browser DevTools
-// 3. Error message now shown in UI when My Submissions fails to load
-// 4. Added dark mode support
 
 import { useEffect, useState } from "react";
 import {
@@ -85,15 +80,40 @@ function FeedbackForm({ onSubmitted }: { onSubmitted: () => void }) {
     rating: 0,
     isAnonymous: false,
   });
+  
+  // ✨ MOVED INSIDE COMPONENT: Faculty selection state
+  const [teacherId, setTeacherId] = useState("");
+  const [teachers, setTeachers] = useState<any[]>([]);
+  
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError]     = useState("");
+
+  // ✨ MOVED INSIDE COMPONENT: Fetch teachers when form loads
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      try {
+      const res = await api.get("/users/teachers");
+        setTeachers(res.data.data || res.data);
+      } catch (err) {
+        console.error("Failed to fetch teachers", err);
+      }
+    };
+    fetchTeachers();
+  }, []);
 
   const handleSubmit = async () => {
     if (!form.title.trim() || !form.message.trim()) {
       setError("Please fill in the title and message.");
       return;
     }
+
+    // Require teacher selection if category is faculty
+    if (form.category === "faculty" && !teacherId) {
+      setError("Please select a faculty member.");
+      return;
+    }
+
     setLoading(true);
     setError("");
     try {
@@ -103,9 +123,12 @@ function FeedbackForm({ onSubmitted }: { onSubmitted: () => void }) {
         message:     form.message,
         rating:      form.rating || null,
         isAnonymous: form.isAnonymous,
+        // ✨ NEW: Attach teacherId if faculty is selected
+        teacherId:   form.category === "faculty" ? teacherId : null 
       });
       setSuccess(true);
       setForm({ category: "general", title: "", message: "", rating: 0, isAnonymous: false });
+      setTeacherId("");
       setTimeout(() => {
         setSuccess(false);
         onSubmitted();
@@ -155,6 +178,32 @@ function FeedbackForm({ onSubmitted }: { onSubmitted: () => void }) {
             <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute right-2 top-2.5 pointer-events-none" />
           </div>
         </div>
+
+        {/* ✨ NEW: Conditional Faculty Dropdown */}
+        {form.category === 'faculty' && (
+          <div className="animate-in fade-in slide-in-from-top-2">
+            <label htmlFor="feedback-teacher" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Select Faculty Member <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <select
+                id="feedback-teacher"
+                value={teacherId}
+                onChange={(e) => setTeacherId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm appearance-none
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white pr-8"
+              >
+                <option value="" disabled>-- Select a Teacher --</option>
+                {teachers.map((t) => (
+                  <option key={t._id} value={t._id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500 absolute right-2 top-2.5 pointer-events-none" />
+            </div>
+          </div>
+        )}
 
         {/* Title */}
         <div>
@@ -217,8 +266,8 @@ function FeedbackForm({ onSubmitted }: { onSubmitted: () => void }) {
           </div>
           <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
             {form.isAnonymous
-              ? "Your name will be hidden from HOD."
-              : "Your name will be visible to HOD."}
+              ? "Your name will be hidden from HOD and Faculty."
+              : "Your name will be visible."}
           </span>
         </div>
 
@@ -315,6 +364,7 @@ function FeedbackHistory({ onSwitchToForm }: { onSwitchToForm?: () => void }) {
                 <p className="font-semibold text-gray-900 dark:text-white text-sm">{item.title}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   {CATEGORY_LABELS[item.category]}
+                  {item.teacher && ` · ${item.teacher.name}`}
                   {item.course && ` · ${item.course.code} — ${item.course.name}`}
                   {" · "}
                   {new Date(item.createdAt).toLocaleDateString("en-IN", {

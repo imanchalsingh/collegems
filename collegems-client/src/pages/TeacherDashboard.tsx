@@ -11,6 +11,7 @@ import {
   Briefcase,
   ShieldCheck,
   User,
+  MessageSquare,
 } from "lucide-react";
 import HodCourses from "../teacher-components/Courses";
 import TeacherAssignments from "../teacher-components/Assignment";
@@ -43,8 +44,11 @@ import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget
 import UserWorkflows from "../user-components/UserWorkflows";
 import ThemeSwitcher from "../components/ThemeSwitcher";
 import TeacherProfile from "../teacher-components/TeacherProfile";
+import TeacherFeedback from "../teacher-components/TeacherFeedback";
 import QuizCreator from "../teacher-components/QuizCreator";
-
+import { useLoading } from "../hooks/useLoading";
+import { SkeletonText, SkeletonStatsCard, SkeletonActivityFeed, SkeletonList } from "../common-components-management/SkeletonLoader"; 
+import TeacherAnalyticsWidget from "../components/AnalyticsWidgets/TeacherAnalyticsWidget";
 interface TeacherDashboardProps {
   initialTab?: string;
 }
@@ -139,6 +143,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
     { id: "class-performance", label: "Class Performance", icon: BarChart3 },
     { id: "risk-dashboard", label: "Predictive Analytics", icon: LayoutDashboard },
     { id: "user-workflows", label: "My Workflows", icon: FileText },
+    { id: "feedback", label: "Student Feedback", icon: MessageSquare },
     { id: "quizzes", label: "Quizzes & Exams", icon: ClipboardCheck },
   ];
 
@@ -540,6 +545,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
           {activeTab === "class-performance" && <TeacherAnalyticsWidget />}
           {activeTab === "risk-dashboard" && <RiskDashboard />}
           {activeTab === "user-workflows" && <UserWorkflows />}
+          {activeTab === "feedback" && <TeacherFeedback />} 
           {activeTab === "quizzes" && <QuizCreator />}
           {activeTab === "announcements" && (
             <div className="space-y-8">

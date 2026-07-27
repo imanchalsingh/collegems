@@ -33,6 +33,7 @@ export default function MainDashboard() {
   const { darkMode, toggleTheme } = useTheme();
   const [showSuggestions] = useState(false);
   const { notifications, markAsRead } = useNotifications();
+  
   const dashboardCards = [
     { id: 1, title: "Academic Results", description: "View your semester grades and performance", icon: FileText, count: "4 Subjects", color: "blue", route: "/results" },
     { id: 2, title: "Examination Schedule", description: "Upcoming exams dates and venues", icon: Calendar, count: "2 Upcoming", color: "amber", route: "/examschedule" },
@@ -64,6 +65,7 @@ export default function MainDashboard() {
     rose:    { bg: "bg-rose-50 dark:bg-rose-950/20",    text: "text-rose-700 dark:text-rose-300",    border: "border-rose-200 dark:border-rose-800",    icon: "text-rose-600",    hover: "hover:border-rose-300",    light: "bg-rose-100 dark:bg-rose-900/30" },
     cyan:    { bg: "bg-cyan-50 dark:bg-cyan-950/20",    text: "text-cyan-700 dark:text-cyan-300",    border: "border-cyan-200 dark:border-cyan-800",    icon: "text-cyan-600",    hover: "hover:border-cyan-300",    light: "bg-cyan-100 dark:bg-cyan-900/30" },
   };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <nav className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
@@ -141,6 +143,7 @@ export default function MainDashboard() {
             })}
           </div>
         </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <div className="lg:col-span-2">
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
@@ -184,65 +187,72 @@ export default function MainDashboard() {
                     <div key={index} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-gray-700">
                       <span className="text-sm text-gray-700 dark:text-gray-300">{event.title}</span>
                       <span className={`text-xs font-medium px-2 py-1 rounded-full ${colors.bg} ${colors.text}`}>{event.date}</span>
-          <RecentHistorySection />
-
-          {/* Bottom Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-            {/* Notifications */}
-            <div className="lg:col-span-2">
-              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                    <Bell className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                    Important Notifications
-                  </h3>
-                  <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                    View All
-                  </button>
-                </div>
-                <div className="space-y-4">
-                  {notifications.length > 0 ? (
-                    notifications.map((notif) => {
-                      const isDanger = notif.type === "danger";
-                      return (
-                        <div
-                          key={notif._id}
-                          onClick={() => !notif.isRead && markAsRead(notif._id)}
-                          className={`flex items-start gap-4 p-4 rounded-lg border transition-colors cursor-pointer ${isDanger ? "border-red-200 bg-red-50 dark:bg-red-900/20" : "border-blue-200 bg-blue-50 dark:bg-blue-900/20"} ${!notif.isRead ? "shadow-sm" : "opacity-70"}`}
-                        >
-                          <div
-                            className={`p-2 rounded-lg ${isDanger ? "bg-red-100 text-red-600" : "bg-blue-100 text-blue-600"}`}
-                          >
-                            <AlertCircle className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <h4
-                                  className={`font-medium ${isDanger ? "text-red-800" : "text-blue-800"}`}
-                                >
-                                  {notif.message}
-                                </h4>
-                              </div>
-                              <span
-                                className={`text-xs font-medium px-2 py-1 rounded-full ${isDanger ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}
-                              >
-                                {formatDistanceToNow(
-                                  new Date(notif.createdAt),
-                                  { addSuffix: true },
-                                )}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="text-center py-6 text-gray-500">
-                      No new notifications right now.
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <RecentHistorySection />
+
+        {/* Bottom Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8 mb-8">
+          {/* Notifications */}
+          <div className="lg:col-span-2">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Bell className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  Important Notifications
+                </h3>
+                <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                  View All
+                </button>
+              </div>
+              <div className="space-y-4">
+                {notifications.length > 0 ? (
+                  notifications.map((notif) => {
+                    const isDanger = notif.type === "danger";
+                    return (
+                      <div
+                        key={notif._id}
+                        onClick={() => !notif.isRead && markAsRead(notif._id)}
+                        className={`flex items-start gap-4 p-4 rounded-lg border transition-colors cursor-pointer ${isDanger ? "border-red-200 bg-red-50 dark:bg-red-900/20" : "border-blue-200 bg-blue-50 dark:bg-blue-900/20"} ${!notif.isRead ? "shadow-sm" : "opacity-70"}`}
+                      >
+                        <div
+                          className={`p-2 rounded-lg ${isDanger ? "bg-red-100 text-red-600" : "bg-blue-100 text-blue-600"}`}
+                        >
+                          <AlertCircle className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4
+                                className={`font-medium ${isDanger ? "text-red-800" : "text-blue-800"}`}
+                              >
+                                {notif.message}
+                              </h4>
+                            </div>
+                            <span
+                              className={`text-xs font-medium px-2 py-1 rounded-full ${isDanger ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}
+                            >
+                              {formatDistanceToNow(
+                                new Date(notif.createdAt),
+                                { addSuffix: true },
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-6 text-gray-500">
+                    No new notifications right now.
+                  </div>
+                )}
               </div>
             </div>
           </div>

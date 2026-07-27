@@ -12,13 +12,14 @@ import {
   updateFeedbackStatus,
   deleteFeedback,
   batchAnalyze,
+  getTeacherFeedback,
 } from "../controllers/feedback.controller.js";
-
+import { authenticate, restrictTo } from "../middlewares/auth.middleware.js";
 import { sanitizeInput } from "../middlewares/sanitize.middleware.js";
 import { validateFeedback } from "../validators/feedback.validator.js";
 
 const router = express.Router();
-
+router.get("/teacher", authenticate, restrictTo("teacher"), getTeacherFeedback);
 // ── Student routes ────────────────────────────────────────────────────────────
 router.post("/", protect, allowRoles("student"), sanitizeInput, validateFeedback, submitFeedback);
 router.get("/my",   protect, allowRoles("student"), getMyFeedback);

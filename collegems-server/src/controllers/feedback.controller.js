@@ -185,3 +185,26 @@ export const batchAnalyze = async (req, res) => {
     res.status(500).json({ message: "Failed to start batch analysis." });
   }
 };
+// ── TEACHER: get feedback assigned to them ──────────────────────────────────
+// GET /api/feedback/teacher
+export const getTeacherFeedback = async (req, res) => {
+  try {
+    // req.user.id is the ID of the logged-in teacher
+    const feedbacks = await Feedback.find({ teacher: req.user.id })
+      .populate("course", "name code")
+      .populate("student", "name studentId") // Only visible if not anonymous
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Sanitize: If feedback is anonymous, remove the student field entirely
+    const sanitized = feedbacks.map((f) => ({
+      ...f,
+      student: f.isAnonymous ? null : f.student,
+    }));
+
+    res.json(sanitized);
+  } catch (error) {
+    console.error("getTeacherFeedback error:", error);
+    res.status(500).json({ message: "Failed to fetch teacher feedback." });
+  }
+};

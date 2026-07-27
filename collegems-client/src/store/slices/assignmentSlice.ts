@@ -88,6 +88,16 @@ const assignmentSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    // NEW: Instantly remove assignment from the UI
+    removeAssignmentOptimistically: (state, action) => {
+      state.teacherAssignments = state.teacherAssignments.filter(
+        (a) => a._id !== action.payload
+      );
+    },
+    // NEW: Put the assignment back in the UI if "Undo" is clicked or API fails
+    restoreAssignmentOptimistically: (state, action) => {
+      state.teacherAssignments.push(action.payload);
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -170,7 +180,10 @@ const assignmentSlice = createSlice({
       });
   },
 });
-
-export const { clearError } = assignmentSlice.actions;
+export const { 
+  clearError, 
+  removeAssignmentOptimistically, 
+  restoreAssignmentOptimistically 
+} = assignmentSlice.actions;
 
 export default assignmentSlice.reducer;

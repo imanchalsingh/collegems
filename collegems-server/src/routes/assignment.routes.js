@@ -20,6 +20,8 @@ import {
   getUpcomingAssignments,
   getTeacherAssignments,
   addAssignmentComment,
+  deleteAssignment,
+  restoreAssignment
 } from "../controllers/assignment.controller.js";
 
 const router = express.Router();
@@ -192,5 +194,6 @@ router.get(
 
 // The new StackOverflow-style Comments Route!
 router.post("/:id/comments", protect, asyncHandler(addAssignmentComment));
-
+router.delete('/:id', deleteAssignment);
+router.put('/restore/:id', restoreAssignment);
 export default router;

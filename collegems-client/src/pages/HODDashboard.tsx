@@ -5,7 +5,7 @@ import {
   LayoutGrid, Users, GraduationCap, BookOpen, Building2, FileText,
   Wallet, DollarSign, Calendar, Menu, X, RefreshCw, ChevronRight,
   Bell, Search, UserCircle, LogOut, Settings, CalendarDays,
-  Moon, Sun, Award, Bus, MessageSquare, Activity, Lock, Wrench
+  Moon, Sun, Award, Bus, MessageSquare, Activity, Lock, Wrench, Edit // <-- Added Edit here
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -48,14 +48,15 @@ import { SequenceRepair } from "../common-components-management/SequenceRepair";
 import FormAbandonmentStats from "../hod-components/FormAbandonmentStats";
 import WorkflowAdmin from "../hod-components/WorkflowAdmin";
 import WorkflowApprovals from "../hod-components/WorkflowApprovals";
-
+import ReminderManagement from "../common-components-management/ReminderManagement";
+import BulkRenameSections from "../common-components-management/BulkRenameSections"; // <-- Add this line
 // Pages
 import RiskDashboard from "./RiskDashboard";
 import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget";
 import TrackingWidget from "../hod-components/TrackingWidget";
 import SystemHealthDashboard from "../hod-components/SystemHealthDashboard";
 import HodAnalyticsWidget from "../components/AnalyticsWidgets/HodAnalyticsWidget";
-
+import LiveTrafficWidget from '../hod-components/LiveTrafficWidget';
 type TabType =
   | "overview"
   | "analytics"
@@ -92,7 +93,9 @@ type TabType =
   | "form-insights"
   | "department-analytics"
   | "workflow-admin"
-  | "workflow-approvals";
+  | "workflow-approvals"
+  | "reminders"
+  | "bulk-rename";
 
 interface Data {
   cards: Array<{ title: string; value: number }>;
@@ -177,6 +180,8 @@ export default function HODDashboard() {
     { id: "workflow-admin" as TabType, label: "Workflow Builder", icon: Settings },
     { id: "workflow-approvals" as TabType, label: "Pending Approvals", icon: Activity },
     { id: "department-analytics" as TabType, label: "Department Analytics", icon: LayoutGrid },
+    { id: "reminders" as TabType, label: "Profile Reminders", icon: Bell },
+    { id: "bulk-rename" as TabType, label: "Bulk Rename Sections", icon: Edit },
   ];
 
   // Fetch data on mount
@@ -526,6 +531,7 @@ export default function HODDashboard() {
             <div className="space-y-6">
               <AttendanceAlertsWidget />
               <TrackingWidget />
+              <LiveTrafficWidget />
             </div>
           </div>
         </div>
@@ -579,6 +585,8 @@ export default function HODDashboard() {
         { activeTab === "workflow-admin" && <WorkflowAdmin /> }
         { activeTab === "workflow-approvals" && <WorkflowApprovals /> }
         { activeTab === "department-analytics" && <HodAnalyticsWidget /> }
+        { activeTab === "reminders" && <ReminderManagement /> }
+        { activeTab === "bulk-rename" && <BulkRenameSections /> }
       </>
     );
   };

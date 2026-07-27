@@ -1,37 +1,32 @@
-import Section from '../models/Section.model.js';
-import mongoose from 'mongoose';
-import Student from '../models/Student.model.js'; 
-import Attendance from '../models/Attendance.model.js';
-import Timetable from '../models/Timetable.model.js';
+import User from '../models/user.model.js'; 
+import Attendance from '../models/attendance.model.js';
+import Timetable from '../models/timetable.model.js';
+import Class from '../models/classes.model.js'; 
+
 export const bulkRenameSections = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    // Removed transaction session start
     try {
-        const { updates } = req.body; // Expects: [{ oldName: 'A', newName: 'A1' }, ...]
+        const { updates } = req.body; 
 
         for (const { oldName, newName } of updates) {
-            // 1. Update the section name itself
-            const updated = await Section.findOneAndUpdate(
-                { name: oldName }, 
-                { name: newName }, 
-                { session, new: true }
-            );
             
-            if (!updated) throw new Error(`Section ${oldName} not found`);
+            // 1. Update the Class name (removed { session })
+            await Class.updateMany(
+                { name: oldName }, 
+                { name: newName }
+            );
 
-            // 2. Cascade update all related collections
-            // Adjust models (Student, Attendance, etc.) as per your schema
-            await Student.updateMany({ section: oldName }, { section: newName }, { session });
-            await Attendance.updateMany({ section: oldName }, { section: newName }, { session });
-            await Timetable.updateMany({ section: oldName }, { section: newName }, { session });
+            // 2. Cascade update User, Attendance, and Timetable (removed { session })
+            await User.updateMany({ section: oldName }, { section: newName });
+            await Attendance.updateMany({ section: oldName }, { section: newName });
+            await Timetable.updateMany({ section: oldName }, { section: newName });
         }
 
-        await session.commitTransaction();
-        res.status(200).json({ success: true, message: "Sections renamed successfully" });
+        // Removed session.commitTransaction()
+        res.status(200).json({ success: true, message: "Sections renamed successfully across all records!" });
     } catch (error) {
-        await session.abortTransaction();
+        // Removed session.abortTransaction()
         res.status(400).json({ success: false, message: error.message });
-    } finally {
-        session.endSession();
-    }
+    } 
+    // Removed finally { session.endSession(); }
 };
