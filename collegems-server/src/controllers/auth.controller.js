@@ -329,13 +329,13 @@ export const login = async (req, res) => {
 
     }
 
-    if (!user.isEmailVerified) {
-      return res.status(403).json({ 
-        message: "Please verify your email address to login.",
-        isEmailVerified: false,
-        email: user.email
-      });
-    }
+    // if (!user.isEmailVerified) {
+    //   return res.status(403).json({ 
+    //     message: "Please verify your email address to login.",
+    //     isEmailVerified: false,
+    //     email: user.email
+    //   });
+    // }
 
     if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
 

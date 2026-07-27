@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DollarSign,
   Calendar,
@@ -58,6 +58,10 @@ export default function Salary() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDepartment, setFilterDepartment] = useState<string>("all");
+  // Kept stable per teacher across retries of the same payment attempt so a
+  // resubmit (timeout retry or double-click) is recognized as a duplicate
+  // server-side instead of double-crediting the salary.
+  const singlePayIdempotencyKeys = useRef<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<"set" | "pay" | "history">("set");
   const [selectedPaymentTeacher, setSelectedPaymentTeacher] =
     useState<string>("");
@@ -214,6 +218,7 @@ export default function Salary() {
         api.post("/salary/pay", {
           staff: teacherId,
           amount: Number(paymentAmount),
+          idempotencyKey: crypto.randomUUID(),
         }),
       );
 
@@ -256,10 +261,17 @@ export default function Salary() {
     setMessage(null);
 
     try {
+      if (!singlePayIdempotencyKeys.current[teacherId]) {
+        singlePayIdempotencyKeys.current[teacherId] = crypto.randomUUID();
+      }
+
       await api.post("/salary/pay", {
         staff: teacherId,
         amount: Number(paymentAmount),
+        idempotencyKey: singlePayIdempotencyKeys.current[teacherId],
       });
+
+      delete singlePayIdempotencyKeys.current[teacherId];
 
       setMessage({
         type: "success",

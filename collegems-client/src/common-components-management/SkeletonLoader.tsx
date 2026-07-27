@@ -10,13 +10,15 @@ import Stack from '@mui/material/Stack';
 export const SkeletonText = ({ 
   lines = 1, 
   width = '100%', 
-  height = 20 
+  height = 20,
+  className = ''
 }: {
   lines?: number;
   width?: string | number;
   height?: number;
+  className?: string;
 }) => (
-  <Box sx={{ width: '100%' }}>
+  <Box sx={{ width: '100%' }} className={className}>
     {Array.from({ length: lines }).map((_, index) => (
       <Skeleton
         key={index}
@@ -107,6 +109,7 @@ export const SkeletonList = ({
 );
 
 // Dashboard Grid Skeleton
+// Dashboard Grid Skeleton
 export const SkeletonDashboardGrid = ({ 
   cards = 4, 
   cardHeight = 120 
@@ -114,13 +117,19 @@ export const SkeletonDashboardGrid = ({
   cards?: number;
   cardHeight?: number;
 }) => (
-  <Grid container spacing={3}>
+  <Box 
+    sx={{ 
+      display: 'grid', 
+      gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, 
+      gap: 3 
+    }}
+  >
     {Array.from({ length: cards }).map((_, index) => (
-      <Grid item xs={12} sm={6} md={3} key={index}>
+      <Box key={index}>
         <SkeletonCard height={cardHeight} />
-      </Grid>
+      </Box>
     ))}
-  </Grid>
+  </Box>
 );
 
 // Attendance Card Skeleton

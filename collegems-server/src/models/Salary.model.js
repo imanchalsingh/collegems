@@ -4,6 +4,7 @@ const installmentSchema = new mongoose.Schema(
   {
     amount: { type: Number, required: true, min: 0 },
     paidOn: { type: Date, default: Date.now },
+    idempotencyKey: { type: String },
   },
   { _id: false },
 );

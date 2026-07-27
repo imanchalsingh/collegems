@@ -17,4 +17,4 @@ const classSchema = new mongoose.Schema({
   room: { type: String, default: "TBD" },
 });
 
-export default mongoose.model("Class", classSchema);
+export default mongoose.models.Class || mongoose.model("Class", classSchema);

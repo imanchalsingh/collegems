@@ -15,9 +15,10 @@ import {
   Eye,
   CheckCircle,
   Download,
+  Trash2,
 } from "lucide-react";
 import api from "../api/axios";
-
+import { handleDeleteWithUndo } from "../utils/toastActions";
 const BACKEND_ORIGIN = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api").replace(/\/api\/?$/, "");
 import AssignmentComments from "../common-components-management/AssignmentComments";
 import RichTextEditor from "../common-components-management/RichTExtEditor";
@@ -27,7 +28,9 @@ import {
   fetchTeacherAssignments,
   createAssignment,
   evaluateAssignment,
-  clearError
+  clearError,
+  removeAssignmentOptimistically, // <-- ADDED
+  restoreAssignmentOptimistically // <-- ADDED
 } from "../store/slices/assignmentSlice";
 
 export default function TeacherAssignments({ courseId }: { courseId: string }) {
@@ -45,7 +48,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [editedMarks, setEditedMarks] = useState<Record<string, string>>({});
   const [gradingId, setGradingId] = useState<string | null>(null);
-  
+  const [searchQuery, setSearchQuery] = useState("");
   // <-- ADDED THIS: State for the document viewer modal
   const [viewerData, setViewerData] = useState<{
     isOpen: boolean;
@@ -69,7 +72,15 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
   useEffect(() => {
     dispatch(fetchTeacherAssignments());
   }, [courseId, dispatch]);
-
+// 2. Add the filtering logic
+  const filteredAssignments = assignments.filter((assignment) => {
+    const titleLower = (assignment?.title || "").toLowerCase();
+    const searchLower = (searchQuery || "").toLowerCase();
+    
+    return titleLower.includes(searchLower);
+  });
+  
+  
   const handleCreateAssignment = async () => {
     if (!hasCourseId) {
       setLocalError("Select a course before creating an assignment.");
@@ -184,7 +195,23 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
       setGradingId(null);
     }
   };
-
+const handleDeleteAssignment = (assignmentToDelete: any) => {
+    handleDeleteWithUndo(
+      assignmentToDelete._id,
+      
+      // ❌ REMOVE THE "s" HERE
+      (id) => api.delete(`/assignment/${id}`), 
+      
+      // ❌ REMOVE THE "s" HERE (and ensure it matches your backend structure)
+      (id) => api.put(`/assignment/restore/${id}`), 
+      
+      // Instantly remove from Redux UI
+      (id) => dispatch(removeAssignmentOptimistically(id)),
+      
+      // Put it back in Redux UI if undone
+      () => dispatch(restoreAssignmentOptimistically(assignmentToDelete))
+    );
+  };
   const resetForm = () => {
     setTitle("");
     setDescription("");
@@ -517,7 +544,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
         </div>
       )}
 
-      {/* Recent Assignments Preview */}
+    {/* Recent Assignments Preview */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-gray-900">Recent Assignments</h3>
@@ -525,23 +552,27 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
             View all
           </button>
         </div>
-        <div className="space-y-3">
-          {assignments.length === 0 ? (
+        
+        {/* ADDED: The Search Bar */}
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Search assignments by title..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full md:w-1/2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+<div className="space-y-3">
+          {/* Changed assignments to filteredAssignments */}
+          {filteredAssignments.length === 0 ? (
             <div className="flex flex-col items-center py-6 text-center">
-              <FileText className="w-8 h-8 text-gray-300 mb-2" />
-              <p className="text-sm text-gray-500">No assignments yet</p>
-              {hasCourseId && (
-                <button
-                  onClick={() => setOpen(true)}
-                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Create First Assignment
-                </button>
-              )}
+              {/* ... empty state ... */}
             </div>
           ) : (
-            [...assignments]
+            /* Changed assignments to filteredAssignments */
+            [...filteredAssignments]
               .sort((a, b) => {
                 const aTime = new Date(a.createdAt || a.dueDate || 0).getTime();
                 const bTime = new Date(b.createdAt || b.dueDate || 0).getTime();
@@ -552,11 +583,12 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                   ? new Date(assignment.dueDate)
                   : null;
                 const isActive = dueDate ? dueDate >= new Date() : false;
-                return (
+return (
                   <div
                     key={assignment._id || assignment.title}
                     className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
                   >
+                    {/* === LEFT SIDE: Icon, Title, and Date === */}
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-blue-50 rounded-lg">
                         <FileText className="w-4 h-4 text-blue-600" />
@@ -575,6 +607,8 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                         </p>
                       </div>
                     </div>
+
+                    {/* === RIGHT SIDE: Badges and Buttons === */}
                     <div className="flex items-center gap-3">
                       <span
                         className={`text-xs px-2 py-1 rounded-full border ${
@@ -593,6 +627,14 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                       >
                         <Eye className="w-4 h-4" /> View
                       </button>
+
+                      <button 
+                        onClick={() => handleDeleteAssignment(assignment)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1 text-sm font-medium"
+                        title="Delete Assignment"
+                      >
+                        <Trash2 className="w-4 h-4" /> Delete
+                      </button>
                     </div>
                   </div>
                 );
@@ -600,6 +642,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
           )}
         </div>
       </div>
+      
 
       {/* ========================================================================
         SPLIT LAYOUT WITH COMMENTS INTEGRATION 
@@ -653,43 +696,60 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {viewingSubmissions.submissions.map((sub: any, idx: number) => {
-                          
-                          // Helper to construct secure file URL
-                          const getFileUrl = () => {
-                            if (!sub.file || !sub.file.url) return "";
-                            return sub.file.url.startsWith("http") 
-                                ? `${sub.file.url}?token=${localStorage.getItem("token")}` 
-                                : `http://localhost:5000${sub.file.url}?token=${localStorage.getItem("token")}`;
-                          };
+                     {viewingSubmissions.submissions.map((sub: any, idx: number) => {
+    
+    // 1. Calculate if the submission is late
+    const isLate = viewingSubmissions.dueDate && sub.submittedAt 
+      ? new Date(sub.submittedAt) > new Date(viewingSubmissions.dueDate)
+      : false;
 
-                          return (
-                          <div key={idx} className="bg-white rounded-lg border border-gray-200 p-5 shadow-sm">
-                            <div className="flex items-start justify-between flex-wrap gap-4">
-                              <div className="flex items-center gap-4 min-w-[200px]">
-                                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold overflow-hidden">
-                                  {sub.student?.avatarUrl || sub.student?.photo ? (
-                                    <img src={sub.student.avatarUrl || sub.student.photo} alt={sub.student?.name} className="w-full h-full object-cover" />
-                                  ) : sub.student?.name?.charAt(0).toUpperCase() || "S"}
-                                </div>
-                                <div>
-                                 <p className="font-semibold text-gray-900 flex items-center">
-                                 {sub.student?.name || "Unknown Student"}
-                                    </p>
-                                  <p className="text-sm text-gray-500">{sub.student?.email || "No email"}</p>
-                                </div>
-                              </div>
-                              
-                              <div className="flex flex-col items-end min-w-[150px]">
-                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${sub.status === 'graded' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
-                                  {sub.status === 'graded' ? <CheckCircle className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                                  {sub.status === 'graded' ? 'Graded' : 'Submitted'}
-                                </span>
-                                <p className="text-xs text-gray-500 mt-2">
-                                  {new Date(sub.submittedAt).toLocaleString()}
-                                </p>
-                              </div>
-                            </div>
+    // Helper to construct secure file URL
+    const getFileUrl = () => {
+      if (!sub.file || !sub.file.url) return "";
+      return sub.file.url.startsWith("http") 
+          ? `${sub.file.url}?token=${localStorage.getItem("token")}` 
+          : `${BACKEND_ORIGIN}${sub.file.url}?token=${localStorage.getItem("token")}`;
+    };
+
+    return (
+    <div key={idx} className="bg-white rounded-lg border border-gray-200 p-5 shadow-sm">
+      <div className="flex items-start justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-4 min-w-[200px]">
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold overflow-hidden">
+            {sub.student?.avatarUrl || sub.student?.photo ? (
+              <img src={sub.student.avatarUrl || sub.student.photo} alt={sub.student?.name} className="w-full h-full object-cover" />
+            ) : sub.student?.name?.charAt(0).toUpperCase() || "S"}
+          </div>
+          <div>
+           <p className="font-semibold text-gray-900 flex items-center">
+           {sub.student?.name || "Unknown Student"}
+              </p>
+            <p className="text-sm text-gray-500">{sub.student?.email || "No email"}</p>
+          </div>
+        </div>
+        
+        <div className="flex flex-col items-end min-w-[150px]">
+          {/* 2. Added a wrapper div to hold both badges side-by-side */}
+          <div className="flex items-center gap-2">
+            {/* Added the red Late badge */}
+            {isLate && (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">
+                Late
+              </span>
+            )}
+            
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${sub.status === 'graded' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
+              {sub.status === 'graded' ? <CheckCircle className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+              {sub.status === 'graded' ? 'Graded' : 'Submitted'}
+            </span>
+          </div>
+          
+          {/* Changed the date text color to red if it's late to make it extra obvious */}
+          <p className={`text-xs mt-2 ${isLate ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
+            {new Date(sub.submittedAt).toLocaleString()}
+          </p>
+        </div>
+      </div>
                             
                             <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
                               {(sub.textResponse || sub.link) && (

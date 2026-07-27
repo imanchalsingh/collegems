@@ -13,9 +13,7 @@ const Settings = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        fetchSettings();
-    }, []);
+ 
 
     const fetchSettings = async () => {
         try {
@@ -32,7 +30,9 @@ const Settings = () => {
             setLoading(false);
         }
     };
-
+   useEffect(() => {
+        fetchSettings();
+    }, []);
     const handleToggle = (action) => {
         setSettings(prev => ({
             ...prev,

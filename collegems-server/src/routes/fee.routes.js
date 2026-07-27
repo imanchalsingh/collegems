@@ -46,15 +46,21 @@ router.post(
   })
 );
 
-// Submit a payment claim. This does NOT mark the fee as paid - there is no
-// payment-gateway integration, so a self-reported amount from the paying
-// party can't be trusted on its own. It records a "pending" installment that
-// a staff member (hod) must confirm via /installments/:feeId/:installmentId/confirm
-// before it counts toward the balance.
+const computeFeeStatus = (paid, total, dueDate) => {
+  if (paid >= total) return "Paid";
+  if (new Date(dueDate) < new Date()) return "Overdue";
+  if (paid > 0) return "Partial";
+  return "Pending";
+};
+
+// installment pay
 router.post("/pay", protect, allowRoles("student", "parent"), asyncHandler(async (req, res) => {
-  const { amount } = req.body;
+  const { amount, idempotencyKey } = req.body;
   if (!amount || amount <= 0) {
     throw new AppError("Valid amount is required", 400, "INVALID_AMOUNT");
+  }
+  if (!idempotencyKey || typeof idempotencyKey !== "string") {
+    throw new AppError("idempotencyKey is required", 400, "MISSING_IDEMPOTENCY_KEY");
   }
 
   let studentId = req.user.id;
@@ -70,17 +76,46 @@ router.post("/pay", protect, allowRoles("student", "parent"), asyncHandler(async
     studentId = studentUser._id;
   }
 
-  const fee = await Fee.findOne({ student: studentId });
+  // Atomically apply the payment: only matches (and increments) if this exact
+  // idempotency key hasn't already been applied, and the payment won't overpay.
+  let fee = await Fee.findOneAndUpdate(
+    {
+      student: studentId,
+      "installments.idempotencyKey": { $ne: idempotencyKey },
+      $expr: { $lte: [{ $add: ["$paid", amount] }, "$total"] },
+    },
+    {
+      $inc: { paid: amount },
+      $push: { installments: { amount, idempotencyKey, paidOn: new Date() } },
+    },
+    { new: true },
+  );
+
   if (!fee) {
-    throw new AppError("Fee record not found", 404, "NOT_FOUND");
+    const existing = await Fee.findOne({ student: studentId });
+    if (!existing) {
+      throw new AppError("Fee record not found", 404, "NOT_FOUND");
+    }
+    const alreadyApplied = existing.installments.some((i) => i.idempotencyKey === idempotencyKey);
+    if (alreadyApplied) {
+      log.info(`Duplicate payment submission ignored: ${idempotencyKey}`, { studentId, feeId: existing._id });
+      return res.json({
+        success: true,
+        message: "Payment already processed",
+        data: existing,
+      });
+    }
+    throw new AppError(
+      `Amount exceeds outstanding balance of ${existing.total - existing.paid}`,
+      400,
+      "OVERPAYMENT",
+    );
   }
 
-  if (amount > fee.total - fee.paid) {
-    throw new AppError("Amount cannot exceed the remaining balance", 400, "INVALID_AMOUNT");
+  const status = computeFeeStatus(fee.paid, fee.total, fee.dueDate);
+  if (fee.status !== status) {
+    fee = await Fee.findByIdAndUpdate(fee._id, { $set: { status } }, { new: true });
   }
-
-  fee.installments.push({ amount, status: "pending", requestedBy: req.user.id });
-  await fee.save();
 
   await logAction(req.user.id, "REQUEST_FEE_PAYMENT", "Fee", fee._id, { studentId, amount });
 

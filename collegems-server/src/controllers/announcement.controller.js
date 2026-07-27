@@ -1,10 +1,47 @@
-// FILE: collegems-server/src/controllers/announcement.controller.js
 import Announcement from "../models/Announcement.model.js";
 import AnnouncementRead from "../models/AnnouncementRead.model.js";
 import User from "../models/User.model.js";
 import { sendNotification } from "../utils/notification.util.js";
 
-//  CREATE
+const VALID_PRIORITIES = ['low', 'medium', 'high'];
+const VALID_STATUSES = ['draft', 'published'];
+
+function validatePriority(priority) {
+    if (priority === undefined || priority === null) return { valid: true };
+    if (typeof priority !== 'string') {
+        return {
+            valid: false,
+            error: 'Priority must be a string'
+        };
+    }
+    const trimmed = priority.trim().toLowerCase();
+    if (!VALID_PRIORITIES.includes(trimmed)) {
+        return {
+            valid: false,
+            error: `Priority must be one of: ${VALID_PRIORITIES.join(', ')}`
+        };
+    }
+    return { valid: true, value: trimmed };
+}
+
+function validateStatus(status) {
+    if (status === undefined || status === null) return { valid: true };
+    if (typeof status !== 'string') {
+        return {
+            valid: false,
+            error: 'Status must be a string'
+        };
+    }
+    const trimmed = status.trim().toLowerCase();
+    if (!VALID_STATUSES.includes(trimmed)) {
+        return {
+            valid: false,
+            error: `Status must be one of: ${VALID_STATUSES.join(', ')}`
+        };
+    }
+    return { valid: true, value: trimmed };
+}
+
 export const createAnnouncement = async (req, res) => {
   try {
     const {
@@ -19,6 +56,14 @@ export const createAnnouncement = async (req, res) => {
       isSilent,
     } = req.body;
 
+    const priorityValidation = validatePriority(priority);
+    if (!priorityValidation.valid) {
+      return res.status(400).json({
+        success: false,
+        message: priorityValidation.error
+      });
+    }
+
     if (status && !["draft", "published"].includes(status)) {
       return res.status(400).json({
         success: false,
@@ -27,6 +72,7 @@ export const createAnnouncement = async (req, res) => {
     }
 
     const announcementStatus = status || "published";
+    const finalPriority = priorityValidation.value || "medium";
 
     const announcement = new Announcement({
       title,
@@ -36,7 +82,7 @@ export const createAnnouncement = async (req, res) => {
       targetCourse: targetCourse || null,
       targetSemester: targetSemester || null,
       expiresAt: expiresAt || null,
-      priority: priority || "medium",
+      priority: finalPriority,
       status: announcementStatus,
       isSilent: isSilent || false,
     });
@@ -49,7 +95,6 @@ export const createAnnouncement = async (req, res) => {
     );
 
     if (announcementStatus === "published" && !isSilent) {
-      // Find target audience
       const query = { accountStatus: "active" };
       if (targetRole && targetRole !== "all") query.role = targetRole;
       if (targetCourse) query.course = targetCourse;
@@ -76,29 +121,24 @@ export const createAnnouncement = async (req, res) => {
   }
 };
 
-//  GET MY ANNOUNCEMENTS
 export const getMyAnnouncements = async (req, res) => {
   try {
     const { role, course, semester } = req.user;
 
     const now = new Date();
 
-    // Build audience filter:
     const filter = {
       isActive: true,
       $and: [
-        // Only show published announcements (treat missing status as published)
         { $or: [{ status: "published" }, { status: { $exists: false } }] },
         { $or: [{ expiresAt: null }, { expiresAt: { $gt: now } }] },
         { $or: [{ targetRole: "all" }, { targetRole: role }] },
-        // Course filter
         {
           $or: [
             { targetCourse: null },
             { targetCourse: course || "__none__" },
           ],
         },
-        // Semester filter
         {
           $or: [
             { targetSemester: null },
@@ -134,8 +174,6 @@ export const getMyAnnouncements = async (req, res) => {
   }
 };
 
-//  GET ALL ANNOUNCEMENTS
-// TODO: Add targetClub after club/society management (#171) is implemented.
 export const getAllAnnouncements = async (req, res) => {
   try {
     const { targetRole, targetCourse, targetSemester, isActive, status } =
@@ -175,7 +213,6 @@ export const getAllAnnouncements = async (req, res) => {
   }
 };
 
-//  GET SINGLE
 export const getAnnouncementById = async (req, res) => {
   try {
     const announcement = await Announcement.findById(req.params.id).populate(
@@ -195,7 +232,6 @@ export const getAnnouncementById = async (req, res) => {
   }
 };
 
-//  MARK AS READ
 export const markAnnouncementRead = async (req, res) => {
   try {
     const announcement = await Announcement.findById(req.params.id);
@@ -218,7 +254,6 @@ export const markAnnouncementRead = async (req, res) => {
       data: { announcementId: announcement._id, readAt: result.readAt },
     });
   } catch (error) {
-
     if (error.code === 11000) {
       return res.status(200).json({ success: true, message: "Marked as read" });
     }
@@ -236,7 +271,6 @@ export const getAnnouncementReadStats = async (req, res) => {
         .json({ success: false, message: "Announcement not found" });
     }
 
-    // Teachers may only view stats for their own announcements.
     if (
       req.user.role === "teacher" &&
       announcement.postedBy.toString() !== req.user.id
@@ -277,7 +311,6 @@ export const getAnnouncementReadStats = async (req, res) => {
   }
 };
 
-//  UPDATE
 export const updateAnnouncement = async (req, res) => {
   try {
     const announcement = await Announcement.findById(req.params.id);
@@ -288,7 +321,6 @@ export const updateAnnouncement = async (req, res) => {
         .json({ success: false, message: "Announcement not found" });
     }
 
-    // Teachers can only edit their own announcements
     if (
       req.user.role === "teacher" &&
       announcement.postedBy.toString() !== req.user.id
@@ -298,12 +330,21 @@ export const updateAnnouncement = async (req, res) => {
         .json({ success: false, message: "Access denied" });
     }
 
-    // Validate status value
     if (req.body.status && !["draft", "published"].includes(req.body.status)) {
       return res.status(400).json({
         success: false,
         message: "Invalid status. Must be 'draft' or 'published'",
       });
+    }
+
+    if (req.body.priority !== undefined) {
+      const priorityValidation = validatePriority(req.body.priority);
+      if (!priorityValidation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: priorityValidation.error
+        });
+      }
     }
 
     const allowed = [
@@ -327,7 +368,6 @@ export const updateAnnouncement = async (req, res) => {
 
     await announcement.save();
 
-    // Trigger notifications if transitioning from draft to published, unless isSilent is true
     if (wasDraft && announcement.status === "published" && !announcement.isSilent) {
       const query = { accountStatus: "active" };
       if (announcement.targetRole && announcement.targetRole !== "all") query.role = announcement.targetRole;
@@ -358,7 +398,6 @@ export const updateAnnouncement = async (req, res) => {
   }
 };
 
-// DELETE 
 export const deleteAnnouncement = async (req, res) => {
   try {
     const announcement = await Announcement.findById(req.params.id);
