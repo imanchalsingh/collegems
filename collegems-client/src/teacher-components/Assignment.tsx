@@ -16,6 +16,7 @@ import {
   CheckCircle,
   Download,
   Trash2,
+  Search,
 } from "lucide-react";
 import api from "../api/axios";
 import { handleDeleteWithUndo } from "../utils/toastActions";
@@ -554,15 +555,30 @@ const handleDeleteAssignment = (assignmentToDelete: any) => {
         </div>
         
         {/* ADDED: The Search Bar */}
-        <div className="mb-6">
-          <input
-            type="text"
-            placeholder="Search assignments by title..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full md:w-1/2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+       <div className="relative w-full sm:max-w-md">
+  {/* The Search Icon on the left */}
+  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+  
+  <input
+    type="text"
+    placeholder="Search assignments by title..."
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    // Notice the pr-10 (padding-right) added to make room for the X button
+    className="w-full pl-9 pr-10 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+  />
+  
+  {/* The conditional Clear (X) Button on the right */}
+  {searchQuery.length > 0 && (
+    <button
+      onClick={() => setSearchQuery("")}
+      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 bg-transparent hover:bg-gray-100 rounded-md transition-colors"
+      title="Clear search"
+    >
+      <X className="w-4 h-4" />
+    </button>
+  )}
+</div>
 <div className="space-y-3">
           {filteredAssignments.length === 0 ? (
             // 1. Check if they have zero assignments in total
