@@ -3,6 +3,7 @@ import assert from 'node:assert';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
+import Course from '../models/Course.model.js';
 import AssessmentConfig from '../models/AssessmentConfig.model.js';
 import InternalAssessment from '../models/InternalAssessment.model.js';
 import { saveInternalAssessment } from '../controllers/assessment.controller.js';
@@ -34,6 +35,19 @@ describe('Internal Assessment Score Validation', () => {
         courseId = new mongoose.Types.ObjectId();
         studentId = new mongoose.Types.ObjectId();
 
+        await Course.deleteMany({});
+        await AssessmentConfig.deleteMany({});
+        await InternalAssessment.deleteMany({});
+
+        await Course.create({
+            _id: courseId,
+            name: "Test Course",
+            code: "TEST101",
+            department: "Computer Science",
+            semester: 1,
+            teacher: new mongoose.Types.ObjectId(),
+        });
+
         await AssessmentConfig.create({
             courseId,
             components: [
@@ -44,7 +58,11 @@ describe('Internal Assessment Score Validation', () => {
     });
 
     it('rejects a score greater than the component maxMarks', async () => {
-        const req = { params: { courseId: String(courseId), studentId: String(studentId) }, body: { scores: [{ componentName: 'Assignment', score: 5000 }] } };
+        const req = { 
+            params: { courseId: String(courseId), studentId: String(studentId) }, 
+            body: { scores: [{ componentName: 'Assignment', score: 5000 }] },
+            user: { role: 'admin' }
+        };
         const res = mockRes();
 
         await saveInternalAssessment(req, res);
@@ -55,7 +73,11 @@ describe('Internal Assessment Score Validation', () => {
     });
 
     it('rejects an unknown component name', async () => {
-        const req = { params: { courseId: String(courseId), studentId: String(studentId) }, body: { scores: [{ componentName: 'Bogus', score: 5 }] } };
+        const req = { 
+            params: { courseId: String(courseId), studentId: String(studentId) }, 
+            body: { scores: [{ componentName: 'Bogus', score: 5 }] },
+            user: { role: 'admin' }
+        };
         const res = mockRes();
 
         await saveInternalAssessment(req, res);
@@ -66,7 +88,8 @@ describe('Internal Assessment Score Validation', () => {
     it('accepts valid scores and computes the weighted total', async () => {
         const req = {
             params: { courseId: String(courseId), studentId: String(studentId) },
-            body: { scores: [{ componentName: 'Assignment', score: 10 }, { componentName: 'Midterm', score: 25 }] }
+            body: { scores: [{ componentName: 'Assignment', score: 10 }, { componentName: 'Midterm', score: 25 }] },
+            user: { role: 'admin' }
         };
         const res = mockRes();
 

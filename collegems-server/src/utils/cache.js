@@ -4,6 +4,9 @@ class InMemoryCache {
     this.stats = { hits: 0, misses: 0, sets: 0 };
     // Optional: periodic cleanup of expired items to prevent memory leaks
     this.cleanupInterval = setInterval(() => this.cleanup(), 60 * 1000);
+    if (this.cleanupInterval && typeof this.cleanupInterval.unref === "function") {
+      this.cleanupInterval.unref();
+    }
   }
 
   get(key) {

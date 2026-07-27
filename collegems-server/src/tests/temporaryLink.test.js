@@ -32,7 +32,7 @@ test('Temporary Link Service Tests', async (t) => {
 
   await t.test('should generate a link for a valid resource', async () => {
     const user = await User.create({
-      name: 'Test Teacher', email: 'teacher@test.com', password: 'pwd', role: 'teacher', department: 'CS'
+      name: 'Test Admin', email: 'admin@test.com', password: 'pwd', role: 'admin'
     });
     
     const resource = await Resource.create({
@@ -40,7 +40,7 @@ test('Temporary Link Service Tests', async (t) => {
       type: 'projector'
     });
 
-    const link = await tempLinkService.generateLink('Resource', resource._id, user._id, 60);
+    const link = await tempLinkService.generateLink('Resource', resource._id, user, 60);
 
     assert.ok(link.token);
     assert.strictEqual(link.resourceId.toString(), resource._id.toString());
@@ -51,27 +51,28 @@ test('Temporary Link Service Tests', async (t) => {
 
   await t.test('should fail to generate link for unsupported resource type', async () => {
     const fakeId = new mongoose.Types.ObjectId();
+    const user = { id: fakeId, role: 'admin' };
     await assert.rejects(
-      tempLinkService.generateLink('InvalidType', fakeId, fakeId, 60),
+      tempLinkService.generateLink('InvalidType', fakeId, user, 60),
       /Unsupported resource type/
     );
   });
 
   await t.test('should fail to generate link if resource does not exist', async () => {
     const user = await User.create({
-      name: 'Test Teacher', email: 'teacher2@test.com', password: 'pwd', role: 'teacher', department: 'CS'
+      name: 'Test Admin', email: 'admin2@test.com', password: 'pwd', role: 'admin'
     });
     const fakeResourceId = new mongoose.Types.ObjectId();
     
     await assert.rejects(
-      tempLinkService.generateLink('Resource', fakeResourceId, user._id, 60),
+      tempLinkService.generateLink('Resource', fakeResourceId, user, 60),
       /Resource with ID .* not found/
     );
   });
 
   await t.test('should access a valid link', async () => {
     const user = await User.create({
-      name: 'Test Teacher', email: 'teacher3@test.com', password: 'pwd', role: 'teacher', department: 'CS'
+      name: 'Test Admin', email: 'admin3@test.com', password: 'pwd', role: 'admin'
     });
     
     const resource = await Resource.create({
@@ -79,7 +80,7 @@ test('Temporary Link Service Tests', async (t) => {
       type: 'projector'
     });
 
-    const link = await tempLinkService.generateLink('Resource', resource._id, user._id, 60);
+    const link = await tempLinkService.generateLink('Resource', resource._id, user, 60);
     const data = await tempLinkService.validateAndAccessLink(link.token);
 
     assert.strictEqual(data.resourceType, 'Resource');
@@ -88,7 +89,7 @@ test('Temporary Link Service Tests', async (t) => {
 
   await t.test('should block access to expired link', async () => {
     const user = await User.create({
-      name: 'Test Teacher', email: 'teacher4@test.com', password: 'pwd', role: 'teacher', department: 'CS'
+      name: 'Test Admin', email: 'admin4@test.com', password: 'pwd', role: 'admin'
     });
     
     const resource = await Resource.create({
@@ -97,7 +98,7 @@ test('Temporary Link Service Tests', async (t) => {
     });
 
     // Generate link with negative expiration (already expired)
-    const link = await tempLinkService.generateLink('Resource', resource._id, user._id, -10);
+    const link = await tempLinkService.generateLink('Resource', resource._id, user, -10);
     
     await assert.rejects(
       tempLinkService.validateAndAccessLink(link.token),
@@ -107,7 +108,7 @@ test('Temporary Link Service Tests', async (t) => {
 
   await t.test('should block access to revoked link', async () => {
     const user = await User.create({
-      name: 'Test Teacher', email: 'teacher5@test.com', password: 'pwd', role: 'teacher', department: 'CS'
+      name: 'Test Admin', email: 'admin5@test.com', password: 'pwd', role: 'admin'
     });
     
     const resource = await Resource.create({
@@ -115,7 +116,7 @@ test('Temporary Link Service Tests', async (t) => {
       type: 'projector'
     });
 
-    const link = await tempLinkService.generateLink('Resource', resource._id, user._id, 60);
+    const link = await tempLinkService.generateLink('Resource', resource._id, user, 60);
     await tempLinkService.revokeLink(link.token, user._id);
     
     await assert.rejects(
@@ -126,10 +127,10 @@ test('Temporary Link Service Tests', async (t) => {
 
   await t.test('should block unauthorized revocation', async () => {
     const user1 = await User.create({
-      name: 'User 1', email: 'u1@test.com', password: 'pwd', role: 'teacher', department: 'CS'
+      name: 'User 1', email: 'u1@test.com', password: 'pwd', role: 'admin'
     });
     const user2 = await User.create({
-      name: 'User 2', email: 'u2@test.com', password: 'pwd', role: 'teacher', department: 'CS'
+      name: 'User 2', email: 'u2@test.com', password: 'pwd', role: 'admin'
     });
     
     const resource = await Resource.create({
@@ -137,7 +138,7 @@ test('Temporary Link Service Tests', async (t) => {
       type: 'projector'
     });
 
-    const link = await tempLinkService.generateLink('Resource', resource._id, user1._id, 60);
+    const link = await tempLinkService.generateLink('Resource', resource._id, user1, 60);
     
     // User 2 trying to revoke User 1's link
     await assert.rejects(
@@ -148,10 +149,10 @@ test('Temporary Link Service Tests', async (t) => {
 
   await t.test('should allow admin to revoke any link', async () => {
     const user1 = await User.create({
-      name: 'User 1', email: 'u3@test.com', password: 'pwd', role: 'teacher', department: 'CS'
+      name: 'User 1', email: 'u3@test.com', password: 'pwd', role: 'admin'
     });
     const admin = await User.create({
-      name: 'Admin', email: 'admin@test.com', password: 'pwd', role: 'admin'
+      name: 'Admin', email: 'admin6@test.com', password: 'pwd', role: 'admin'
     });
     
     const resource = await Resource.create({
@@ -159,7 +160,7 @@ test('Temporary Link Service Tests', async (t) => {
       type: 'projector'
     });
 
-    const link = await tempLinkService.generateLink('Resource', resource._id, user1._id, 60);
+    const link = await tempLinkService.generateLink('Resource', resource._id, user1, 60);
     
     await tempLinkService.revokeLink(link.token, admin._id, true);
     

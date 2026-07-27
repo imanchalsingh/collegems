@@ -6,6 +6,7 @@ import request from "supertest";
 import app from "../app.js";
 import User from "../models/User.model.js";
 import RefreshToken from "../models/RefreshToken.model.js";
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { hashRefreshToken } from "../utils/token.service.js";
 
@@ -17,6 +18,7 @@ test("Authentication Session Management System Tests", async (t) => {
     const uri = mongoServer.getUri();
     await mongoose.connect(uri);
 
+    process.env.NODE_ENV = "test";
     process.env.JWT_SECRET = "testsecretjwt";
     process.env.JWT_REFRESH_SECRET = "testsecretrefresh";
   });
@@ -30,7 +32,7 @@ test("Authentication Session Management System Tests", async (t) => {
   let currentCookie;
   let accessToken;
 
-  await t.test("Register creates a user, a session in DB, and sets cookie", async () => {
+  await t.test("Register creates an unverified user", async () => {
     const res = await request(app)
       .post("/api/auth/register")
       .send({
@@ -44,25 +46,32 @@ test("Authentication Session Management System Tests", async (t) => {
       });
 
     assert.strictEqual(res.status, 201);
-    assert.ok(res.body.accessToken);
+    assert.strictEqual(res.body.message, "Registered successfully. Please check your email to verify your account.");
     assert.ok(res.body.user);
 
-    // Cookie checks
-    const cookieHeader = res.headers["set-cookie"];
-    assert.ok(cookieHeader, "Should return set-cookie header");
-    assert.ok(cookieHeader[0].includes("refreshToken="), "Should contain refreshToken cookie");
-    currentCookie = cookieHeader[0].split(";")[0]; // e.g. refreshToken=eyJ...
-
-    // DB session checks
     user = await User.findOne({ email: "session.user@test.com" });
     assert.ok(user, "User should be created in DB");
-
-    const sessions = await RefreshToken.find({ user: user._id });
-    assert.strictEqual(sessions.length, 1, "Should create one session in DB");
-    assert.strictEqual(sessions[0].isRevoked, false, "Session should not be revoked");
+    assert.strictEqual(user.isEmailVerified, false);
   });
 
-  await t.test("Login creates a new session in DB and sets cookie", async () => {
+  await t.test("Login fails for unverified user", async () => {
+    const res = await request(app)
+      .post("/api/auth/login")
+      .send({
+        email: "session.user@test.com",
+        password: "Password@123",
+      });
+
+    assert.strictEqual(res.status, 403);
+    assert.strictEqual(res.body.message, "Please verify your email address to login.");
+    assert.strictEqual(res.body.isEmailVerified, false);
+  });
+
+  await t.test("Login after email verification creates a new session in DB and sets cookie", async () => {
+    // Verify the user email
+    user.isEmailVerified = true;
+    await user.save({ validateBeforeSave: false });
+
     const res = await request(app)
       .post("/api/auth/login")
       .send({
@@ -79,12 +88,12 @@ test("Authentication Session Management System Tests", async (t) => {
     currentCookie = cookieHeader[0].split(";")[0];
 
     const sessions = await RefreshToken.find({ user: user._id });
-    assert.strictEqual(sessions.length, 2, "Should have two sessions now (one from register, one from login)");
+    assert.strictEqual(sessions.length, 1, "Should have one session from login");
   });
 
   await t.test("Refresh rotates session, invalidates old, creates new, sets new cookie", async () => {
     const oldSessions = await RefreshToken.find({ user: user._id, isRevoked: false });
-    assert.strictEqual(oldSessions.length, 2);
+    assert.strictEqual(oldSessions.length, 1);
 
     const res = await request(app)
       .post("/api/auth/refresh")
@@ -115,7 +124,7 @@ test("Authentication Session Management System Tests", async (t) => {
   });
 
   await t.test("Token Reuse Detection: Attempting to refresh with an old/revoked token invalidates all sessions", async () => {
-    const mockToken = jwt.sign({ id: String(user._id), role: user.role }, process.env.JWT_REFRESH_SECRET);
+    const mockToken = jwt.sign({ id: String(user._id), role: user.role, jti: crypto.randomUUID() }, process.env.JWT_REFRESH_SECRET);
     const mockHash = hashRefreshToken(mockToken);
 
     await RefreshToken.create({
@@ -138,7 +147,7 @@ test("Authentication Session Management System Tests", async (t) => {
   });
 
   await t.test("Expired Session: If the database session is expired, returns 401", async () => {
-    const mockToken = jwt.sign({ id: String(user._id), role: user.role }, process.env.JWT_REFRESH_SECRET);
+    const mockToken = jwt.sign({ id: String(user._id), role: user.role, jti: crypto.randomUUID() }, process.env.JWT_REFRESH_SECRET);
     const mockHash = hashRefreshToken(mockToken);
 
     await RefreshToken.create({
@@ -258,8 +267,19 @@ test("Authentication Session Management System Tests", async (t) => {
       });
 
     assert.strictEqual(regRes.status, 201);
-    const tok = regRes.body.accessToken;
     const teacherUser = await User.findOne({ email: "teacher.user@test.com" });
+    teacherUser.isEmailVerified = true;
+    await teacherUser.save({ validateBeforeSave: false });
+
+    const loginRes = await request(app)
+      .post("/api/auth/login")
+      .send({
+        email: "teacher.user@test.com",
+        password: "Password@123",
+      });
+
+    assert.strictEqual(loginRes.status, 200);
+    const tok = loginRes.body.accessToken;
 
     let sessions = await RefreshToken.find({ user: teacherUser._id });
     assert.strictEqual(sessions.length, 1);
@@ -274,7 +294,7 @@ test("Authentication Session Management System Tests", async (t) => {
 
     assert.strictEqual(pwdRes.status, 200);
 
-    sessions = await RefreshToken.find({ user: teacherUser._id });
-    assert.strictEqual(sessions.length, 0, "All sessions should be deleted in DB after password change");
+    sessions = await RefreshToken.find({ user: teacherUser._id, isRevoked: false });
+    assert.strictEqual(sessions.length, 0, "All active sessions should be revoked after password change");
   });
 });

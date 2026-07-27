@@ -4,6 +4,7 @@ import rateLimit from "express-rate-limit";
 export const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min
   max: 5,
+  skip: () => process.env.NODE_ENV === "test",
   message: {
     success: false,
     message: "Too many login attempts. Try again later.",
@@ -34,6 +35,16 @@ export const resetPasswordLimiter = rateLimit({
 export const otpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min
   max: 5,
+  message: {
+    success: false,
+    message: "Too many verification requests. Try again later.",
+  },
+});
+
+export const verifyEmailLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 5,
+  skip: () => process.env.NODE_ENV === "test",
   message: {
     success: false,
     message: "Too many verification requests. Try again later.",
