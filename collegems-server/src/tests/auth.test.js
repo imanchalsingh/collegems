@@ -347,3 +347,28 @@ test("register validation rejects missing password", async () => {
   assert.equal(res.statusCode, 400);
   assert.equal(nextCalled, false);
 });
+
+test("Rate limiting on password recovery and email verification endpoints", async (t) => {
+  await t.test("POST /forgot-password should enforce rate limits after max requests", async () => {
+    let lastRes;
+    // Send 6 requests (max limit is 5)
+    for (let i = 0; i < 6; i++) {
+      lastRes = await request(app)
+        .post("/api/auth/forgot-password")
+        .send({ email: "test@example.com" });
+    }
+    assert.strictEqual(lastRes.status, 429);
+  });
+
+  await t.test("POST /resend-verification should enforce rate limits after max requests", async () => {
+    let lastRes;
+    // Send 6 requests (max limit is 5)
+    for (let i = 0; i < 6; i++) {
+      lastRes = await request(app)
+        .post("/api/auth/resend-verification")
+        .send({ email: "test@example.com" });
+    }
+    assert.strictEqual(lastRes.status, 429);
+  });
+});
+

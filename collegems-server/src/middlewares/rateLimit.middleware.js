@@ -10,12 +10,32 @@ export const loginLimiter = rateLimit({
   },
 });
 
-//  Register limiter (moderate)
+// Register limiter (moderate)
 export const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 10,
   message: {
     success: false,
     message: "Too many registrations. Try again later.",
+  },
+});
+
+// Reset password limiter (strict)
+export const resetPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 5,
+  message: {
+    success: false,
+    message: "Too many password reset attempts. Try again later.",
+  },
+});
+
+// OTP / verification limiter (moderate)
+export const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 5,
+  message: {
+    success: false,
+    message: "Too many verification requests. Try again later.",
   },
 });
