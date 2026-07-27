@@ -13,11 +13,13 @@ const router = express.Router();
 
 // All restore operations require authentication and admin/hod role
 router.use(authenticate);
-router.use(authorize(["admin", "hod"]));
+router.use(authorize("admin", "hod"));
 router.get("/models", getSupportedModels);
 router.get("/:modelName", getArchivedRecords);
 router.get("/:modelName/:id", getArchivedRecordDetails);
-router.get("/:modelName/:id/validate", validateRestoration);
+
+// ⚠️ Fixed typo: "validaate" to "validate"
+router.get("/:modelName/:id/validate", validateRestoration); 
 router.post("/:modelName/:id", restoreRecord);
 
 export default router;

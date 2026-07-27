@@ -5,7 +5,12 @@
   "type": "module",
   "description": "Smart College Management System - monorepo root",
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "start": "node dist/server.js",
+    "dev": "nodemon src/server.ts",
+    "build": "tsc",
+    "test:validation": "tsx src/tests/authValidation.test.ts",
+    "test": "npm run test:validation"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",

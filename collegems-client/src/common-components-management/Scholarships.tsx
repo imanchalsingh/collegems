@@ -99,6 +99,11 @@ export default function Scholarships() {
       return;
     }
 
+    if (Number(formData.amount) <= 0) {
+      alert("Amount must be a positive number.");
+      return;
+    }
+
     try {
       setSubmitting(true);
       await api.post("/scholarships", {
@@ -415,6 +420,7 @@ export default function Scholarships() {
                   <input
                     type="number"
                     name="amount"
+                    min="0"
                     value={formData.amount}
                     onChange={handleInputChange}
                     placeholder="e.g. 50000"

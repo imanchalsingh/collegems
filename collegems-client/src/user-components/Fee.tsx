@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   CreditCard,
   Calendar,
@@ -48,6 +48,10 @@ export default function StudentFee() {
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<string>("card");
   const [showPaymentHistory, setShowPaymentHistory] = useState(false);
+  // Kept stable across retries of the same payment attempt so a resubmit
+  // (timeout retry or double-click) is recognized server-side as a duplicate
+  // instead of double-crediting the fee.
+  const idempotencyKeyRef = useRef<string>(crypto.randomUUID());
 
   const fetchFee = async () => {
     try {
@@ -90,19 +94,21 @@ export default function StudentFee() {
     setMessage(null);
 
     try {
-      const res = await api.post<{ message: string; data: Fee }>(
+      const res = await api.post<{ data: Fee }>(
         "/fee/pay",
         {
           amount: Number(amount),
           paymentMethod,
+          idempotencyKey: idempotencyKeyRef.current,
         },
       );
 
       setFee(res.data.data);
       setAmount("");
+      idempotencyKeyRef.current = crypto.randomUUID();
       setMessage({
-        type: "info",
-        text: res.data.message,
+        type: "success",
+        text: `Payment of ₹${amount} successful!`,
       });
 
       setTimeout(() => {

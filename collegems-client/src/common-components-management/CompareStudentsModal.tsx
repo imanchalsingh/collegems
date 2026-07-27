@@ -4,7 +4,7 @@ import api from '../api/axios';
 import { X, Percent, TrendingUp, GraduationCap } from 'lucide-react';
 
 export interface Student {
-  _id: string;
+  _id?: string;
   name: string;
   email: string;
   studentId: string;
@@ -28,7 +28,7 @@ export default function CompareStudentsModal({ students, onClose }: CompareStude
   const results = useQueries({
     queries: students.map(student => ({
       queryKey: ['studentSummary', student._id],
-      queryFn: () => fetchSummary(student._id),
+      queryFn: () => fetchSummary(student._id!),
       enabled: !!student._id
     }))
   });
