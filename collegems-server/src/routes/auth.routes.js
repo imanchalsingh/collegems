@@ -13,7 +13,12 @@ import {
   resetPassword,
 } from "../controllers/auth.controller.js";
 import { validateRegister } from "../middlewares/validation.middleware.js";
-import { loginLimiter, registerLimiter } from "../middlewares/rateLimit.middleware.js";
+import {
+  loginLimiter,
+  registerLimiter,
+  resetPasswordLimiter,
+  otpLimiter,
+} from "../middlewares/rateLimit.middleware.js";
 import { detectDevice } from "../middlewares/session.middleware.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 
@@ -23,10 +28,10 @@ router.post("/register", registerLimiter, detectDevice, validateRegister, regist
 router.post("/login", loginLimiter, detectDevice, login);
 router.post("/refresh", detectDevice, refresh);
 router.post("/logout", logout);
-router.post("/verify-email", verifyEmail);
-router.post("/resend-verification", resendVerificationEmail);
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password", resetPassword);
+router.post("/verify-email", otpLimiter, verifyEmail);
+router.post("/resend-verification", otpLimiter, resendVerificationEmail);
+router.post("/forgot-password", resetPasswordLimiter, forgotPassword);
+router.post("/reset-password", resetPasswordLimiter, resetPassword);
 
 router.get("/sessions", authenticate, getSessions);
 router.post("/logout-all", authenticate, logoutAll);

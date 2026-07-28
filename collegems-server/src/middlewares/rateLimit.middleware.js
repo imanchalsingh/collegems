@@ -11,7 +11,7 @@ export const loginLimiter = rateLimit({
   skipSuccessfulRequests: process.env.LOGIN_SKIP_SUCCESS === 'true',
 });
 
-// Register limiter (moderate) - Now using environment variables
+// Register limiter (moderate)
 export const registerLimiter = rateLimit({
   windowMs: parseInt(process.env.REGISTER_WINDOW_MS) || 60 * 60 * 1000, // 1 hour default
   max: parseInt(process.env.REGISTER_MAX_ATTEMPTS) || 10,
@@ -21,41 +21,22 @@ export const registerLimiter = rateLimit({
   },
 });
 
-// API limiter (default) - New with environment support
-export const apiLimiter = rateLimit({
-  windowMs: parseInt(process.env.API_WINDOW_MS) || 60 * 1000, // 1 minute default
-  max: parseInt(process.env.API_MAX_REQUESTS) || 100,
-  message: {
-    success: false,
-    message: process.env.API_RATE_LIMIT_MESSAGE || "Too many API requests. Please slow down.",
-  },
-});
-
-// Reset password limiter - New with environment support
+// Reset password limiter (strict)
 export const resetPasswordLimiter = rateLimit({
-  windowMs: parseInt(process.env.RESET_PASSWORD_WINDOW_MS) || 60 * 60 * 1000, // 1 hour default
-  max: parseInt(process.env.RESET_PASSWORD_MAX_ATTEMPTS) || 3,
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 5,
   message: {
     success: false,
-    message: process.env.RESET_PASSWORD_MESSAGE || "Too many password reset attempts. Try again later.",
+    message: "Too many password reset attempts. Try again later.",
   },
 });
 
-// OTP limiter - New with environment support
+// OTP / verification limiter (moderate)
 export const otpLimiter = rateLimit({
-  windowMs: parseInt(process.env.OTP_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes default
-  max: parseInt(process.env.OTP_MAX_ATTEMPTS) || 3,
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 5,
   message: {
     success: false,
-    message: process.env.OTP_MESSAGE || "Too many OTP requests. Try again later.",
+    message: "Too many verification requests. Try again later.",
   },
 });
-
-// Export default for backward compatibility
-export default {
-  loginLimiter,
-  registerLimiter,
-  apiLimiter,
-  resetPasswordLimiter,
-  otpLimiter,
-};
