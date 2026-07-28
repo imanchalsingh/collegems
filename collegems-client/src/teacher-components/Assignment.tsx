@@ -17,6 +17,7 @@ import {
   Download,
   Trash2,
   Search,
+  ListFilter,
 } from "lucide-react";
 import api from "../api/axios";
 import { handleDeleteWithUndo } from "../utils/toastActions";
@@ -50,6 +51,8 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
   const [editedMarks, setEditedMarks] = useState<Record<string, string>>({});
   const [gradingId, setGradingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  // Add this with your other state variables
+const [sortBy, setSortBy] = useState<"recent" | "due_soon">("recent");
   // <-- ADDED THIS: State for the document viewer modal
   const [viewerData, setViewerData] = useState<{
     isOpen: boolean;
@@ -554,31 +557,51 @@ const handleDeleteAssignment = (assignmentToDelete: any) => {
           </button>
         </div>
         
-        {/* ADDED: The Search Bar */}
-       <div className="relative w-full sm:max-w-md">
-  {/* The Search Icon on the left */}
-  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-  
-  <input
-    type="text"
-    placeholder="Search assignments by title..."
-    value={searchQuery}
-    onChange={(e) => setSearchQuery(e.target.value)}
-    // Notice the pr-10 (padding-right) added to make room for the X button
-    className="w-full pl-9 pr-10 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-  />
-  
-  {/* The conditional Clear (X) Button on the right */}
-  {searchQuery.length > 0 && (
-    <button
-      onClick={() => setSearchQuery("")}
-      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 bg-transparent hover:bg-gray-100 rounded-md transition-colors"
-      title="Clear search"
-    >
-      <X className="w-4 h-4" />
-    </button>
-  )}
-</div>
+    {/* Controls Section: Search and Sort */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          {/* The Search Bar */}
+          <div className="relative flex-1 sm:max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search assignments by title..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-10 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+            />
+            {searchQuery.length > 0 && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 bg-transparent hover:bg-gray-100 rounded-md transition-colors"
+                title="Clear search"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* NEW: Sorting Dropdown */}
+          <div className="flex items-center gap-2 sm:ml-auto">
+            <label htmlFor="sort-assignments" className="sr-only">Sort by</label>
+            <div className="relative w-full sm:w-48">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <ListFilter className="w-4 h-4 text-gray-400" />
+              </div>
+              <select
+                id="sort-assignments"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as "recent" | "due_soon")}
+                className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 block w-full pl-9 p-2 transition-all outline-none appearance-none cursor-pointer pr-8"
+              >
+                <option value="recent">Recently Created</option>
+                <option value="due_soon">Due Soonest</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+            </div>
+          </div>
+        </div>
 <div className="space-y-3">
           {filteredAssignments.length === 0 ? (
             // 1. Check if they have zero assignments in total
@@ -618,11 +641,21 @@ const handleDeleteAssignment = (assignmentToDelete: any) => {
               </div>
             )
           ) : (
-      [...filteredAssignments]
+     [...filteredAssignments]
               .sort((a, b) => {
-                const aTime = new Date(a.createdAt || a.dueDate || 0).getTime();
-                const bTime = new Date(b.createdAt || b.dueDate || 0).getTime();
-                return bTime - aTime;
+                if (sortBy === "recent") {
+                  // Newest first
+                  const aTime = new Date(a.createdAt || 0).getTime();
+                  const bTime = new Date(b.createdAt || 0).getTime();
+                  return bTime - aTime; 
+                } 
+                else if (sortBy === "due_soon") {
+                  // Closest due date first (no due date goes to bottom)
+                  const aTime = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+                  const bTime = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+                  return aTime - bTime;
+                }
+                return 0;
               })
               .map((assignment) => {
                 const dueDate = assignment.dueDate
