@@ -618,7 +618,7 @@ const handleDeleteAssignment = (assignmentToDelete: any) => {
               </div>
             )
           ) : (
-            [...filteredAssignments]
+      [...filteredAssignments]
               .sort((a, b) => {
                 const aTime = new Date(a.createdAt || a.dueDate || 0).getTime();
                 const bTime = new Date(b.createdAt || b.dueDate || 0).getTime();
@@ -629,7 +629,14 @@ const handleDeleteAssignment = (assignmentToDelete: any) => {
                   ? new Date(assignment.dueDate)
                   : null;
                 const isActive = dueDate ? dueDate >= new Date() : false;
-return (
+                
+                // ADD THIS LINE HERE: Calculate how many submissions need grading
+                // (Make sure 'submissions' and 'status' match your database fields!)
+             const needsGradingCount = assignment.submissions?.filter(
+  (sub: { status: string }) => sub.status === "submitted"
+).length || 0;
+
+                return (
                   <div
                     key={assignment._id || assignment.title}
                     className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
@@ -673,6 +680,15 @@ return (
                       >
                         <Eye className="w-4 h-4" /> View
                       </button>
+                      {needsGradingCount > 0 && (
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-full text-amber-700 text-xs font-medium shadow-sm">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                          </span>
+                          {needsGradingCount} to grade
+                        </div>
+                      )}
 
                       <button 
                         onClick={() => handleDeleteAssignment(assignment)}
