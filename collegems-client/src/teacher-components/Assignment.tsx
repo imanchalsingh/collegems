@@ -650,6 +650,8 @@ const handleDeleteAssignment = (assignmentToDelete: any) => {
                         <p className="text-sm font-medium text-gray-900">
                           {assignment.title}
                         </p>
+                        {/* NEW: The Read More / Show Less Component */}
+                        <ExpandableText text={assignment.description} maxLength={100} />
                         <p className="text-xs text-gray-500">
                           {dueDate
                             ? `Due ${dueDate.toLocaleDateString("en-US", {
@@ -906,3 +908,29 @@ const handleDeleteAssignment = (assignmentToDelete: any) => {
     </div>
   );
 }
+const ExpandableText = ({ text, maxLength = 120 }: { text: string; maxLength?: number }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // If there's no text, don't render anything
+  if (!text) return null;
+
+  // If the text is shorter than the max length, just render it normally
+  if (text.length <= maxLength) {
+    return <p className="text-sm text-gray-500 mt-1">{text}</p>;
+  }
+
+  // Otherwise, slice the text and show the toggle button
+  return (
+    <div className="mt-1">
+      <p className="text-sm text-gray-500 inline">
+        {isExpanded ? text : `${text.slice(0, maxLength).trim()}...`}
+      </p>
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="text-blue-600 hover:text-blue-800 text-sm font-medium ml-2 transition-colors focus:outline-none"
+      >
+        {isExpanded ? "Show Less" : "Read More"}
+      </button>
+    </div>
+  );
+};
