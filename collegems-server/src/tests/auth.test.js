@@ -257,6 +257,61 @@ test("Authentication and Registration Flow Tests", async (t) => {
     assert.strictEqual(resFail.status, 400);
     assert.ok(resFail.body.message.includes("Invalid or unauthorized department code"));
   });
+
+  await t.test("Login: Unverified user login attempt should return 403 Forbidden", async () => {
+    // 1. Register a new user
+    const regRes = await request(app)
+      .post("/api/auth/register")
+      .send({
+        name: "Unverified User",
+        email: "unverified.user@test.com",
+        password: "Password123!",
+        role: "student",
+        studentId: "STU-9999",
+        course: "BCA",
+        semester: "1",
+      });
+    assert.strictEqual(regRes.status, 201);
+
+    // 2. Attempt login without email verification
+    const loginRes = await request(app)
+      .post("/api/auth/login")
+      .send({
+        email: "unverified.user@test.com",
+        password: "Password123!",
+      });
+
+    assert.strictEqual(loginRes.status, 403);
+    assert.strictEqual(loginRes.body.message, "Please verify your email address to login.");
+    assert.strictEqual(loginRes.body.isEmailVerified, false);
+    assert.strictEqual(loginRes.body.email, "unverified.user@test.com");
+  });
+
+  await t.test("Login: Email verification flow allows user to log in successfully", async () => {
+    const unverifiedUser = await User.findOne({ email: "unverified.user@test.com" });
+    assert.ok(unverifiedUser);
+    assert.ok(unverifiedUser.verificationToken);
+
+    // 1. Verify email via endpoint
+    const verifyRes = await request(app)
+      .post("/api/auth/verify-email")
+      .send({ token: unverifiedUser.verificationToken });
+
+    assert.strictEqual(verifyRes.status, 200);
+    assert.strictEqual(verifyRes.body.message, "Email verified successfully. You can now log in.");
+
+    // 2. Attempt login after verification
+    const loginRes = await request(app)
+      .post("/api/auth/login")
+      .send({
+        email: "unverified.user@test.com",
+        password: "Password123!",
+      });
+
+    assert.strictEqual(loginRes.status, 200);
+    assert.ok(loginRes.body.accessToken);
+    assert.strictEqual(loginRes.body.user.email, "unverified.user@test.com");
+  });
 });
 
 // Validation middleware tests
@@ -371,4 +426,5 @@ test("Rate limiting on password recovery and email verification endpoints", asyn
     assert.strictEqual(lastRes.status, 429);
   });
 });
+
 

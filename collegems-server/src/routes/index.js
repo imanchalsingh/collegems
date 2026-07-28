@@ -101,110 +101,101 @@ import { verifyStudent } from "../controllers/idcard.controller.js";
 const router = express.Router();
 
 // ========================================
-// CORE ROUTES
+// PUBLIC & EXCEPTION ROUTES
 // ========================================
 router.use("/auth", authRoutes);
-router.use("/search", searchRoutes);
-router.use("/dashboard", dashboardRoutes);
-router.use("/faculty-assignments", facultyAssignmentRoutes);
-
-// ========================================
-// ACADEMIC ROUTES
-// ========================================
-router.use("/attendance", authenticate, attendanceRoutes);
 router.use("/assignment", assignmentRoutes);
-router.use("/results", authenticate, resultsRoutes);
-router.use("/assessments", authenticate, assessmentRoutes);
-router.use("/courses", courseRoutes);
-router.use("/classes", classRoutes);
-router.use("/syllabus", authenticate, syllabusRoutes);
-router.use("/timetable", authenticate, timetableRoutes);
-router.use("/academic-calendar", academicCalendarRoutes);
-
-// ========================================
-// EXAMINATION ROUTES
-// ========================================
-router.use("/examschedule", authenticate, examScheduleRoutes);
-router.use("/exam-forms", examFormRoutes);
-router.use("/exam-halls", authenticate, examHallRoutes);
-router.use("/hall-allocations", authenticate, hallAllocationRoutes);
-
-// ========================================
-// FINANCIAL ROUTES
-// ========================================
-router.use("/fee", authenticate, feeRoutes);
-router.use("/salary", authenticate, salaryRoutes);
-router.use("/scholarships", authenticate, scholarshipRoutes);
-
-// ========================================
-// USER & ADMIN ROUTES
-// ========================================
-router.use("/users", authenticate, userRoutes);
-router.use("/history", historyRoutes);
-router.use("/leaves", authenticate, leaveRoutes);
-router.use("/teacher-attendance", teacherAttendanceRoutes);
-router.use("/office-hours", officeHoursRoutes);
-
-// ========================================
-// STUDENT SERVICES
-// ========================================
-router.use("/student/idcard", idCardRoutes);
-router.get("/verify/student/:studentId", authenticate, verifyStudent);
-router.use("/transfer", authenticate, transferRoutes);
-
-// ========================================
-// COMMUNITY & ENGAGEMENT
-// ========================================
-router.use("/events", eventRoute);
-router.use("/clubs", authenticate, clubRoutes);
-router.use("/discussions", discussionRoutes);
-router.use("/study-groups", studyGroupRoutes);
-router.use("/mentorships", authenticate, mentorshipRoutes);
-router.use("/complaints", complaintRoutes);
-router.use("/feedback", authenticate, feedbackRoutes);
-
-// ========================================
-// CAREER & PLACEMENT
-// ========================================
-router.use("/jobs", jobBoardRoutes);
-router.use("/placements", authenticate, placementRoutes);
-router.use("/alumni", alumniRoutes);
-
-// ========================================
-// RESOURCES & FACILITIES
-// ========================================
-router.use("/library", libraryRoutes);
-router.use("/resources", authenticate, resourceRoutes);
-router.use("/bookings", authenticate, bookingRoutes);
-router.use("/bus-routes", authenticate, busRouteRoutes);
-
-// ========================================
-// REPORTS & ANALYTICS
-// ========================================
-router.use("/reports", reportRoutes);
-router.use("/analytics", authenticate, analyticsRoutes);
-router.use("/quizzes", authenticate, quizRoutes);
-router.use("/audit-logs", authenticate, auditLogRoutes);
-router.use("/system-health", authenticate, systemHealthRoutes);
-router.use("/restore", restoreRoutes);
-
-// ========================================
-// MISCELLANEOUS
-// ========================================
-router.use("/achievements", authenticate, achievementRoutes);
-router.use("/announcements", announcementRoutes);
-router.use("/notifications", authenticate, notificationRoutes);
-router.use("/tracking", trackingRoutes);
-router.use("/plagiarism", authenticate, plagiarismRoutes);
-router.use("/workflows", workflowRoutes);
-router.use("/dependencies", dependencyRoutes);
-router.use("/data-locks", dataLockRoutes);
-router.use("/snapshots", snapshotRoutes);
-router.use("/sequences", sequenceRoutes);
-router.use("/ownership", ownershipRoutes);
-router.use("/saved-filters", savedFilterRoutes);
-router.use("/abandonment", abandonmentRoutes);
 router.use("/temporary-links", temporaryLinkRoutes);
+
+// ========================================
+// AUTHENTICATED ROUTES
+// ========================================
+const authenticatedRouter = express.Router();
+authenticatedRouter.use(authenticate);
+
+// Core Routes
+authenticatedRouter.use("/search", searchRoutes);
+authenticatedRouter.use("/dashboard", dashboardRoutes);
+authenticatedRouter.use("/faculty-assignments", facultyAssignmentRoutes);
+
+// Academic Routes
+authenticatedRouter.use("/attendance", attendanceRoutes);
+authenticatedRouter.use("/results", resultsRoutes);
+authenticatedRouter.use("/assessments", assessmentRoutes);
+authenticatedRouter.use("/courses", courseRoutes);
+authenticatedRouter.use("/classes", classRoutes);
+authenticatedRouter.use("/syllabus", syllabusRoutes);
+authenticatedRouter.use("/timetable", timetableRoutes);
+authenticatedRouter.use("/academic-calendar", academicCalendarRoutes);
+
+// Examination Routes
+authenticatedRouter.use("/examschedule", examScheduleRoutes);
+authenticatedRouter.use("/exam-forms", examFormRoutes);
+authenticatedRouter.use("/exam-halls", examHallRoutes);
+authenticatedRouter.use("/hall-allocations", hallAllocationRoutes);
+
+// Financial Routes
+authenticatedRouter.use("/fee", feeRoutes);
+authenticatedRouter.use("/salary", salaryRoutes);
+authenticatedRouter.use("/scholarships", scholarshipRoutes);
+
+// User & Admin Routes
+authenticatedRouter.use("/users", userRoutes);
+authenticatedRouter.use("/history", historyRoutes);
+authenticatedRouter.use("/leaves", leaveRoutes);
+authenticatedRouter.use("/teacher-attendance", teacherAttendanceRoutes);
+authenticatedRouter.use("/office-hours", officeHoursRoutes);
+
+// Student Services
+authenticatedRouter.use("/student/idcard", idCardRoutes);
+authenticatedRouter.get("/verify/student/:studentId", verifyStudent);
+authenticatedRouter.use("/transfer", transferRoutes);
+
+// Community & Engagement
+authenticatedRouter.use("/events", eventRoute);
+authenticatedRouter.use("/clubs", clubRoutes);
+authenticatedRouter.use("/discussions", discussionRoutes);
+authenticatedRouter.use("/study-groups", studyGroupRoutes);
+authenticatedRouter.use("/mentorships", mentorshipRoutes);
+authenticatedRouter.use("/complaints", complaintRoutes);
+authenticatedRouter.use("/feedback", feedbackRoutes);
+
+// Career & Placement
+authenticatedRouter.use("/jobs", jobBoardRoutes);
+authenticatedRouter.use("/placements", placementRoutes);
+authenticatedRouter.use("/alumni", alumniRoutes);
+
+// Resources & Facilities
+authenticatedRouter.use("/library", libraryRoutes);
+authenticatedRouter.use("/resources", resourceRoutes);
+authenticatedRouter.use("/bookings", bookingRoutes);
+authenticatedRouter.use("/bus-routes", busRouteRoutes);
+
+// Reports & Analytics
+authenticatedRouter.use("/reports", reportRoutes);
+authenticatedRouter.use("/analytics", analyticsRoutes);
+authenticatedRouter.use("/quizzes", quizRoutes);
+authenticatedRouter.use("/audit-logs", auditLogRoutes);
+authenticatedRouter.use("/system-health", systemHealthRoutes);
+authenticatedRouter.use("/restore", restoreRoutes);
+
+// Miscellaneous
+authenticatedRouter.use("/achievements", achievementRoutes);
+authenticatedRouter.use("/announcements", announcementRoutes);
+authenticatedRouter.use("/notifications", notificationRoutes);
+authenticatedRouter.use("/tracking", trackingRoutes);
+authenticatedRouter.use("/plagiarism", plagiarismRoutes);
+authenticatedRouter.use("/workflows", workflowRoutes);
+authenticatedRouter.use("/dependencies", dependencyRoutes);
+authenticatedRouter.use("/data-locks", dataLockRoutes);
+authenticatedRouter.use("/snapshots", snapshotRoutes);
+authenticatedRouter.use("/sequences", sequenceRoutes);
+authenticatedRouter.use("/ownership", ownershipRoutes);
+authenticatedRouter.use("/saved-filters", savedFilterRoutes);
+authenticatedRouter.use("/abandonment", abandonmentRoutes);
+
+// Register Authenticated Sub-Router
+router.use(authenticatedRouter);
 
 // ========================================
 // EXPORT ROUTER

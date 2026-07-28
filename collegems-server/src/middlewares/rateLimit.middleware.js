@@ -2,8 +2,9 @@ import rateLimit from "express-rate-limit";
 
 // Login limiter (strict) - Now using environment variables
 export const loginLimiter = rateLimit({
-  windowMs: parseInt(process.env.LOGIN_WINDOW_MS) || 15 * 60 * 1000, // 15 min default
-  max: parseInt(process.env.LOGIN_MAX_ATTEMPTS) || 5,
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 5,
+  skip: () => process.env.NODE_ENV === "test",
   message: {
     success: false,
     message: process.env.LOGIN_RATE_LIMIT_MESSAGE || "Too many login attempts. Try again later.",
@@ -35,6 +36,16 @@ export const resetPasswordLimiter = rateLimit({
 export const otpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min
   max: 5,
+  message: {
+    success: false,
+    message: "Too many verification requests. Try again later.",
+  },
+});
+
+export const verifyEmailLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 5,
+  skip: () => process.env.NODE_ENV === "test",
   message: {
     success: false,
     message: "Too many verification requests. Try again later.",

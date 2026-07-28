@@ -15,6 +15,7 @@ import jwt from "jsonwebtoken";
 test("Library Fine Tracking Tests", async (t) => {
   let mongoServer;
   let studentToken;
+  let teacherToken;
   let student;
   let book;
   let overdueIssue;
@@ -40,6 +41,18 @@ test("Library Fine Tracking Tests", async (t) => {
     });
 
     studentToken = jwt.sign({ id: student._id, role: student.role }, jwtSecret);
+
+    // Create Teacher
+    const teacher = await User.create({
+      name: "Library Teacher",
+      email: "library.teacher@test.com",
+      password: "password123",
+      role: "teacher",
+      teacherId: "T-LIB-100",
+      department: "Computer Science",
+    });
+
+    teacherToken = jwt.sign({ id: teacher._id, role: teacher.role }, jwtSecret);
 
     // Create Book
     book = await Book.create({
@@ -159,7 +172,7 @@ test("Library Fine Tracking Tests", async (t) => {
 
     const res = await request(app)
       .post(`/api/library/fines/${fine._id}/pay`)
-      .set("Authorization", `Bearer ${studentToken}`);
+      .set("Authorization", `Bearer ${teacherToken}`);
 
     assert.strictEqual(res.status, 200);
     assert.ok(res.body.success);
@@ -176,7 +189,7 @@ test("Library Fine Tracking Tests", async (t) => {
 
     const res = await request(app)
       .post(`/api/library/fines/${fine._id}/pay`)
-      .set("Authorization", `Bearer ${studentToken}`);
+      .set("Authorization", `Bearer ${teacherToken}`);
 
     assert.strictEqual(res.status, 400);
     assert.strictEqual(res.body.success, false);
@@ -187,7 +200,7 @@ test("Library Fine Tracking Tests", async (t) => {
     const invalidId = new mongoose.Types.ObjectId();
     const res = await request(app)
       .post(`/api/library/fines/${invalidId}/pay`)
-      .set("Authorization", `Bearer ${studentToken}`);
+      .set("Authorization", `Bearer ${teacherToken}`);
 
     assert.strictEqual(res.status, 404);
     assert.strictEqual(res.body.success, false);

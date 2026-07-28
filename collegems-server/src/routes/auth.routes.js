@@ -18,6 +18,7 @@ import {
   registerLimiter,
   resetPasswordLimiter,
   otpLimiter,
+  verifyEmailLimiter,
 } from "../middlewares/rateLimit.middleware.js";
 import { detectDevice } from "../middlewares/session.middleware.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
@@ -28,7 +29,7 @@ router.post("/register", registerLimiter, detectDevice, validateRegister, regist
 router.post("/login", loginLimiter, detectDevice, login);
 router.post("/refresh", detectDevice, refresh);
 router.post("/logout", logout);
-router.post("/verify-email", otpLimiter, verifyEmail);
+router.post("/verify-email", verifyEmailLimiter, verifyEmail);
 router.post("/resend-verification", otpLimiter, resendVerificationEmail);
 router.post("/forgot-password", resetPasswordLimiter, forgotPassword);
 router.post("/reset-password", resetPasswordLimiter, resetPassword);
