@@ -31,6 +31,8 @@ import StudentResults from "../user-components/StudentResults";
 import EventsStudent from "../user-components/EventsStudent";
 import AcademicCalendar from "../common-components-management/AcademicCalendar";
 import Library from "../common-components-management/Library";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 // --- ADDED: Proper TypeScript Interfaces to resolve all 'unknown' and 'property does not exist' errors ---
 interface UserData {
@@ -59,6 +61,7 @@ interface DashboardResponse {
 // --------------------------------------------------------------------------------------------------------
 
 export default function ParentDashboard() {
+  const { data: academicLabels } = useAcademicLabels();
   const navigate = useNavigate();
   // UPDATED: Use the new DashboardResponse interface instead of Record<string, unknown>
   const [data, setData] = useState<DashboardResponse | null>(null);
@@ -113,7 +116,7 @@ export default function ParentDashboard() {
     { id: "attendance", label: "Child's Attendance", icon: CalendarCheck },
     { id: "assignments", label: "Child's Assignments", icon: FileText },
     { id: "fees", label: "Fee Details", icon: Wallet },
-    { id: "courses", label: "Academic Courses", icon: BookOpen },
+    { id: "courses", label: `Academic ${getAcademicLabel("course", academicLabels)}s`, icon: BookOpen },
     { id: "examschedule", label: "Exam Schedule", icon: Calendar },
     { id: "academic-calendar", label: "Academic Calendar", icon: CalendarDays },
     { id: "events", label: "Campus Events", icon: CalendarDays },
@@ -214,13 +217,13 @@ export default function ParentDashboard() {
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-2 text-xs pt-3 border-t border-purple-100/50 dark:border-purple-900/20">
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Semester</span>
+                    <span className="text-gray-500 dark:text-gray-400">{getAcademicLabel("semester", academicLabels)}</span>
                     <p className="font-medium text-gray-900 dark:text-white">
                       {child.semester || "N/A"}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Course</span>
+                    <span className="text-gray-500 dark:text-gray-400">{getAcademicLabel("course", academicLabels)}</span>
                     <p className="font-medium text-gray-900 dark:text-white">
                       {child.course || "N/A"}
                     </p>
@@ -471,7 +474,7 @@ export default function ParentDashboard() {
                     <h3 className="text-lg font-semibold text-purple-200">Linked Academic Profile</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
                       <div>
-                        <span className="text-purple-200/70 text-xs block">Student Full Name</span>
+                        <span className="text-purple-200/70 text-xs block">{getAcademicLabel("student", academicLabels)} Full Name</span>
                         <p className="text-lg font-bold">{child.name}</p>
                       </div>
                       <div>
@@ -479,7 +482,7 @@ export default function ParentDashboard() {
                         <p className="text-lg font-bold">{child.studentId}</p>
                       </div>
                       <div>
-                        <span className="text-purple-200/70 text-xs block">Program / Department</span>
+                        <span className="text-purple-200/70 text-xs block">Program / {getAcademicLabel("department", academicLabels)}</span>
                         <p className="text-lg font-bold">{childProgram}</p>
                       </div>
                     </div>

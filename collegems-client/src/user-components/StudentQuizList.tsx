@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Play, Clock, BookOpen, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Quiz {
   _id: string;
@@ -14,6 +16,7 @@ interface Quiz {
 }
 
 export const StudentQuizList: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +70,7 @@ export const StudentQuizList: React.FC = () => {
             <div key={quiz._id} className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 p-6 flex flex-col">
               <div className="mb-4 flex-1">
                 <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-full mb-2 inline-block">
-                  {quiz.course?.code || 'Course'}
+                  {quiz.course?.code || getAcademicLabel("course", academicLabels)}
                 </span>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{quiz.title}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-4">

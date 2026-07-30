@@ -1,6 +1,9 @@
 import { NavLink } from "react-router-dom";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 export default function Navbar() {
+  const { data: academicLabels } = useAcademicLabels();
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `px-3 py-2 rounded-md transition ${
       isActive
@@ -26,7 +29,7 @@ export default function Navbar() {
             </NavLink>
 
             <NavLink to="/courses" className={linkClass}>
-              Courses
+              {getAcademicLabel("course", academicLabels)}s
             </NavLink>
 
             <NavLink to="/events" className={linkClass}>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 // IMPORTANT: Adjust this path to wherever your SocketContext is
 import { useSocket } from '../context/SocketContext'; 
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface TrafficData {
     students: number;
@@ -9,6 +11,7 @@ interface TrafficData {
 }
 
 const LiveTrafficWidget: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
     const { socket, isConnected } = useSocket();
     const [traffic, setTraffic] = useState<TrafficData>({ 
         students: 0, 
@@ -57,7 +60,7 @@ const LiveTrafficWidget: React.FC = () => {
             
             <div className="flex gap-4 mb-6">
                 <div className="bg-blue-50 p-4 rounded-lg flex-1 border border-blue-100">
-                    <p className="text-sm text-blue-600 font-semibold">Students</p>
+                    <p className="text-sm text-blue-600 font-semibold">{getAcademicLabel("student", academicLabels)}s</p>
                     <p className="text-3xl font-bold text-blue-900">{students}</p>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg flex-1 border border-green-100">

@@ -5,13 +5,15 @@ import {
   ArrowLeft, Search, ChevronRight, Moon, Sun,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
-const allItems = [
+const getAllItems = (academicLabels: any) => [
   {
     label: "Academic Results",
     description: "View your semester grades, GPA breakdown and performance analytics",
     icon: Award,
-    badge: "4 Subjects",
+    badge: `4 ${getAcademicLabel("subject", academicLabels)}s`,
     badgeColor: "text-blue-600",
     bgColor: "bg-blue-50",
     borderColor: "border-blue-200",
@@ -32,7 +34,7 @@ const allItems = [
     category: "Academics",
   },
   {
-    label: "Course Catalog",
+    label: `${getAcademicLabel("course", academicLabels)} Catalog`,
     description: "Browse and manage your enrolled courses and syllabus",
     icon: BookOpen,
     badge: "6 Enrolled",
@@ -68,7 +70,7 @@ const allItems = [
     category: "Campus Life",
   },
   {
-    label: "Faculty Directory",
+    label: `${getAcademicLabel("faculty", academicLabels)} Directory`,
     description: "Connect with your professors, view office hours and contact info",
     icon: Users,
     badge: "12 Teachers",
@@ -96,6 +98,8 @@ const allItems = [
 const categories = ["All", "Academics", "Campus Life"];
 
 export default function QuickAccessAll() {
+  const { data: academicLabels } = useAcademicLabels();
+  const allItems = getAllItems(academicLabels);
   const navigate = useNavigate();
   const { darkMode, toggleTheme } = useTheme();
   const [search, setSearch] = useState("");

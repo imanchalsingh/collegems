@@ -1,9 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { getAcademicLabel } from "../../utils/academicLabels";
+import { useAcademicLabels } from "../../hooks/useAcademicLabels";
+
+interface TeacherAnalyticsData {
+  message?: string;
+  totalCoursesTaught: number;
+  averageMarks: number;
+  lowMarksStudentsCount: number;
+  passCount: number;
+  failCount: number;
+}
 
 const TeacherAnalyticsWidget: React.FC = () => {
-    const [data, setData] = useState<Record<string, unknown> | null>(null);
+  const { data: academicLabels } = useAcademicLabels();
+    const [data, setData] = useState<TeacherAnalyticsData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
@@ -40,7 +52,7 @@ const TeacherAnalyticsWidget: React.FC = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border-l-4 border-indigo-500">
-                    <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">Total Courses</h3>
+                    <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">Total {getAcademicLabel("course", academicLabels)}s</h3>
                     <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{String(data.totalCoursesTaught || 0)}</p>
                 </div>
 
@@ -50,7 +62,7 @@ const TeacherAnalyticsWidget: React.FC = () => {
                 </div>
 
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border-l-4 border-red-500">
-                    <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">At-Risk Students</h3>
+                    <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">At-Risk {getAcademicLabel("student", academicLabels)}s</h3>
                     <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{String(data.lowMarksStudentsCount || 0)}</p>
                 </div>
                 
@@ -73,7 +85,7 @@ const TeacherAnalyticsWidget: React.FC = () => {
                                 outerRadius={100}
                                 fill="#8884d8"
                                 dataKey="value"
-                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                label={({ name, percent }) =>`${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                             >
                                 {pieData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

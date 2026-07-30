@@ -14,6 +14,8 @@ import {
   Award,
   MessageSquare
 } from "lucide-react";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface UserBreakdown {
   students: number;
@@ -66,6 +68,7 @@ interface HealthResponse {
 }
 
 export default function SystemHealthDashboard() {
+  const { data: academicLabels } = useAcademicLabels();
   const [data, setData] = useState<HealthResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -182,7 +185,7 @@ export default function SystemHealthDashboard() {
               
               <div className="space-y-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                 <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
-                  <span>Students</span>
+                  <span>{getAcademicLabel("student", academicLabels)}s</span>
                   <span className="font-semibold">{data.metrics.activeUsers.breakdown.students}</span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">

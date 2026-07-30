@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Save, X, Calendar, Clock, BookOpen, AlertCircle } from 'lucide-react';
 import api from '../api/axios';
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Course {
   _id: string;
@@ -17,6 +19,7 @@ interface Question {
 }
 
 export const QuizCreator: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [courses, setCourses] = useState<Course[]>([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -140,13 +143,13 @@ export const QuizCreator: React.FC = () => {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Course</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select {getAcademicLabel("course", academicLabels)}</label>
           <select
             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
             value={courseId}
             onChange={(e) => setCourseId(e.target.value)}
           >
-            <option value="">-- Select Course --</option>
+            <option value="">-- Select {getAcademicLabel("course", academicLabels)} --</option>
             {courses.map(c => (
               <option key={c._id} value={c._id}>{c.name} ({c.code})</option>
             ))}

@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Student {
   _id: string;
@@ -73,6 +75,7 @@ interface PublishPreviewData {
 }
 
 export default function TeacherResult() {
+  const { data: academicLabels } = useAcademicLabels();
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
@@ -357,7 +360,7 @@ export default function TeacherResult() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Manage Student Results</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Manage {getAcademicLabel("student", academicLabels)} Results</h1>
         <p className="text-gray-500 mt-1">Add or update academic results for students</p>
       </div>
 
@@ -379,7 +382,7 @@ export default function TeacherResult() {
               {/* Student Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Select Student
+                  Select {getAcademicLabel("student", academicLabels)}
                 </label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -402,7 +405,7 @@ export default function TeacherResult() {
               {/* Course Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Select Course
+                  Select {getAcademicLabel("course", academicLabels)}
                 </label>
                 <div className="relative">
                   <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -425,7 +428,7 @@ export default function TeacherResult() {
               {/* Semester Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Semester
+                  {getAcademicLabel("semester", academicLabels)}
                 </label>
                 <div className="relative">
                   <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -605,7 +608,7 @@ export default function TeacherResult() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                   <Filter className="w-4 h-4 text-gray-500" />
-                  Filter Students
+                  Filter {getAcademicLabel("student", academicLabels)}s
                 </h3>
                 {(searchTerm || selectedSemester || selectedDepartment) && (
                   <button
@@ -637,7 +640,7 @@ export default function TeacherResult() {
                     onChange={(e) => setSelectedDepartment(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">All Departments</option>
+                    <option value="">All {getAcademicLabel("department", academicLabels)}s</option>
                     {getUniqueDepartments().map((dept) => (
                       <option key={dept} value={dept}>
                         {dept}
@@ -653,7 +656,7 @@ export default function TeacherResult() {
                     onChange={(e) => setSelectedSemester(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="">All Semesters</option>
+                    <option value="">All {getAcademicLabel("semester", academicLabels)}s</option>
                     {semesters.map((sem) => (
                       <option key={sem} value={sem}>
                         Semester {sem}
@@ -761,7 +764,7 @@ export default function TeacherResult() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Course
+              {getAcademicLabel("course", academicLabels)}
             </label>
             <div className="relative">
               <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -782,7 +785,7 @@ export default function TeacherResult() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Semester
+              {getAcademicLabel("semester", academicLabels)}
             </label>
             <div className="relative">
               <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -850,7 +853,7 @@ export default function TeacherResult() {
                   <table className="w-full text-left">
                     <thead>
                       <tr className="text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
-                        <th className="pb-2 pr-4">Student</th>
+                        <th className="pb-2 pr-4">{getAcademicLabel("student", academicLabels)}</th>
                         <th className="pb-2 pr-4">ID</th>
                         <th className="pb-2 pr-4 text-right">Internal</th>
                         <th className="pb-2 pr-4 text-right">External</th>

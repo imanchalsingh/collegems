@@ -3,8 +3,11 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { ArrowLeft, Moon, Sun, School } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import ExaminationForm from "../user-components/ExaminationForm";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 const ExaminationFormPage: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const navigate = useNavigate();
   const { darkMode, toggleTheme } = useTheme();
 
@@ -27,7 +30,7 @@ const ExaminationFormPage: React.FC = () => {
                 <div className="bg-blue-600 p-2 rounded-lg text-white">
                   <School className="w-5 h-5" />
                 </div>
-                <span className="font-bold text-lg hidden sm:inline-block">Student Portal</span>
+                <span className="font-bold text-lg hidden sm:inline-block">{getAcademicLabel("student", academicLabels)} Portal</span>
               </div>
             </div>
 

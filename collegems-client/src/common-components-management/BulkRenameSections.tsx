@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../api/axios";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 // Define the shape of our data
 interface Section {
@@ -8,6 +10,7 @@ interface Section {
 }
 
 export default function BulkRenameSections() {
+  const { data: academicLabels } = useAcademicLabels();
   const [sections, setSections] = useState<Section[]>([]);
   const [pendingChanges, setPendingChanges] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
@@ -64,7 +67,7 @@ export default function BulkRenameSections() {
       // Sending to the route we created in class.route.js
       await api.put("/classes/bulk-rename", { updates });
       
-      alert("Sections renamed successfully!");
+      alert(`${getAcademicLabel("section", academicLabels)}s renamed successfully!`);
       setShowPreview(false);
       setPendingChanges({});
       fetchSections(); // Refresh the table
@@ -79,7 +82,7 @@ export default function BulkRenameSections() {
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Bulk Rename Sections</h2>
+      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Bulk Rename {getAcademicLabel("section", academicLabels)}s</h2>
       <p className="text-gray-500 dark:text-gray-400 mb-6">
         Type new names next to the sections you wish to update.
       </p>

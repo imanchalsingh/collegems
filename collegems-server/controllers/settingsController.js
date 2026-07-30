@@ -3,6 +3,8 @@ const logger = require('../utils/logger');
 
 const CONFIRMATION_FIELDS = ['delete', 'publish', 'archive', 'update'];
 
+const DEFAULT_ACADEMIC_LABELS = require("../constants/academicLabels");
+
 function validateBoolean(value, fieldName) {
   if (value === undefined || value === null) return true;
   if (typeof value !== 'boolean') {
@@ -43,7 +45,8 @@ const getSettings = async (req, res) => {
                     publish: true,
                     archive: true,
                     update: false
-                }
+                },
+                academicLabels: { ...DEFAULT_ACADEMIC_LABELS }
             });
         }
         
@@ -57,51 +60,147 @@ const getSettings = async (req, res) => {
     }
 };
 
+function validateAcademicLabels(labels) {
+    const errors = [];
+
+        if (
+            labels === null ||
+            typeof labels !== "object" ||
+            Array.isArray(labels)
+        ) {
+        return {
+            valid: false,
+            errors: ["Academic labels must be an object."]
+        };
+    }
+
+    for (const [key, value] of Object.entries(labels)) {
+        if (typeof value !== "string") {
+            errors.push(`${key} must be a string.`);
+            continue;
+        }
+
+        const trimmed = value.trim();
+
+        if (!trimmed) {
+            errors.push(`${key} cannot be empty.`);
+        }
+
+        if (trimmed.length > 50) {
+            errors.push(`${key} must be less than 50 characters.`);
+        }
+    }
+
+    return {
+        valid: errors.length === 0,
+        errors,
+    };
+}
+
 const updateSettings = async (req, res) => {
     try {
-        const { confirmations } = req.body;
+        const { confirmations, academicLabels } = req.body;
         
-        if (!confirmations) {
+        if (!confirmations && !academicLabels) {
             return res.status(400).json({
                 success: false,
-                error: 'Confirmations object is required'
+                error: 'Nothing to update.'
             });
         }
 
-        if (typeof confirmations !== 'object' || Array.isArray(confirmations)) {
-            return res.status(400).json({
-                success: false,
-                error: 'Confirmations must be an object'
-            });
+        if (confirmations) {
+
+            if (typeof confirmations !== 'object' || Array.isArray(confirmations)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Confirmations must be an object'
+                });
+            }
+
+            const validation = validateConfirmationSettings(confirmations);
+
+            if (!validation.valid) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Validation failed',
+                    details: validation.errors
+                });
+            }
+
         }
 
-        const validation = validateConfirmationSettings(confirmations);
-        if (!validation.valid) {
-            return res.status(400).json({
-                success: false,
-                error: 'Validation failed',
-                details: validation.errors
-            });
+        if (academicLabels) {
+
+            const validation = validateAcademicLabels(academicLabels);
+
+            if (!validation.valid) {
+
+                return res.status(400).json({
+                    success: false,
+                    error: 'Validation failed',
+                    details: validation.errors
+                });
+
+            }
+
         }
         
         let settings = await Settings.findOne();
         
         if (!settings) {
-            settings = new Settings();
+            settings = new Settings({
+                confirmations: {
+                    delete: true,
+                    publish: true,
+                    archive: true,
+                    update: false
+                },
+
+                academicLabels: { ...DEFAULT_ACADEMIC_LABELS }
+            });
+        }
+                
+        if (confirmations) {
+
+            settings.confirmations = {
+                delete:
+                    confirmations.delete !== undefined
+                        ? confirmations.delete
+                        : settings.confirmations.delete,
+
+                publish:
+                    confirmations.publish !== undefined
+                        ? confirmations.publish
+                        : settings.confirmations.publish,
+
+                archive:
+                    confirmations.archive !== undefined
+                        ? confirmations.archive
+                        : settings.confirmations.archive,
+
+                update:
+                    confirmations.update !== undefined
+                        ? confirmations.update
+                        : settings.confirmations.update
+            };
+
+        }
+
+        if (academicLabels) {
+
+            settings.academicLabels = {
+                ...(settings.academicLabels || {}),
+                ...Object.fromEntries(
+                    Object.entries(academicLabels).map(
+                        ([key, value]) => [key, value.trim()]
+                    )
+                )
+            };
+
         }
         
-        settings.confirmations = {
-            delete: confirmations.delete !== undefined ? confirmations.delete : settings.confirmations.delete,
-            publish: confirmations.publish !== undefined ? confirmations.publish : settings.confirmations.publish,
-            archive: confirmations.archive !== undefined ? confirmations.archive : settings.confirmations.archive,
-            update: confirmations.update !== undefined ? confirmations.update : settings.confirmations.update
-        };
-        
         settings.updatedBy = req.user ? req.user.id : null;
-        settings.updatedAt = Date.now();
-        
         await settings.save();
-
         logger.info('Settings updated successfully', { updatedBy: req.user?.id });
         
         res.json({

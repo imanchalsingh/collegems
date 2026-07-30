@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { User, Mail, Phone, Building, Briefcase, Clock, FileText, Save, CheckCircle, AlertCircle } from "lucide-react";
 import api from "../api/axios";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 export default function TeacherProfile() {
+  const { data: academicLabels } = useAcademicLabels();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
@@ -241,7 +244,7 @@ export default function TeacherProfile() {
             <div className="space-y-6">
               <div>
                 <label htmlFor="tp-department" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Department
+                  {getAcademicLabel("department", academicLabels)}
                 </label>
                 <input
                   id="tp-department"
@@ -272,7 +275,7 @@ export default function TeacherProfile() {
                     placeholder="e.g. Mon & Wed, 10:00 AM - 12:00 PM (Room 304)"
                   />
                 </div>
-                <p className="mt-1 text-xs text-gray-500">Students will see this on your faculty profile.</p>
+                <p className="mt-1 text-xs text-gray-500">{getAcademicLabel("student", academicLabels)}s will see this on your faculty profile.</p>
               </div>
 
               <div>

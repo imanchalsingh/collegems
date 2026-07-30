@@ -3,6 +3,8 @@ import { Eye, RotateCcw, User, BookOpen, Building2, Loader2, AlertCircle } from 
 import api from "../api/axios";
 import { useTrackingStats } from "../hooks/useTrackingStats";
 import type { TrackedEntity } from "../hooks/useTrackingStats";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 const ENTITY_ICONS: Record<string, React.ElementType> = {
   students: User,
@@ -16,13 +18,14 @@ const ENTITY_COLORS: Record<string, string> = {
   departments: "text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-400",
 };
 
-const ENTITY_LABELS: Record<string, string> = {
-  students: "Students",
-  courses: "Courses",
-  departments: "Departments",
-};
+const getEntityLabels = (academicLabels: any): Record<string, string> => ({
+  students: `${getAcademicLabel("student", academicLabels)}s`,
+  courses: `${getAcademicLabel("course", academicLabels)}s`,
+  departments: `${getAcademicLabel("department", academicLabels)}s`,
+});
 
 function EntityList({ items, type }: { items: TrackedEntity[]; type: string }) {
+  const { data: academicLabels } = useAcademicLabels();
   const Icon = ENTITY_ICONS[type] || Eye;
   const colorClass = ENTITY_COLORS[type] || "text-gray-600 bg-gray-50";
 
@@ -79,6 +82,7 @@ function EntityList({ items, type }: { items: TrackedEntity[]; type: string }) {
 }
 
 export default function TrackingWidget() {
+  const { data: academicLabels } = useAcademicLabels();
   const { data, loading, error, refetch } = useTrackingStats();
   const [resetting, setResetting] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
@@ -154,7 +158,7 @@ export default function TrackingWidget() {
             {categories.map(([type, items]) => (
               <div key={type}>
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">
-                  {ENTITY_LABELS[type] || type}
+                  {getEntityLabels(academicLabels)[type] || type}
                 </h4>
                 <EntityList items={items as TrackedEntity[]} type={type} />
               </div>

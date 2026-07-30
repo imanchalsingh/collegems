@@ -4,6 +4,8 @@ import { CheckCircle2, XCircle, IdCard, Loader2, ArrowLeft, Mail, GraduationCap,
 import { isAxiosError } from "axios";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface VerifiedStudent {
   name?: string;
@@ -26,6 +28,7 @@ const formatSemester = (semester?: string | number) => {
 };
 
 export default function VerifyStudent() {
+  const { data: academicLabels } = useAcademicLabels();
   const { studentId } = useParams<{ studentId: string }>();
   const [state, setState] = useState<"loading" | "valid" | "invalid" | "error">("loading");
   const [data, setData] = useState<VerifyResponse | null>(null);
@@ -120,7 +123,7 @@ export default function VerifyStudent() {
                     <h2 className="text-lg font-semibold text-gray-900 truncate">
                       {data.student.name}
                     </h2>
-                    <p className="text-sm text-gray-500">Active Student</p>
+                    <p className="text-sm text-gray-500">Active {getAcademicLabel("student", academicLabels)}</p>
                   </div>
                 </div>
 
@@ -128,21 +131,21 @@ export default function VerifyStudent() {
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
                     <Hash className="w-4 h-4 text-gray-500" />
                     <div>
-                      <p className="text-xs text-gray-500">Student ID</p>
+                      <p className="text-xs text-gray-500">{getAcademicLabel("student", academicLabels)} ID</p>
                       <p className="font-medium text-gray-900">{data.student.studentId}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
                     <GraduationCap className="w-4 h-4 text-gray-500" />
                     <div>
-                      <p className="text-xs text-gray-500">Course</p>
+                      <p className="text-xs text-gray-500">{getAcademicLabel("course", academicLabels)}</p>
                       <p className="font-medium text-gray-900">{data.student.course || "—"}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
                     <Calendar className="w-4 h-4 text-gray-500" />
                     <div>
-                      <p className="text-xs text-gray-500">Semester</p>
+                      <p className="text-xs text-gray-500">{getAcademicLabel("semester", academicLabels)}</p>
                       <p className="font-medium text-gray-900">{formatSemester(data.student.semester)}</p>
                     </div>
                   </div>

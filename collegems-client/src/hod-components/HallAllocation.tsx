@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface ExamSchedule {
   _id: string;
@@ -97,28 +99,31 @@ const getDeptColor = (dept: string, deptMap: Map<string, string>): string => {
   return color;
 };
 
-const STRATEGIES = [
-  {
-    key: "sequential",
-    label: "Sequential",
-    icon: ListOrdered,
-    description: "Fill halls one by one in roll number order",
-  },
-  {
-    key: "department-mixed",
-    label: "Department-Mixed",
-    icon: Shuffle,
-    description: "Interleave departments to prevent cheating",
-  },
-  {
-    key: "zigzag",
-    label: "Zigzag",
-    icon: GitBranch,
-    description: "Alternate departments in adjacent rows",
-  },
-] as const;
+const getStrategies = (academicLabels: any) =>
+  [
+    {
+      key: "sequential",
+      label: "Sequential",
+      icon: ListOrdered,
+      description: "Fill halls one by one in roll number order",
+    },
+    {
+      key: "department-mixed",
+      label: `${getAcademicLabel("department", academicLabels)}-Mixed`,
+      icon: Shuffle,
+      description: "Interleave departments to prevent cheating",
+    },
+    {
+      key: "zigzag",
+      label: "Zigzag",
+      icon: GitBranch,
+      description: "Alternate departments in adjacent rows",
+    },
+  ] as const;
 
 const HallAllocation: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
+  const STRATEGIES = getStrategies(academicLabels);
   const [step, setStep] = useState(1);
 
   // Step 1
@@ -233,7 +238,7 @@ const HallAllocation: React.FC = () => {
       await api.put(`/hall-allocations/${allocation._id}/publish`);
 
       setAllocation({ ...allocation, status: "published" });
-      setSuccessMsg("Allocation published successfully! Students can now view their seats.");
+      setSuccessMsg(`Allocation published successfully! ${getAcademicLabel("student", academicLabels)}s can now view their seats.`);
       setTimeout(() => setSuccessMsg(""), 5000);
     } catch (err: any) {
       console.error("Error publishing allocation:", err);
@@ -613,7 +618,7 @@ const HallAllocation: React.FC = () => {
                 bg: "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
               },
               {
-                label: "Total Students",
+                label: `Total ${getAcademicLabel("student", academicLabels)}s`,
                 value: allocation.totalStudents,
                 icon: Users,
                 bg: "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
@@ -726,7 +731,7 @@ const HallAllocation: React.FC = () => {
                               <th className="px-6 py-3">Seat #</th>
                               <th className="px-6 py-3">Name</th>
                               <th className="px-6 py-3">Roll Number</th>
-                              <th className="px-6 py-3">Department</th>
+                              <th className="px-6 py-3">{getAcademicLabel("department", academicLabels)}</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-sm">

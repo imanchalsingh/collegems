@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { DEFAULT_ACADEMIC_LABELS } from "../constants/academicLabels";
 
 const Settings = () => {
     const [settings, setSettings] = useState({
@@ -8,7 +9,8 @@ const Settings = () => {
             publish: true,
             archive: true,
             update: false
-        }
+        },
+        academicLabels: { ...DEFAULT_ACADEMIC_LABELS }
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -22,8 +24,22 @@ const Settings = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.data.success) {
-                setSettings(response.data.data);
-            }
+            const data = response.data.data;
+
+            setSettings({
+                confirmations: {
+                    delete: data.confirmations?.delete ?? true,
+                    publish: data.confirmations?.publish ?? true,
+                    archive: data.confirmations?.archive ?? true,
+                    update: data.confirmations?.update ?? false,
+                },
+
+                academicLabels: {
+                    ...DEFAULT_ACADEMIC_LABELS,
+                    ...(data.academicLabels || {}),
+                },
+            });
+        }
         } catch (error) {
             console.error('Error fetching settings:', error);
         } finally {
@@ -42,6 +58,17 @@ const Settings = () => {
             }
         }));
     };
+
+    const handleLabelChange = (key, value) => {
+    setSettings(prev => ({
+        ...prev,
+        academicLabels: {
+            ...prev.academicLabels,
+            [key]: value,
+        },
+    }));
+};
+
 
     const handleSave = async () => {
         setSaving(true);
@@ -144,6 +171,45 @@ const Settings = () => {
                     className="mt-6 w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition"
                 >
                     {saving ? 'Saving...' : 'Save Settings'}
+                </button>
+            </div>
+            <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h2 className="text-lg font-semibold mb-2">
+                    Academic Labels
+                </h2>
+
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                    Customize academic terminology used throughout the system.
+                </p>
+
+                <div className="space-y-4">
+                    {Object.entries(DEFAULT_ACADEMIC_LABELS).map(([key, defaultLabel]) => (
+                        <div
+                            key={key}
+                            className="flex items-center justify-between gap-6"
+                        >
+                            <label className="font-medium capitalize w-48">
+                                {defaultLabel}
+                            </label>
+
+                            <input
+                                type="text"
+                                value={settings.academicLabels[key] || ""}
+                                onChange={(e) =>
+                                    handleLabelChange(key, e.target.value)
+                                }
+                                className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700"
+                            />
+                        </div>
+                    ))}
+                </div>
+
+                <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="mt-6 w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition"
+                >
+                    {saving ? "Saving..." : "Save Academic Labels"}
                 </button>
             </div>
         </div>

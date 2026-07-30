@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { generateTimetable, getTimetables, getTimetableStatus } from "../../api/timetable";
 import { Link } from "react-router";
+import { getAcademicLabel } from "../../utils/academicLabels";
+import { useAcademicLabels } from "../../hooks/useAcademicLabels";
 
 export const TimetableGenerator = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [name, setName] = useState("");
   const [department, setDepartment] = useState("");
   const [semester, setSemester] = useState<number | "">("");
@@ -69,7 +72,7 @@ export const TimetableGenerator = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Department</label>
+            <label className="block text-sm font-medium mb-1 dark:text-gray-300">{getAcademicLabel("department", academicLabels)}</label>
             <input 
               type="text" 
               className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
@@ -79,7 +82,7 @@ export const TimetableGenerator = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Semester (Optional)</label>
+            <label className="block text-sm font-medium mb-1 dark:text-gray-300">{getAcademicLabel("semester", academicLabels)} (Optional)</label>
             <input 
               type="number" 
               className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
@@ -105,7 +108,7 @@ export const TimetableGenerator = () => {
             <tr className="bg-gray-100 dark:bg-gray-700">
               <th className="py-2 px-4 border-b text-left dark:text-gray-200">Name</th>
               <th className="py-2 px-4 border-b text-left dark:text-gray-200">Status</th>
-              <th className="py-2 px-4 border-b text-left dark:text-gray-200">Department</th>
+              <th className="py-2 px-4 border-b text-left dark:text-gray-200">{getAcademicLabel("department", academicLabels)}</th>
               <th className="py-2 px-4 border-b text-left dark:text-gray-200">Action</th>
             </tr>
           </thead>

@@ -34,8 +34,11 @@ import {
   removeAssignmentOptimistically, // <-- ADDED
   restoreAssignmentOptimistically // <-- ADDED
 } from "../store/slices/assignmentSlice";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 export default function TeacherAssignments({ courseId }: { courseId: string }) {
+  const { data: academicLabels } = useAcademicLabels();
   const dispatch = useAppDispatch();
   const { teacherAssignments, loadingTeacher, loadingAction, error } = useAppSelector((state) => state.assignments);
 
@@ -231,19 +234,19 @@ const handleDeleteAssignment = (assignmentToDelete: any) => {
       value: "file",
       label: "File Upload",
       icon: Paperclip,
-      description: "Students upload files",
+      description: `${getAcademicLabel("student", academicLabels)}s upload files`,
     },
     {
       value: "text",
       label: "Text Input",
       icon: Type,
-      description: "Students enter text",
+      description: `${getAcademicLabel("student", academicLabels)}s enter text`,
     },
     {
       value: "link",
       label: "Link",
       icon: Link2,
-      description: "Students submit URLs",
+      description: `${getAcademicLabel("student", academicLabels)}s submit URLs`,
     },
     {
       value: "both",
@@ -508,7 +511,7 @@ const handleDeleteAssignment = (assignmentToDelete: any) => {
 
               {/* Course Info */}
               <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <p className="text-xs text-gray-500 mb-1">Course ID</p>
+                <p className="text-xs text-gray-500 mb-1">{getAcademicLabel("course", academicLabels)} ID</p>
                 <p className="text-sm font-medium text-gray-900">
                   {courseId || "Not available"}
                 </p>
@@ -819,7 +822,7 @@ const handleDeleteAssignment = (assignmentToDelete: any) => {
           </div>
           <div>
            <p className="font-semibold text-gray-900 flex items-center">
-           {sub.student?.name || "Unknown Student"}
+           {sub.student?.name || `Unknown ${getAcademicLabel("student", academicLabels)}`}
               </p>
             <p className="text-sm text-gray-500">{sub.student?.email || "No email"}</p>
           </div>

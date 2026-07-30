@@ -9,6 +9,8 @@ import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
 import { addRecentHistory } from "../api/history";
 import { trackView } from "../utils/trackView";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Course {
   _id: string;
@@ -26,6 +28,7 @@ interface Course {
 }
 
 const Courses: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -99,7 +102,7 @@ const Courses: React.FC = () => {
       <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Course Catalog</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{getAcademicLabel("course", academicLabels)} Catalog</h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">Browse and manage all available courses</p>
           </div>
           <div className="flex items-center gap-3">
@@ -109,7 +112,7 @@ const Courses: React.FC = () => {
             </button>
             <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
               <PlusCircle className="w-4 h-4" />
-              Add Course
+              Add {getAcademicLabel("course", academicLabels)}
             </button>
           </div>
         </div>
@@ -118,9 +121,9 @@ const Courses: React.FC = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Courses", value: stats.total, icon: BookOpen, bg: "bg-blue-50 dark:bg-blue-900/30", color: "text-blue-600 dark:text-blue-400" },
-          { label: "Departments", value: stats.departments, icon: Building2, bg: "bg-amber-50 dark:bg-amber-900/30", color: "text-amber-600 dark:text-amber-400" },
-          { label: "Active Courses", value: stats.active, icon: Award, bg: "bg-emerald-50 dark:bg-emerald-900/30", color: "text-emerald-600 dark:text-emerald-400" },
+          { label: `Total ${getAcademicLabel("course", academicLabels)}s`, value: stats.total, icon: BookOpen, bg: "bg-blue-50 dark:bg-blue-900/30", color: "text-blue-600 dark:text-blue-400" },
+          { label: `${getAcademicLabel("department", academicLabels)}s`, value: stats.departments, icon: Building2, bg: "bg-amber-50 dark:bg-amber-900/30", color: "text-amber-600 dark:text-amber-400" },
+          { label: `Active ${getAcademicLabel("course", academicLabels)}s`, value: stats.active, icon: Award, bg: "bg-emerald-50 dark:bg-emerald-900/30", color: "text-emerald-600 dark:text-emerald-400" },
           { label: "Total Credits", value: stats.totalCredits, icon: Award, bg: "bg-purple-50 dark:bg-purple-900/30", color: "text-purple-600 dark:text-purple-400" },
         ].map((stat, i) => {
           const Icon = stat.icon;
@@ -202,10 +205,10 @@ const Courses: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
                 {
-                  label: "Department", isMain: true,
+                  label: `${getAcademicLabel("department", academicLabels)}`, isMain: true,
                 },
                 { label: "Credits", options: ["All Credits", "1-2 Credits", "3-4 Credits", "5+ Credits"] },
-                { label: "Semester", options: ["All Semesters", "Semester 1", "Semester 2", "Semester 3", "Semester 4", "Semester 5", "Semester 6"] },
+                { label: `${getAcademicLabel("semester", academicLabels)}`, options: [`All ${getAcademicLabel("semester", academicLabels)}s`, `${getAcademicLabel("semester", academicLabels)} 1`, `${getAcademicLabel("semester", academicLabels)} 2`, `${getAcademicLabel("semester", academicLabels)} 3`, `${getAcademicLabel("semester", academicLabels)} 4`, `${getAcademicLabel("semester", academicLabels)} 5`, `${getAcademicLabel("semester", academicLabels)} 6`] },
               ].map((f) => (
                 <div key={f.label}>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{f.label}</label>
@@ -215,10 +218,10 @@ const Courses: React.FC = () => {
                       value={filter}
                       onChange={(e) => setFilter(e.target.value)}
                     >
-                      <option value="all">All Departments</option>
-                      <option value="active">Active Courses</option>
-                      <option value="inactive">Inactive Courses</option>
-                      <optgroup label="By Department">
+                      <option value="all">All {getAcademicLabel("department", academicLabels)}s</option>
+                      <option value="active">Active {getAcademicLabel("course", academicLabels)}s</option>
+                      <option value="inactive">Inactive {getAcademicLabel("course", academicLabels)}s</option>
+                      <optgroup label={`By ${getAcademicLabel("department", academicLabels)}`}>
                         {departments.map((dept) => <option key={dept} value={dept}>{dept}</option>)}
                       </optgroup>
                     </select>
@@ -372,7 +375,7 @@ const Courses: React.FC = () => {
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
                 <tr>
-                  {["Course", "Department", "Instructor", "Semester", "Credits", "Status", "Actions"].map((h) => (
+                  {[getAcademicLabel("course", academicLabels), getAcademicLabel("department", academicLabels), "Instructor", getAcademicLabel("semester", academicLabels), "Credits", "Status", "Actions"].map((h) => (
                     <th key={h} className={`px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${h === "Actions" ? "text-right" : "text-left"}`}>
                       {h}
                     </th>

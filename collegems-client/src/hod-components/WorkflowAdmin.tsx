@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Plus, List, ArrowRight, Save, Trash2, CheckCircle2, Shield, Settings } from "lucide-react";
 import api from "../api/axios";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 export default function WorkflowAdmin() {
+  const { data: academicLabels } = useAcademicLabels();
   const [activeTab, setActiveTab] = useState<"forms" | "workflows">("workflows");
   const [loading, setLoading] = useState(false);
 
@@ -261,7 +264,7 @@ export default function WorkflowAdmin() {
                   <div className="grid grid-cols-2 gap-4 mb-3">
                     <div>
                       <label className="block text-xs font-medium text-slate-500 mb-1">Step Name</label>
-                      <input type="text" value={step.name} onChange={e => updateStep(idx, "name", e.target.value)} className="w-full px-2 py-1.5 text-sm border rounded" placeholder="e.g. Faculty Review" />
+                      <input type="text" value={step.name} onChange={e => updateStep(idx, "name", e.target.value)} className="w-full px-2 py-1.5 text-sm border rounded" placeholder={`e.g. ${getAcademicLabel("faculty", academicLabels)} Review`} />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-slate-500 mb-1">Approver Role</label>

@@ -85,6 +85,8 @@ import StudentQuizList from "../user-components/StudentQuizList";
 import StudentProfile from "../user-components/StudentProfile";
 // HOD Components
 import Teachers from "../hod-components/Teachers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 type TabType =
   | "overview"
@@ -118,24 +120,32 @@ type TabType =
   | "profile"
   ;
 
-const navigationItems: {
+const getNavigationItems = (academicLabels: any): {
   id: TabType;
   label: string;
   icon: any;
-}[] = [
+}[] => [
   { id: "overview", label: "Overview", icon: LayoutGrid },
   { id: "announcements", label: "Announcements", icon: Bell },
   { id: "attendance", label: "Attendance", icon: CalendarCheck },
   { id: "assignments", label: "Assignments", icon: FileText },
   { id: "fees", label: "Fees", icon: Wallet },
-  { id: "courses", label: "Courses", icon: BookOpen },
+  { id: "courses", label: `${getAcademicLabel("course", academicLabels)}s`, icon: BookOpen },
   { id: "examschedule", label: "Exam Schedule", icon: Calendar },
   { id: "academic-calendar", label: "Academic Calendar", icon: CalendarDays },
   { id: "events", label: "Events", icon: CalendarDays },
-  { id: "faculty", label: "Faculty", icon: Users },
-  { id: "subject-faculty", label: "Subject Faculty", icon: GraduationCap },
+  { id: "faculty", label: getAcademicLabel("faculty", academicLabels), icon: Users },
+  {
+    id: "subject-faculty",
+    label: `${getAcademicLabel("subject", academicLabels)} ${getAcademicLabel("faculty", academicLabels)}`,
+    icon: GraduationCap,
+  },
+  {
+    id: "semester-comparison",
+    label: `${getAcademicLabel("semester", academicLabels)} Comparison`,
+    icon: TrendingUp,
+  },
   { id: "results", label: "Results", icon: AwardIcon },
-  { id: "semester-comparison", label: "Semester Comparison", icon: TrendingUp },
   { id: "achievements", label: "Achievements", icon: Trophy },
   { id: "leave", label: "Leave Requests", icon: ClipboardList },
   { id: "library", label: "Library", icon: BookOpen },
@@ -153,6 +163,8 @@ const navigationItems: {
 ];
 
 export default function StudentDashboard() {
+  const { data: academicLabels } = useAcademicLabels();
+  const navigationItems = getNavigationItems(academicLabels);
   const navigate = useNavigate();
   const { darkMode, toggleTheme } = useTheme();
   const [data, setData] = useState<any>(null);
@@ -205,7 +217,7 @@ export default function StudentDashboard() {
   const student = data?.user;
   const studentProgram = student?.course
     ? `${student.course}${student.semester ? ` - Sem ${student.semester}` : ""}`
-    : "Course not set";
+    : `${getAcademicLabel("course", academicLabels)} not set`;
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -359,7 +371,7 @@ export default function StudentDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Student Portal
+                  {getAcademicLabel("student", academicLabels)} Portal
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   {studentProgram}
@@ -374,7 +386,7 @@ export default function StudentDashboard() {
             </div>
             <div className="mt-6 p-4 bg-blue-50 dark:bg-gray-800 rounded-lg">
               <p className="font-medium text-gray-900 dark:text-white">
-                {student?.name || "Student"}
+                {student?.name || `${getAcademicLabel("student", academicLabels)}`}
               </p>
               <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                 ID: {student?.studentId || "Not set"}
@@ -462,7 +474,7 @@ export default function StudentDashboard() {
           <div className="mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
               {activeTab === "overview"
-                ? `${getGreeting()}, ${student?.name?.split(" ")[0] || "Student"}!`
+                ? `${getGreeting()}, ${student?.name?.split(" ")[0] || `${getAcademicLabel("student", academicLabels)}`}!`
                 : navigationItems.find((item) => item.id === activeTab)?.label}
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">
@@ -516,7 +528,7 @@ export default function StudentDashboard() {
                     trend: "Total",
                   },
                   {
-                    title: "Courses",
+                    title: `${getAcademicLabel("course", academicLabels)}s`,
                     value: "Active",
                     icon: BookOpen,
                     color: "purple",

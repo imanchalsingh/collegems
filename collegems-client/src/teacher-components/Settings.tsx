@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 const digestOptions = [
   { value: "daily", label: "Daily" },
@@ -8,6 +10,7 @@ const digestOptions = [
 ];
 
 export default function TeacherSettings() {
+  const { data: academicLabels } = useAcademicLabels();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(
@@ -219,7 +222,7 @@ export default function TeacherSettings() {
             />
           </label>
           <label className="space-y-1 text-sm text-gray-600">
-            Department
+            {getAcademicLabel("department", academicLabels)}
             <input
               type="text"
               value={profile.department}

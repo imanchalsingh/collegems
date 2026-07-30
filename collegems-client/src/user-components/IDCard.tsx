@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import api from "../api/axios";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 export interface Student {
   name?: string;
@@ -58,6 +60,7 @@ const formatDate = (date: Date | string) =>
 const formatIssuedAt = () => formatDate(new Date());
 
 export default function IDCard({ student }: IDCardProps) {
+  const { data: academicLabels } = useAcademicLabels();
   const [downloading, setDownloading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [meta, setMeta] = useState<IdCardMeta | null>(null);
@@ -143,7 +146,7 @@ export default function IDCard({ student }: IDCardProps) {
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
             <IdCard className="w-5 h-5 text-blue-600" />
-            Digital Student ID Card
+            Digital {getAcademicLabel("student", academicLabels)} ID Card
           </h2>
           <p className="text-sm text-gray-500 mt-1">
             Auto-generated from your student profile. Scan the QR code to verify.
@@ -202,7 +205,7 @@ export default function IDCard({ student }: IDCardProps) {
                 <p className="text-[10px] uppercase tracking-widest text-blue-100">
                   Smart College Management System
                 </p>
-                <p className="text-sm font-semibold mt-0.5">Student ID Card</p>
+                <p className="text-sm font-semibold mt-0.5">{getAcademicLabel("student", academicLabels)} ID Card</p>
               </div>
               <ShieldCheck className="w-7 h-7 text-white/90" />
             </div>
@@ -232,7 +235,7 @@ export default function IDCard({ student }: IDCardProps) {
                   </div>
                   <div>
                     <p className="text-[9px] uppercase tracking-wide text-blue-200 flex items-center gap-1">
-                      <GraduationCap className="w-2.5 h-2.5" /> Course
+                      <GraduationCap className="w-2.5 h-2.5" /> {getAcademicLabel("course", academicLabels)}
                     </p>
                     <p className="text-xs font-semibold truncate">
                       {student.course || "—"}
@@ -240,7 +243,7 @@ export default function IDCard({ student }: IDCardProps) {
                   </div>
                   <div>
                     <p className="text-[9px] uppercase tracking-wide text-blue-200 flex items-center gap-1">
-                      <Calendar className="w-2.5 h-2.5" /> Semester
+                      <Calendar className="w-2.5 h-2.5" /> {getAcademicLabel("semester", academicLabels)}
                     </p>
                     <p className="text-xs font-semibold">
                       {formatSemester(student.semester)}

@@ -10,6 +10,8 @@ import { extractArray } from "../utils/apiHelpers";
 import { SavedFiltersMenu } from "../common-components-management/SavedFiltersMenu";
 import EmptyState from "../components/EmptyState";
 import { FacultyOnboardingWizard } from "./FacultyOnboardingWizard";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Teacher {
   _id?: string;
@@ -32,6 +34,7 @@ interface OfficeHourSlot {
 }
 
 const Teachers: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const { darkMode } = useTheme();
   const navigate = useNavigate();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -158,7 +161,7 @@ const Teachers: React.FC = () => {
               <BookOpen className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Departments</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{getAcademicLabel("department", academicLabels)}s</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.departments}</p>
             </div>
           </div>
@@ -211,13 +214,13 @@ const Teachers: React.FC = () => {
           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Department</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{getAcademicLabel("department", academicLabels)}</label>
                 <select
                   value={filterDepartment}
                   onChange={(e) => setFilterDepartment(e.target.value)}
                   className={selectCls}
                 >
-                  <option value="all">All Departments</option>
+                  <option value="all">All {getAcademicLabel("department", academicLabels)}s</option>
                   {departments.map((dept) => <option key={dept} value={dept}>{dept}</option>)}
                 </select>
               </div>

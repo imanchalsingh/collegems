@@ -18,6 +18,8 @@ import {
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
 import EmptyState from "../components/EmptyState";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 // interface Attendance {
 //   studentId: string;
@@ -35,6 +37,7 @@ interface Course {
 }
 
 export default function TeacherAttendance() {
+  const { data: academicLabels } = useAcademicLabels();
   const [students, setStudents] = useState<any[]>([]);
   const [date, setDate] = useState(() => {
     const today = new Date();
@@ -279,8 +282,8 @@ export default function TeacherAttendance() {
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="p-6 border-b border-gray-200 flex justify-between items-center">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Students with Low Attendance</h2>
-              <p className="text-sm text-gray-500">Students whose attendance is below 75%</p>
+              <h2 className="text-lg font-semibold text-gray-900">{getAcademicLabel("student", academicLabels)}s with Low Attendance</h2>
+              <p className="text-sm text-gray-500">{getAcademicLabel("student", academicLabels)}s whose attendance is below 75%</p>
             </div>
             <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
               {lowAttendanceStudents.length} Students at Risk
@@ -302,8 +305,8 @@ export default function TeacherAttendance() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Student</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">ID / Course</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">{getAcademicLabel("student", academicLabels)}</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">ID / {getAcademicLabel("course", academicLabels)}</th>
                       <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Classes Attended</th>
                       <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Attendance %</th>
                     </tr>
@@ -345,7 +348,7 @@ export default function TeacherAttendance() {
               <Users className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Students</p>
+              <p className="text-sm text-gray-500">Total {getAcademicLabel("student", academicLabels)}s</p>
               <p className="text-2xl font-bold text-gray-900">
                 {students.length}
               </p>
@@ -411,14 +414,14 @@ export default function TeacherAttendance() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 <BookOpen className="inline w-4 h-4 mr-1 text-gray-500" />
-                Subject
+                {getAcademicLabel("subject", academicLabels)}
               </label>
               <select
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={courseId}
                 onChange={(e) => setCourseId(e.target.value)}
               >
-                <option value="">Select Subject</option>
+                <option value="">Select {getAcademicLabel("subject", academicLabels)}</option>
                 {courses.map((c) => (
                   <option key={c._id} value={c._id}>
                     {c.name} ({c.code})
@@ -437,7 +440,7 @@ export default function TeacherAttendance() {
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
               >
-                <option value="all">All Students</option>
+                <option value="all">All {getAcademicLabel("student", academicLabels)}s</option>
                 <option value="present">Present Only</option>
                 <option value="absent">Absent Only</option>
               </select>
@@ -484,7 +487,7 @@ export default function TeacherAttendance() {
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">
-              Student Attendance
+              {getAcademicLabel("student", academicLabels)} Attendance
             </h2>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Users className="w-4 h-4" />
@@ -530,7 +533,7 @@ export default function TeacherAttendance() {
                       #
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">
-                      Student Name
+                      {getAcademicLabel("student", academicLabels)} Name
                     </th>
                     <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">
                       Email
@@ -674,7 +677,7 @@ export default function TeacherAttendance() {
             <button
               onClick={() => {
                 setDate(new Date().toISOString().split("T")[0]);
-                setSubject("");
+                setCourseId("");
               }}
               className="px-6 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
             >
@@ -744,14 +747,14 @@ export default function TeacherAttendance() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Subject (optional)
+                {getAcademicLabel("subject", academicLabels)} (optional)
               </label>
               <select
                 value={filterSubject}
                 onChange={(e) => setFilterSubject(e.target.value)}
                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">All Subjects</option>
+                <option value="">All {getAcademicLabel("subject", academicLabels)}s</option>
                 {courses.map((c) => (
                   <option key={c._id} value={c.name}>{c.name}</option>
                 ))}
@@ -782,9 +785,9 @@ export default function TeacherAttendance() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
                   <tr>
-                    <th className="px-4 py-3 font-medium">Student</th>
+                    <th className="px-4 py-3 font-medium">{getAcademicLabel("student", academicLabels)}</th>
                     <th className="px-4 py-3 font-medium">Date</th>
-                    <th className="px-4 py-3 font-medium">Subject</th>
+                    <th className="px-4 py-3 font-medium">{getAcademicLabel("subject", academicLabels)}</th>
                     <th className="px-4 py-3 font-medium">Status</th>
                   </tr>
                 </thead>

@@ -8,6 +8,8 @@ import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
 import { scrollToFirstError } from "../utils/formHelpers";
 import useFormTracker from "../hooks/useFormTracker";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Course {
   _id: string;
@@ -30,6 +32,7 @@ interface SubmittedForm {
 }
 
 const ExaminationForm: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [courses, setCourses] = useState<Course[]>([]);
   const [submissions, setSubmissions] = useState<SubmittedForm[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
@@ -110,21 +113,21 @@ const ExaminationForm: React.FC = () => {
     const newErrors: Record<string, string> = {};
 
     if (!studentName.trim()) {
-      newErrors.studentName = "Student name is required";
+      newErrors.studentName = `${getAcademicLabel("student", academicLabels)} name is required`;
     } else if (studentName.trim().length < 3) {
       newErrors.studentName = "Name must be at least 3 characters";
     }
 
     if (!rollNumber.trim()) {
-      newErrors.rollNumber = "Roll number / Student ID is required";
+      newErrors.rollNumber = `Roll number / ${getAcademicLabel("student", academicLabels)} ID is required`;
     }
 
     if (!courseDept.trim()) {
-      newErrors.courseDept = "Course / Department is required";
+      newErrors.courseDept = `${getAcademicLabel("course", academicLabels)} / ${getAcademicLabel("department", academicLabels)} is required`;
     }
 
     if (!semesterYear.trim()) {
-      newErrors.semesterYear = "Semester / Year is required";
+      newErrors.semesterYear = `${getAcademicLabel("semester", academicLabels)} / Year is required`;
     }
 
     if (selectedSubjects.length === 0) {
@@ -207,7 +210,7 @@ const ExaminationForm: React.FC = () => {
               Examination Registration
             </h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm max-w-xl">
-              Fill out and submit your online examination form. Make sure your subjects are correctly selected. Once submitted, your registration will be reviewed by the Head of Department (HOD).
+              Fill out and submit your online examination form. Make sure your subjects are correctly selected. Once submitted, your registration will be reviewed by the Head of {getAcademicLabel("department", academicLabels)} (HOD).
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -255,7 +258,7 @@ const ExaminationForm: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
                     <User className="w-4 h-4 text-gray-400" />
-                    Student Name
+                    {getAcademicLabel("student", academicLabels)} Name
                   </label>
                   <input
                     type="text"
@@ -281,7 +284,7 @@ const ExaminationForm: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
                     <Hash className="w-4 h-4 text-gray-400" />
-                    Roll Number / Student ID
+                    Roll Number / {getAcademicLabel("student", academicLabels)} ID
                   </label>
                   <input
                     type="text"
@@ -310,7 +313,7 @@ const ExaminationForm: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
                     <GraduationCap className="w-4 h-4 text-gray-400" />
-                    Course / Department
+                    {getAcademicLabel("course", academicLabels)} / {getAcademicLabel("department", academicLabels)}
                   </label>
                   <input
                     type="text"
@@ -336,7 +339,7 @@ const ExaminationForm: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-1.5">
                     <Calendar className="w-4 h-4 text-gray-400" />
-                    Semester / Year
+                    {getAcademicLabel("semester", academicLabels)} / Year
                   </label>
                   <input
                     type="text"
@@ -347,7 +350,7 @@ const ExaminationForm: React.FC = () => {
                       if (errors.semesterYear) setErrors((prev) => ({ ...prev, semesterYear: "" }));
                     }}
                     onBlur={() => trackField("semesterYear", 6)}
-                    placeholder="e.g. Semester 6 or Year 3"
+                    placeholder={`e.g. ${getAcademicLabel("semester", academicLabels)} 6 or Year 3`}
                     className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
                       errors.semesterYear ? "border-red-400 focus:ring-red-400" : "border-gray-300"
                     }`}
@@ -397,7 +400,7 @@ const ExaminationForm: React.FC = () => {
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                   <BookOpen className="w-4 h-4 text-gray-400" />
-                  Select Subjects / Courses
+                  Select {getAcademicLabel("subject", academicLabels)}s / {getAcademicLabel("course", academicLabels)}s
                   <span className="text-xs text-gray-400 font-normal">(Dynamic Catalog)</span>
                 </label>
 
@@ -524,7 +527,7 @@ const ExaminationForm: React.FC = () => {
                     </div>
 
                     <div className="text-[11px] text-gray-500 dark:text-gray-400">
-                      <p className="font-semibold text-gray-700 dark:text-gray-300">Subjects:</p>
+                      <p className="font-semibold text-gray-700 dark:text-gray-300">{getAcademicLabel("subject", academicLabels)}s:</p>
                       <ul className="list-disc pl-4 mt-1 space-y-0.5">
                         {form.subjects.map((sub, i) => (
                           <li key={i}>{sub}</li>

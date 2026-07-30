@@ -16,6 +16,8 @@ import {
 import api from "../api/axios";
 import AnnouncementForm from "./AnnouncementForm";
 import EmptyState from "../components/EmptyState";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Announcement {
   _id: string;
@@ -44,6 +46,7 @@ interface AnnouncementManageProps {
 }
 
 export default function AnnouncementManage({ refreshKey }: AnnouncementManageProps = {}) {
+  const { data: academicLabels } = useAcademicLabels();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -189,7 +192,7 @@ export default function AnnouncementManage({ refreshKey }: AnnouncementManagePro
           className="px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
         >
           <option value="">All Roles</option>
-          <option value="student">Students</option>
+          <option value="student">{getAcademicLabel("student", academicLabels)}s</option>
           <option value="teacher">Teachers</option>
           <option value="hod">HOD</option>
           <option value="parent">Parents</option>
@@ -201,7 +204,7 @@ export default function AnnouncementManage({ refreshKey }: AnnouncementManagePro
           onChange={(e) => setFilterCourse(e.target.value)}
           className="px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
         >
-          <option value="">All Courses</option>
+          <option value="">All {getAcademicLabel("course", academicLabels)}s</option>
 
           {["BCA", "MCA", "BBA", "MBA"].map((course) => (
             <option key={course} value={course}>
@@ -216,7 +219,7 @@ export default function AnnouncementManage({ refreshKey }: AnnouncementManagePro
           onChange={(e) => setFilterSemester(e.target.value)}
           className="px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
         >
-          <option value="">All Semesters</option>
+          <option value="">All {getAcademicLabel("semester", academicLabels)}s</option>
 
           {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
             <option key={sem} value={sem}>

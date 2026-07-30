@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { getTimetableEntries, getTimetableStatus, getTimetableSuggestions, updateTimetableEntry } from "../../api/timetable";
+import { getAcademicLabel } from "../../utils/academicLabels";
+import { useAcademicLabels } from "../../hooks/useAcademicLabels";
 
 export const TimetableGrid = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const { id } = useParams<{ id: string }>();
   const [entries, setEntries] = useState<any[]>([]);
   const [status, setStatus] = useState<any>(null);
@@ -154,8 +157,8 @@ export const TimetableGrid = () => {
 
             <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded border dark:border-gray-600">
               <h4 className="font-semibold mb-2 dark:text-gray-200">Current Slot Details</h4>
-              <p className="text-sm dark:text-gray-300"><span className="font-medium">Course:</span> {selectedEntry.course.name}</p>
-              <p className="text-sm dark:text-gray-300"><span className="font-medium">Faculty:</span> {selectedEntry.faculty.name}</p>
+              <p className="text-sm dark:text-gray-300"><span className="font-medium">{getAcademicLabel("course", academicLabels)}:</span> {selectedEntry.course.name}</p>
+              <p className="text-sm dark:text-gray-300"><span className="font-medium">{getAcademicLabel("faculty", academicLabels)}:</span> {selectedEntry.faculty.name}</p>
               <p className="text-sm dark:text-gray-300"><span className="font-medium">Room:</span> {selectedEntry.room.name}</p>
             </div>
 

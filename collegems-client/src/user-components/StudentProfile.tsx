@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 // Define the expected shape of the student data based on acceptance criteria
 interface StudentData {
@@ -11,6 +13,7 @@ interface StudentData {
 }
 
 const StudentProfile: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [profile, setProfile] = useState<StudentData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -63,17 +66,17 @@ const StudentProfile: React.FC = () => {
           </div>
           
           <div className="space-y-1">
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</label>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">{getAcademicLabel("department", academicLabels)}</label>
             <p className="text-lg font-medium text-gray-900 dark:text-gray-100">{profile?.department || 'N/A'}</p>
           </div>
 
           <div className="space-y-1">
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Current Semester</label>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Current {getAcademicLabel("semester", academicLabels)}</label>
             <p className="text-lg font-medium text-gray-900 dark:text-gray-100">{profile?.semester || 'N/A'}</p>
           </div>
 
           <div className="space-y-1">
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Section / Course</label>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">{getAcademicLabel("section", academicLabels)} / {getAcademicLabel("course", academicLabels)}</label>
             <p className="text-lg font-medium text-gray-900 dark:text-gray-100">{profile?.course || 'N/A'}</p>
           </div>
         </div>
@@ -82,7 +85,7 @@ const StudentProfile: React.FC = () => {
           <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p>If any of your academic details (Semester, Section, etc.) are incorrect, please report it to your HOD or the administration office immediately to prevent grading issues.</p>
+          <p>If any of your academic details ({getAcademicLabel("semester", academicLabels)}, {getAcademicLabel("section", academicLabels)}, etc.) are incorrect, please report it to your HOD or the administration office immediately to prevent grading issues.</p>
         </div>
       </div>
     </div>

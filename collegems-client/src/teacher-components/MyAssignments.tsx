@@ -5,6 +5,8 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Assignment {
   _id: string;
@@ -24,6 +26,7 @@ interface Assignment {
 }
 
 const MyAssignments: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -85,7 +88,7 @@ const filtered = assignments.filter((a) => {
             My Assignments
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Subjects and sections assigned to you by the HOD
+            {getAcademicLabel("subject", academicLabels)}s and sections assigned to you by the HOD
           </p>
         </div>
         <button
@@ -100,17 +103,17 @@ const filtered = assignments.filter((a) => {
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {[
           {
-            label: "Total Subjects", value: assignments.length,
+            label: `Total ${getAcademicLabel("subject", academicLabels)}s`, value: assignments.length,
             icon: <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
             bg: "bg-blue-50 dark:bg-blue-900/30",
           },
           {
-            label: "Sections", value: new Set(assignments.map((a) => a.section)).size,
+            label: `${getAcademicLabel("section", academicLabels)}s`, value: new Set(assignments.map((a) => a.section)).size,
             icon: <Users className="w-5 h-5 text-purple-600 dark:text-purple-400" />,
             bg: "bg-purple-50 dark:bg-purple-900/30",
           },
           {
-            label: "Semesters", value: new Set(assignments.map((a) => a.semester)).size,
+            label: `${getAcademicLabel("semester", academicLabels)}s`, value: new Set(assignments.map((a) => a.semester)).size,
             icon: <Calendar className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />,
             bg: "bg-emerald-50 dark:bg-emerald-900/30",
           },
@@ -220,7 +223,7 @@ const filtered = assignments.filter((a) => {
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => setSelected(null)} />
           <div className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden">
             <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">Subject Details</h3>
+              <h3 className="text-lg font-semibold text-white">{getAcademicLabel("subject", academicLabels)} Details</h3>
               <button onClick={() => setSelected(null)} className="text-white/80 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
@@ -235,10 +238,10 @@ const filtered = assignments.filter((a) => {
               )}
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { label: "Section", value: `Section ${selected.section}` },
-                  { label: "Semester", value: `Semester ${selected.semester}` },
+                  { label: `${getAcademicLabel("section", academicLabels)}`, value: `Section ${selected.section}` },
+                  { label: `${getAcademicLabel("semester", academicLabels)}`, value: `Semester ${selected.semester}` },
                   { label: "Academic Year", value: selected.academicYear },
-                  { label: "Department", value: selected.department },
+                  { label: `${getAcademicLabel("department", academicLabels)}`, value: selected.department },
                   ...(selected.course.credits ? [{ label: "Credits", value: `${selected.course.credits} Credits` }] : []),
                 ].map((item) => (
                   <div key={item.label} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">

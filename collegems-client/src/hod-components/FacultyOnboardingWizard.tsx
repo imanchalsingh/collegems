@@ -6,18 +6,24 @@ import {
   ChevronLeft, X, FileText, Loader2, Info
 } from "lucide-react";
 import api from "../api/axios";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface WizardProps {
   onClose: () => void;
   onSuccess: () => void;
 }
 
-const STEPS = [
+const getSteps = (academicLabels: any) => [
   { id: "personal", title: "Personal Info", icon: User },
   { id: "contact", title: "Contact Details", icon: Phone },
   { id: "academic", title: "Qualifications", icon: GraduationCap },
   { id: "employment", title: "Employment", icon: Briefcase },
-  { id: "department", title: "Department", icon: Building2 },
+  {
+    id: "department",
+    title: getAcademicLabel("department", academicLabels),
+    icon: Building2,
+  },
   { id: "documents", title: "Documents", icon: UploadCloud },
   { id: "review", title: "Review", icon: CheckCircle2 },
 ];
@@ -25,6 +31,8 @@ const STEPS = [
 const DRAFT_KEY = "faculty_onboarding_draft";
 
 export const FacultyOnboardingWizard: React.FC<WizardProps> = ({ onClose, onSuccess }) => {
+  const { data: academicLabels } = useAcademicLabels();
+  const STEPS = getSteps(academicLabels);
   const { darkMode } = useTheme();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -92,7 +100,7 @@ export const FacultyOnboardingWizard: React.FC<WizardProps> = ({ onClose, onSucc
     } else if (currentStep === 3) {
       if (!form.teacherId.trim()) newErrors.teacherId = "Teacher ID is required";
     } else if (currentStep === 4) {
-      if (!form.department.trim()) newErrors.department = "Department is required";
+      if (!form.department.trim()) newErrors.department = `${getAcademicLabel("department", academicLabels)} is required`;
     }
     
     setErrors(newErrors);
@@ -284,12 +292,12 @@ export const FacultyOnboardingWizard: React.FC<WizardProps> = ({ onClose, onSucc
         return (
           <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
             <div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent mb-1">Department Assignment</h3>
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent mb-1">{getAcademicLabel("department", academicLabels)} Assignment</h3>
               <p className="text-gray-500 text-sm">Select the primary department for this faculty member.</p>
             </div>
             
             <div>
-              <label className={labelCls}>Department *</label>
+              <label className={labelCls}>{getAcademicLabel("department", academicLabels)} *</label>
               <select name="department" value={form.department} onChange={handleChange} className={inputCls('department')}>
                 <option value="">Select a department</option>
                 <option value="Computer Science">Computer Science</option>
@@ -389,7 +397,7 @@ export const FacultyOnboardingWizard: React.FC<WizardProps> = ({ onClose, onSucc
                 </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex flex-col"><span className="text-gray-500 text-xs">Teacher ID</span><span className="font-medium dark:text-gray-200">{form.teacherId}</span></div>
-                  <div className="flex flex-col"><span className="text-gray-500 text-xs">Department</span><span className="font-medium dark:text-gray-200">{form.department}</span></div>
+                  <div className="flex flex-col"><span className="text-gray-500 text-xs">{getAcademicLabel("department", academicLabels)}</span><span className="font-medium dark:text-gray-200">{form.department}</span></div>
                 </div>
               </div>
               
@@ -425,7 +433,7 @@ export const FacultyOnboardingWizard: React.FC<WizardProps> = ({ onClose, onSucc
         {/* Header */}
         <div className="flex items-center justify-between px-8 py-5 border-b border-gray-200/50 dark:border-gray-800/50 bg-white/50 dark:bg-gray-900/50">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Faculty Onboarding</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">{getAcademicLabel("faculty", academicLabels)} Onboarding</h2>
             <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
               <span className="font-medium text-blue-600 dark:text-blue-400">Step {currentStep + 1} of {STEPS.length}</span>
               <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700"></span>

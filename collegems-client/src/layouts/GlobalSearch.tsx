@@ -3,6 +3,8 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { Search, Loader2, User, BookOpen, Bell, FileText } from "lucide-react";
 import { useDebounce } from "../hooks/useDebounce";
 import api from "../api/axios";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface SearchResults {
   users: any[];
@@ -12,6 +14,7 @@ interface SearchResults {
 }
 
 export default function GlobalSearch() {
+  const { data: academicLabels } = useAcademicLabels();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResults | null>(null);
@@ -157,7 +160,7 @@ export default function GlobalSearch() {
                 {/* Courses Section */}
                 {results.courses.length > 0 && (
                   <div className="mb-4">
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Courses</h3>
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">{getAcademicLabel("course", academicLabels)}s</h3>
                     {results.courses.map((c) => (
                       <div 
                         key={c._id} 

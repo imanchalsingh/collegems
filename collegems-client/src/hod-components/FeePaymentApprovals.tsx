@@ -3,6 +3,8 @@ import { isAxiosError } from "axios";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
 import { CheckCircle, XCircle, Clock, Wallet } from "lucide-react";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Installment {
   _id: string;
@@ -28,6 +30,7 @@ const formatCurrency = (amount: number) =>
   }).format(amount);
 
 export default function FeePaymentApprovals() {
+  const { data: academicLabels } = useAcademicLabels();
   const [fees, setFees] = useState<Fee[]>([]);
   const [loading, setLoading] = useState(true);
   const [actioningId, setActioningId] = useState<string | null>(null);
@@ -81,7 +84,7 @@ export default function FeePaymentApprovals() {
       <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Fee Payment Approvals</h1>
         <p className="text-gray-500 dark:text-gray-400 mt-1">
-          Students and parents submit payment claims here first - confirm or reject each one
+          {getAcademicLabel("student", academicLabels)}s and parents submit payment claims here first - confirm or reject each one
           before it counts toward the student's balance.
         </p>
       </div>

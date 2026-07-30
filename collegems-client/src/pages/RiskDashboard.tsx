@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import api from "../api/axios";
 import AdvancedExportButton from "../common-components-management/AdvancedExportButton";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Student {
   _id: string;
@@ -46,6 +48,7 @@ const getFreshness = (lastCalculatedAt?: string) => {
 };
 
 export default function RiskDashboard() {
+  const { data: academicLabels } = useAcademicLabels();
   const [analytics, setAnalytics] = useState<AnalyticsData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -80,7 +83,7 @@ export default function RiskDashboard() {
   const handleBatchGenerate = async () => {
     try {
       const res = await api.post("/analytics/batch");
-      alert(res.data.message || "Batch analytics generation started.");
+      alert(res.data.message || `${getAcademicLabel("batch", academicLabels)} analytics generation started.`);
       fetchAnalytics(); // Refresh data after batch prediction
     } catch (err: any) {
       alert("Failed to start batch analytics generation: " + (err.response?.data?.message || err.message));
@@ -91,7 +94,7 @@ export default function RiskDashboard() {
     fetchAnalytics();
   }, [riskLevel, course, semester]);
 
-  const exportHeaders = ["Student Name", "ID", "Course", "Semester", "Risk Level", "Risk Score (%)", "Predicted Grade", "Interventions"];
+  const exportHeaders = [`${getAcademicLabel("student", academicLabels)} Name`, "ID", getAcademicLabel("course", academicLabels), getAcademicLabel("semester", academicLabels), "Risk Level", "Risk Score (%)", "Predicted Grade", "Interventions"];
   const exportMapper = (row: AnalyticsData) => [
     row.studentId?.name || "N/A",
     row.studentId?.studentId || "N/A",
@@ -113,7 +116,7 @@ export default function RiskDashboard() {
             data={analytics}
             filename="Predictive_Analytics_Report"
             pdfTitle="Predictive Analytics Report"
-            pdfMetadata={`Filters applied - Risk: ${riskLevel || "All"}, Course: ${course || "All"}, Semester: ${semester || "All"}`}
+            pdfMetadata={`Filters applied - Risk: ${riskLevel || "All"}, ${getAcademicLabel("course", academicLabels)}: ${course || "All"}, ${getAcademicLabel("semester", academicLabels)}: ${semester || "All"}`}
             headers={exportHeaders}
             dataMapper={exportMapper}
           />
@@ -122,7 +125,7 @@ export default function RiskDashboard() {
             onClick={handleBatchGenerate}
             className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
           >
-            Run Batch Predictions
+            Run {getAcademicLabel("batch", academicLabels)} Predictions
           </button>
         </div>
       </div>
@@ -144,7 +147,7 @@ export default function RiskDashboard() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{getAcademicLabel("course", academicLabels)}</label>
             <input
               type="text"
               placeholder="e.g. B.Tech"
@@ -154,7 +157,7 @@ export default function RiskDashboard() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Semester</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{getAcademicLabel("semester", academicLabels)}</label>
             <input
               type="number"
               placeholder="e.g. 3"
@@ -179,9 +182,9 @@ export default function RiskDashboard() {
           <table className="min-w-full text-left text-sm whitespace-nowrap">
             <thead className="uppercase tracking-wider border-b-2 bg-gray-50 border-gray-200">
               <tr>
-                <th className="px-6 py-4 font-semibold text-gray-600">Student Name</th>
+                <th className="px-6 py-4 font-semibold text-gray-600">{getAcademicLabel("student", academicLabels)} Name</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">ID</th>
-                <th className="px-6 py-4 font-semibold text-gray-600">Course / Sem</th>
+                <th className="px-6 py-4 font-semibold text-gray-600">{getAcademicLabel("course", academicLabels)} / Sem</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">Risk Level</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">Risk Score</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">Predicted Grade</th>

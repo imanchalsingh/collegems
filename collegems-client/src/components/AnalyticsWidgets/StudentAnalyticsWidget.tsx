@@ -2,12 +2,15 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import BarChartWidget from '../Charts/BarChartWidget';
 import LineChartWidget from '../Charts/LineChartWidget';
+import { getAcademicLabel } from "../../utils/academicLabels";
+import { useAcademicLabels } from "../../hooks/useAcademicLabels";
 
 interface StudentAnalyticsWidgetProps {
     studentId: string;
 }
 
 const StudentAnalyticsWidget: React.FC<StudentAnalyticsWidgetProps> = ({ studentId }) => {
+  const { data: academicLabels } = useAcademicLabels();
     const [data, setData] = useState<Record<string, unknown> | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -58,19 +61,19 @@ const StudentAnalyticsWidget: React.FC<StudentAnalyticsWidgetProps> = ({ student
 
                 {/* Summary Stats */}
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border-l-4 border-yellow-500">
-                    <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">Total Subjects</h3>
+                    <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">Total {getAcademicLabel("subject", academicLabels)}s</h3>
                     <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{Array.isArray(data.subjectWiseMarks) ? data.subjectWiseMarks.length : 0}</p>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Subject-wise Marks Comparison</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">{getAcademicLabel("subject", academicLabels)}-wise Marks Comparison</h3>
                     <BarChartWidget data={Array.isArray(data.subjectWiseMarks) ? data.subjectWiseMarks : []} xDataKey="course" barDataKey="total" color="#6366f1" />
                 </div>
 
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Semester-wise Performance</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">{getAcademicLabel("semester", academicLabels)}-wise Performance</h3>
                     <LineChartWidget data={Array.isArray(data.semesterWisePerformance) ? data.semesterWisePerformance : []} xDataKey="semester" lineDataKey="averageMarks" color="#10b981" />
                 </div>
             </div>

@@ -20,6 +20,8 @@ import {
 import api from "../api/axios";
 import { jsPDF } from "jspdf";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 // Type definitions matching backend report schema
 interface CourseInfo {
@@ -129,6 +131,7 @@ interface FilterOptions {
 }
 
 export default function ReportGenerator() {
+  const { data: academicLabels } = useAcademicLabels();
   const navigate = useNavigate();
   const [reportType, setReportType] = useState<"student" | "teacher">("student");
   
@@ -213,7 +216,7 @@ export default function ReportGenerator() {
     let csvContent = "data:text/csv;charset=utf-8,";
     
     if (reportType === "student") {
-      csvContent += "Student Name,Email,Student ID,Course/Dept,Semester,Phone,Total Classes,Present,Absent,Attendance %,Avg Marks,Leaves count\n";
+      csvContent += `${getAcademicLabel("student", academicLabels)} Name,Email,${getAcademicLabel("student", academicLabels)} ID,${getAcademicLabel("course", academicLabels)}/Dept,${getAcademicLabel("semester", academicLabels)},Phone,Total Classes,Present,Absent,Attendance %,Avg Marks,Leaves count\n`;
       reports.forEach((student: StudentReport) => {
         const totalMarks = student.results.reduce((sum, r) => sum + r.totalMarks, 0);
         const avgMarks = student.results.length > 0 ? (totalMarks / student.results.length).toFixed(1) : "N/A";
@@ -221,7 +224,7 @@ export default function ReportGenerator() {
         csvContent += `"${student.name}","${student.email}","${student.studentId}","${student.course}","${student.semester}","${student.phone}",${student.attendance.total},${student.attendance.present},${student.attendance.absent},${student.attendance.percentage}%,${avgMarks},${student.leaves.length}\n`;
       });
     } else {
-      csvContent += "Teacher Name,Email,Teacher ID,Department,Phone,Courses Taught,Total Days,Present,Absent,Late,Attendance %,Leaves Count\n";
+      csvContent += `Teacher Name,Email,Teacher ID,${getAcademicLabel("department", academicLabels)},Phone,${getAcademicLabel("course", academicLabels)}s Taught,Total Days,Present,Absent,Late,Attendance %,Leaves Count\n`;
       reports.forEach((teacher: TeacherReport) => {
         csvContent += `"${teacher.name}","${teacher.email}","${teacher.teacherId}","${teacher.department}","${teacher.phone}",${teacher.courses.length},${teacher.attendance.total},${teacher.attendance.present},${teacher.attendance.absent},${teacher.attendance.late},${teacher.attendance.percentage}%,${teacher.leaves.length}\n`;
       });
@@ -270,7 +273,7 @@ export default function ReportGenerator() {
     doc.setFont("helvetica", "bold");
     doc.text("Filters Applied:", 14, y);
     doc.setFont("helvetica", "normal");
-    const filterText = `Department: ${selectedDept || "All"} | Semester: ${selectedSemester || "All"} | Date Range: ${startDate || "Any"} to ${endDate || "Any"}`;
+    const filterText = `${getAcademicLabel("department", academicLabels)}: ${selectedDept || "All"} | ${getAcademicLabel("semester", academicLabels)}: ${selectedSemester || "All"} | Date Range: ${startDate || "Any"} to ${endDate || "Any"}`;
     doc.text(filterText, 45, y);
     y += 10;
     
@@ -397,7 +400,7 @@ export default function ReportGenerator() {
             Report Generator
           </h1>
           <p className="text-gray-500 mt-1">
-            Generate, analyze, and export comprehensive Student and Teacher records.
+            Generate, analyze, and export comprehensive {getAcademicLabel("student", academicLabels)} and Teacher records.
           </p>
         </div>
 
@@ -446,7 +449,7 @@ export default function ReportGenerator() {
                     : "text-gray-600 hover:text-gray-900"
                 }`}
               >
-                Students
+                {getAcademicLabel("student", academicLabels)}s
               </button>
               <button
                 onClick={() => {
@@ -467,7 +470,7 @@ export default function ReportGenerator() {
           {/* Department Filter */}
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-              Department / Course
+              {getAcademicLabel("department", academicLabels)} / {getAcademicLabel("course", academicLabels)}
             </label>
             <select
               value={selectedDept}
@@ -478,7 +481,7 @@ export default function ReportGenerator() {
               className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={loadingFilters}
             >
-              <option value="">All Departments</option>
+              <option value="">All {getAcademicLabel("department", academicLabels)}s</option>
               {filterOptions?.departments.map((dept) => (
                 <option key={dept} value={dept}>
                   {dept}
@@ -491,7 +494,7 @@ export default function ReportGenerator() {
           {reportType === "student" && (
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                Semester
+                {getAcademicLabel("semester", academicLabels)}
               </label>
               <select
                 value={selectedSemester}
@@ -502,7 +505,7 @@ export default function ReportGenerator() {
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={loadingFilters}
               >
-                <option value="">All Semesters</option>
+                <option value="">All {getAcademicLabel("semester", academicLabels)}s</option>
                 {filterOptions?.semesters.map((sem) => (
                   <option key={sem} value={sem}>
                     Semester {sem}
@@ -515,7 +518,7 @@ export default function ReportGenerator() {
           {/* Specific Student/Teacher Selection */}
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-              {reportType === "student" ? "Select Student" : "Select Teacher"}
+              {reportType === "student" ? `Select ${getAcademicLabel("student", academicLabels)}` : "Select Teacher"}
             </label>
             <select
               value={selectedUser}
@@ -523,7 +526,7 @@ export default function ReportGenerator() {
               className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={loadingFilters}
             >
-              <option value="">All {reportType === "student" ? "Students" : "Teachers"}</option>
+              <option value="">All {reportType === "student" ? `${getAcademicLabel("student", academicLabels)}s` : "Teachers"}</option>
               {reportType === "student"
                 ? filterOptions?.students
                     .filter((s) => !selectedDept || s.course === selectedDept)
@@ -638,7 +641,7 @@ export default function ReportGenerator() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 font-medium">
-                    {reportType === "student" ? "Total Results" : "Total Courses"}
+                    {reportType === "student" ? "Total Results" : `Total ${getAcademicLabel("course", academicLabels)}s`}
                   </p>
                   <p className="text-xl font-bold text-gray-900">{stats.extraStat}</p>
                 </div>
@@ -690,10 +693,10 @@ export default function ReportGenerator() {
                     {reportType === "student" ? (
                       <tr>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-10"></th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Student</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{getAcademicLabel("student", academicLabels)}</th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Course</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Semester</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{getAcademicLabel("course", academicLabels)}</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{getAcademicLabel("semester", academicLabels)}</th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Attendance %</th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Leaves</th>
                       </tr>
@@ -702,8 +705,8 @@ export default function ReportGenerator() {
                         <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-10"></th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Teacher</th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Courses Taught</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{getAcademicLabel("department", academicLabels)}</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{getAcademicLabel("course", academicLabels)}s Taught</th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Attendance %</th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Leaves</th>
                       </tr>
@@ -782,7 +785,7 @@ export default function ReportGenerator() {
                                       <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-4">
                                         <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2 flex items-center gap-2">
                                           <BookOpen className="w-4 h-4 text-blue-600" />
-                                          Academic Performance & Courses
+                                          Academic Performance & {getAcademicLabel("course", academicLabels)}s
                                         </h4>
                                         {item.results.length === 0 ? (
                                           <p className="text-xs text-gray-500 py-2">No exam results published.</p>
@@ -791,7 +794,7 @@ export default function ReportGenerator() {
                                             <table className="min-w-full divide-y divide-gray-150">
                                               <thead>
                                                 <tr className="text-left text-[10px] uppercase font-bold text-gray-400">
-                                                  <th className="pb-2">Course</th>
+                                                  <th className="pb-2">{getAcademicLabel("course", academicLabels)}</th>
                                                   <th className="pb-2">Internal</th>
                                                   <th className="pb-2">External</th>
                                                   <th className="pb-2">Total</th>
@@ -857,7 +860,7 @@ export default function ReportGenerator() {
                                       <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-4">
                                         <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2 flex items-center gap-2">
                                           <Building2 className="w-4 h-4 text-blue-600" />
-                                          Courses/Subjects Taught
+                                          {getAcademicLabel("course", academicLabels)}s/{getAcademicLabel("subject", academicLabels)}s Taught
                                         </h4>
                                         {item.courses.length === 0 ? (
                                           <p className="text-xs text-gray-500 py-2">No courses assigned to this teacher.</p>

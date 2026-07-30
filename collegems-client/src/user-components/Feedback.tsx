@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import EmptyState from "../components/EmptyState";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -29,12 +31,12 @@ interface FeedbackItem {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const CATEGORY_LABELS: Record<Category, string> = {
-  course:   "Course",
-  faculty:  "Faculty / Teacher",
+const getCategoryLabels = (academicLabels: any): Record<Category, string> => ({
+  course:   getAcademicLabel("course", academicLabels),
+  faculty:  `${getAcademicLabel("faculty", academicLabels)} / Teacher`,
   facility: "Campus Facility",
   general:  "General",
-};
+});
 
 const STATUS_CONFIG: Record<Status, { label: string; cls: string; icon: any }> = {
   pending:  { label: "Pending",  cls: "bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300", icon: Clock },
@@ -73,6 +75,7 @@ function StarRating({ value, onChange }: { value: number; onChange: (v: number) 
 // ── Feedback Form ─────────────────────────────────────────────────────────────
 
 function FeedbackForm({ onSubmitted }: { onSubmitted: () => void }) {
+  const { data: academicLabels } = useAcademicLabels();
   const [form, setForm] = useState({
     category: "general" as Category,
     title: "",
@@ -171,7 +174,7 @@ function FeedbackForm({ onSubmitted }: { onSubmitted: () => void }) {
               className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm appearance-none
                 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white pr-8"
             >
-              {(Object.entries(CATEGORY_LABELS) as [Category, string][]).map(([val, label]) => (
+              {(Object.entries(getCategoryLabels(academicLabels)) as [Category, string][]).map(([val, label]) => (
                 <option key={val} value={val}>{label}</option>
               ))}
             </select>
@@ -183,7 +186,7 @@ function FeedbackForm({ onSubmitted }: { onSubmitted: () => void }) {
         {form.category === 'faculty' && (
           <div className="animate-in fade-in slide-in-from-top-2">
             <label htmlFor="feedback-teacher" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Select Faculty Member <span className="text-red-500">*</span>
+              Select {getAcademicLabel("faculty", academicLabels)} Member <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <select
@@ -266,7 +269,7 @@ function FeedbackForm({ onSubmitted }: { onSubmitted: () => void }) {
           </div>
           <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
             {form.isAnonymous
-              ? "Your name will be hidden from HOD and Faculty."
+              ? `Your name will be hidden from HOD and ${getAcademicLabel("faculty", academicLabels)}.`
               : "Your name will be visible."}
           </span>
         </div>
@@ -290,6 +293,7 @@ function FeedbackForm({ onSubmitted }: { onSubmitted: () => void }) {
 // ── Feedback History ───────────────────────────────────────────────────────────
 
 function FeedbackHistory({ onSwitchToForm }: { onSwitchToForm?: () => void }) {
+  const { data: academicLabels } = useAcademicLabels();
   const [items, setItems]     = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState("");
@@ -363,7 +367,7 @@ function FeedbackHistory({ onSwitchToForm }: { onSwitchToForm?: () => void }) {
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-900 dark:text-white text-sm">{item.title}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                  {CATEGORY_LABELS[item.category]}
+                  {getCategoryLabels(academicLabels)[item.category]}
                   {item.teacher && ` · ${item.teacher.name}`}
                   {item.course && ` · ${item.course.code} — ${item.course.name}`}
                   {" · "}
@@ -406,6 +410,7 @@ function FeedbackHistory({ onSwitchToForm }: { onSwitchToForm?: () => void }) {
 // ── Main exported component ────────────────────────────────────────────────────
 
 export default function StudentFeedback() {
+  const { data: academicLabels } = useAcademicLabels();
   const [view, setView]       = useState<"form" | "history">("form");
   const [historyKey, setHistoryKey] = useState(0);
 

@@ -6,15 +6,20 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { scrollToFirstError } from "../utils/formHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 //  Constants 
 
 const COURSES = ["BCA", "MCA", "BBA", "MBA"];
 const SEMESTERS = ["1", "2", "3", "4", "5", "6"];
 
-const ROLES = [
+const getRoles = (academicLabels: any) => [
   { value: "all", label: "Everyone" },
-  { value: "student", label: "Students only" },
+  {
+    value: "student",
+    label: `${getAcademicLabel("student", academicLabels)}s only`,
+  },
   { value: "teacher", label: "Teachers only" },
   { value: "hod", label: "HOD only" },
   { value: "parent", label: "Parents only" },
@@ -134,6 +139,8 @@ interface Props {
 }
 
 export default function AnnouncementForm({ mode = "create", initialAnnouncement, onSuccess }: Props) {
+  const { data: academicLabels } = useAcademicLabels();
+  const ROLES = getRoles(academicLabels);
   const [formData, setFormData] = useState<FormData>(EMPTY_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
   useEffect(() => {
@@ -357,28 +364,28 @@ export default function AnnouncementForm({ mode = "create", initialAnnouncement,
 
                 {/* Course + Semester*/}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <FieldWrapper label="Course" icon={Tag}>
+                  <FieldWrapper label={getAcademicLabel("course", academicLabels)} icon={Tag}>
                     <select
                       name="targetCourse"
                       value={formData.targetCourse}
                       onChange={handleChange}
                       className={inputNormal}
                     >
-                      <option value="">All Courses</option>
+                      <option value="">All {getAcademicLabel("course", academicLabels)}s</option>
                       {COURSES.map((c) => (
                         <option key={c} value={c}>{c}</option>
                       ))}
                     </select>
                   </FieldWrapper>
 
-                  <FieldWrapper label="Semester" icon={Calendar}>
+                  <FieldWrapper label={getAcademicLabel("semester", academicLabels)} icon={Calendar}>
                     <select
                       name="targetSemester"
                       value={formData.targetSemester}
                       onChange={handleChange}
                       className={inputNormal}
                     >
-                      <option value="">All Semesters</option>
+                      <option value="">All {getAcademicLabel("semester", academicLabels)}s</option>
                       {SEMESTERS.map((s) => (
                         <option key={s} value={s}>Semester {s}</option>
                       ))}

@@ -5,6 +5,8 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface FacultyAssignment {
   _id: string;
@@ -29,6 +31,7 @@ interface FacultyAssignment {
 }
 
 const FacultyView: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [assignments, setAssignments] = useState<FacultyAssignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -84,10 +87,10 @@ const FacultyView: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <GraduationCap className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            My Subject Faculty
+            My {getAcademicLabel("subject", academicLabels)} {getAcademicLabel("faculty", academicLabels)}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Faculty assigned to your subjects this semester
+            {getAcademicLabel("faculty", academicLabels)} assigned to your subjects this semester
           </p>
         </div>
         <button
@@ -176,7 +179,7 @@ const FacultyView: React.FC = () => {
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => setSelected(null)} />
           <div className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden">
             <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">Faculty Details</h3>
+              <h3 className="text-lg font-semibold text-white">{getAcademicLabel("faculty", academicLabels)} Details</h3>
               <button onClick={() => setSelected(null)} className="text-white/80 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
@@ -217,13 +220,13 @@ const FacultyView: React.FC = () => {
 
               {/* Subject info */}
               <div className="space-y-2">
-                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Subject</h4>
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{getAcademicLabel("subject", academicLabels)}</h4>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { label: "Subject", value: selected.course.name },
+                    { label: `${getAcademicLabel("subject", academicLabels)}`, value: selected.course.name },
                     { label: "Code", value: selected.course.code },
-                    { label: "Section", value: `Section ${selected.section}` },
-                    { label: "Semester", value: `Semester ${selected.semester}` },
+                    { label: `${getAcademicLabel("section", academicLabels)}`, value: `Section ${selected.section}` },
+                    { label: `${getAcademicLabel("semester", academicLabels)}`, value: `Semester ${selected.semester}` },
                     { label: "Academic Year", value: selected.academicYear },
                     ...(selected.course.credits ? [{ label: "Credits", value: `${selected.course.credits}` }] : []),
                   ].map((item) => (

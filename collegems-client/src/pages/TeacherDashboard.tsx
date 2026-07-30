@@ -49,11 +49,14 @@ import QuizCreator from "../teacher-components/QuizCreator";
 import { useLoading } from "../hooks/useLoading";
 import { SkeletonText, SkeletonStatsCard, SkeletonActivityFeed, SkeletonList } from "../common-components-management/SkeletonLoader"; 
 import TeacherAnalyticsWidget from "../components/AnalyticsWidgets/TeacherAnalyticsWidget";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 interface TeacherDashboardProps {
   initialTab?: string;
 }
 
 export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) {
+  const { data: academicLabels } = useAcademicLabels();
   const navigate = useNavigate();
   const { darkMode, toggleTheme } = useTheme();
   const [data, setData] = useState<any>(null);
@@ -119,7 +122,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
     { id: "announcements", label: "Announcements", icon: Bell },
     { id: "myattendance", label: "My Attendance", icon: ClipboardList },
     { id: "officehours", label: "Office Hours", icon: Clock },
-    { id: "courses", label: "My Courses", icon: BookMarked },
+    { id: "courses", label: `My ${getAcademicLabel("course", academicLabels)}s`, icon: BookMarked },
     { id: "my-assignments", label: "My Assignments", icon: Briefcase },
     { id: "assignments", label: "Assignments", icon: CheckSquare },
     { id: "attendance", label: "Attendance", icon: ClipboardList },
@@ -133,7 +136,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
     { id: "results", label: "Results", icon: Percent },
     { id: "assessments", label: "Assessment Config", icon: Settings },
     { id: "internal-marks", label: "Internal Marks", icon: Percent },
-    { id: "students", label: "Students", icon: Users },
+    { id: "students", label: `${getAcademicLabel("student", academicLabels)}s`, icon: Users },
     { id: "achievements", label: "Add Achievements", icon: Trophy },
     { id: "events", label: "Organize Events", icon: CalendarDays },
     { id: "library", label: "Library Catalog", icon: Book },
@@ -143,7 +146,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
     { id: "class-performance", label: "Class Performance", icon: BarChart3 },
     { id: "risk-dashboard", label: "Predictive Analytics", icon: LayoutDashboard },
     { id: "user-workflows", label: "My Workflows", icon: FileText },
-    { id: "feedback", label: "Student Feedback", icon: MessageSquare },
+    { id: "feedback", label: `${getAcademicLabel("student", academicLabels)} Feedback`, icon: MessageSquare },
     { id: "quizzes", label: "Quizzes & Exams", icon: ClipboardCheck },
   ];
 
@@ -314,7 +317,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">Teacher Portal</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Faculty Dashboard</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{getAcademicLabel("faculty", academicLabels)} Dashboard</p>
               </div>
               <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                 <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
@@ -411,8 +414,8 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
               {/* Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                  { label: "Total Courses", value: courses.length, icon: BookMarked, color: "blue" },
-                  { label: "Total Students", value: "124", icon: Users, color: "amber" },
+                  { label: `Total ${getAcademicLabel("course", academicLabels)}s`, value: courses.length, icon: BookMarked, color: "blue" },
+                  { label: `Total ${getAcademicLabel("student", academicLabels)}s`, value: "124", icon: Users, color: "amber" },
                   { label: "Classes Today", value: "4", icon: Clock, color: "emerald" },
                   { label: "Pending Reviews", value: "8", icon: ClipboardCheck, color: "purple" },
                 ].map((stat, index) => {
@@ -442,7 +445,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
                   {/* My Courses */}
                   <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">My Courses</h2>
+                      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">My {getAcademicLabel("course", academicLabels)}s</h2>
                       <button onClick={() => setActiveTab("courses")} className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
                         View all <ChevronRight className="w-4 h-4" />
                       </button>

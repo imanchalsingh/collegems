@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { MessageSquare, Star, AlertCircle, Calendar, BookOpen } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface FeedbackItem {
@@ -21,6 +23,7 @@ interface FeedbackItem {
 }
 
 export default function TeacherFeedback() {
+  const { data: academicLabels } = useAcademicLabels();
   const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -55,7 +58,7 @@ export default function TeacherFeedback() {
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
             <MessageSquare className="w-6 h-6 text-blue-600" />
-            Student Feedback
+            {getAcademicLabel("student", academicLabels)} Feedback
           </h2>
           <p className="text-sm text-gray-500 mt-1">
             View anonymous and named feedback regarding your courses and teaching.

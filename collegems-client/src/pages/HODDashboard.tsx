@@ -57,6 +57,8 @@ import TrackingWidget from "../hod-components/TrackingWidget";
 import SystemHealthDashboard from "../hod-components/SystemHealthDashboard";
 import HodAnalyticsWidget from "../components/AnalyticsWidgets/HodAnalyticsWidget";
 import LiveTrafficWidget from '../hod-components/LiveTrafficWidget';
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 type TabType =
   | "overview"
   | "analytics"
@@ -116,6 +118,7 @@ interface ProfileData {
 }
 
 export default function HODDashboard() {
+  const { data: academicLabels } = useAcademicLabels();
   const navigate = useNavigate();
   const { darkMode, toggleTheme } = useTheme();
 
@@ -150,9 +153,9 @@ export default function HODDashboard() {
     { id: "announcements" as TabType, label: "Announcements", icon: Bell },
     { id: "teachers" as TabType, label: "Teachers", icon: Users },
     { id: "teachers-attendance" as TabType, label: "Teachers Attendance", icon: Users },
-    { id: "students" as TabType, label: "Students", icon: GraduationCap },
+    { id: "students" as TabType, label: `${getAcademicLabel("student", academicLabels)}s`, icon: GraduationCap },
     { id: "academic-calendar" as TabType, label: "Academic Calendar", icon: Calendar },
-    { id: "courses" as TabType, label: "Courses", icon: BookOpen },
+    { id: "courses" as TabType, label: `${getAcademicLabel("course", academicLabels)}s`, icon: BookOpen },
     { id: "classes" as TabType, label: "Classes", icon: Building2 },
     { id: "syllabus" as TabType, label: "Syllabus", icon: FileText },
     { id: "fees" as TabType, label: "Fees", icon: Wallet },
@@ -172,16 +175,16 @@ export default function HODDashboard() {
     { id: "system-health" as TabType, label: "System Health", icon: Activity },
     { id: "manage-bookings" as TabType, label: "Manage Bookings", icon: Calendar },
     { id: "manage-resources" as TabType, label: "Manage Resources", icon: Building2 },
-    { id: "freeze-semesters" as TabType, label: "Freeze Semesters", icon: BookOpen },
+    { id: "freeze-semesters" as TabType, label: `Freeze ${getAcademicLabel("semester", academicLabels)}s`, icon: BookOpen },
     { id: "data-locks" as TabType, label: "Data Locks", icon: Lock },
     { id: "sequence-repair" as TabType, label: "Sequence Repair", icon: Wrench },
     { id: "form-insights" as TabType, label: "Form Insights", icon: Activity },
     { id: "risk-dashboard" as TabType, label: "Predictive Analytics", icon: LayoutGrid },
     { id: "workflow-admin" as TabType, label: "Workflow Builder", icon: Settings },
     { id: "workflow-approvals" as TabType, label: "Pending Approvals", icon: Activity },
-    { id: "department-analytics" as TabType, label: "Department Analytics", icon: LayoutGrid },
+    { id: "department-analytics" as TabType, label: `${getAcademicLabel("department", academicLabels)} Analytics`, icon: LayoutGrid },
     { id: "reminders" as TabType, label: "Profile Reminders", icon: Bell },
-    { id: "bulk-rename" as TabType, label: "Bulk Rename Sections", icon: Edit },
+    { id: "bulk-rename" as TabType, label: `Bulk Rename ${getAcademicLabel("section", academicLabels)}s`, icon: Edit },
   ];
 
   // Fetch data on mount
@@ -299,7 +302,7 @@ export default function HODDashboard() {
   }));
 
   const activeLabel = navigationItems.find((item) => item.id === activeTab)?.label || "Overview";
-  const profileDepartment = profile?.department || profile?.departmentCode || "Department not set";
+  const profileDepartment = profile?.department || profile?.departmentCode || `${getAcademicLabel("department", academicLabels)} not set`;
   const profileInitials = profile?.name
     ?.split(" ")
     .filter(Boolean)
@@ -447,7 +450,7 @@ export default function HODDashboard() {
                     </span>
                   </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    {profile?.department || "Department not assigned"}
+                    {profile?.department || `${getAcademicLabel("department", academicLabels)} not assigned`}
                     {profile?.departmentCode ? ` • ${profile.departmentCode}` : ""}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-3">
@@ -460,7 +463,7 @@ export default function HODDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:min-w-[320px]">
                 <div className="rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-4">
                   <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Designation</p>
-                  <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">Head of Department</p>
+                  <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">Head of {getAcademicLabel("department", academicLabels)}</p>
                 </div>
                 <div className="rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-4">
                   <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Last sync</p>
@@ -514,8 +517,8 @@ export default function HODDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
                   { label: "Generate Reports", icon: FileText, color: "bg-blue-50 text-blue-700 hover:bg-blue-100", onClick: () => navigate("/hod/reports") },
-                  { label: "View Students", icon: GraduationCap, color: "bg-amber-50 text-amber-700 hover:bg-amber-100", onClick: () => setActiveTab("students") },
-                  { label: "Manage Courses", icon: BookOpen, color: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100", onClick: () => setActiveTab("courses") },
+                  { label: `View ${getAcademicLabel("student", academicLabels)}s`, icon: GraduationCap, color: "bg-amber-50 text-amber-700 hover:bg-amber-100", onClick: () => setActiveTab("students") },
+                  { label: `Manage ${getAcademicLabel("course", academicLabels)}s`, icon: BookOpen, color: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100", onClick: () => setActiveTab("courses") },
                 ].map((action, index) => {
                   const Icon = action.icon;
                   return (

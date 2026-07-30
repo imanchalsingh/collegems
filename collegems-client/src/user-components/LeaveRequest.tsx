@@ -7,6 +7,8 @@ import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
 import { scrollToFirstError } from "../utils/formHelpers";
 import useFormTracker from "../hooks/useFormTracker";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface LeaveData {
   _id: string;
@@ -23,6 +25,7 @@ interface LeaveData {
 }
 
 const LeaveRequest: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [leaves, setLeaves] = useState<LeaveData[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -59,7 +62,7 @@ const LeaveRequest: React.FC = () => {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!subject.trim()) newErrors.subject = "Subject is required";
+    if (!subject.trim()) newErrors.subject = `${getAcademicLabel("subject", academicLabels)} is required`;
     if (!startDate) newErrors.startDate = "Start date is required";
     if (!endDate) newErrors.endDate = "End date is required";
     if (startDate && endDate && new Date(endDate) < new Date(startDate))
@@ -160,7 +163,7 @@ const LeaveRequest: React.FC = () => {
               Leave Requests
             </h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm max-w-xl">
-              Submit leave applications and track their approval status. Faculty will review your requests.
+              Submit leave applications and track their approval status. {getAcademicLabel("faculty", academicLabels)} will review your requests.
             </p>
           </div>
           <button
@@ -202,7 +205,7 @@ const LeaveRequest: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Subject */}
             <div>
-              <label htmlFor="leave-subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subject</label>
+              <label htmlFor="leave-subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{getAcademicLabel("subject", academicLabels)}</label>
               <input id="leave-subject" type="text" name="subject" value={subject} onChange={e => { setSubject(e.target.value); if (errors.subject) setErrors(p => ({...p, subject: ""})); }}
                 onBlur={() => trackField("subject", 5)}
                 placeholder="e.g. Family event leave" className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${errors.subject ? "border-red-400" : "border-gray-300"}`} />
@@ -314,7 +317,7 @@ const LeaveRequest: React.FC = () => {
                   {leave.adminRemarks && (
                     <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
                       <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1 mb-1">
-                        <MessageSquare className="w-3 h-3" /> Faculty Remarks
+                        <MessageSquare className="w-3 h-3" /> {getAcademicLabel("faculty", academicLabels)} Remarks
                       </p>
                       <p className="text-xs text-gray-600 dark:text-gray-400">{leave.adminRemarks}</p>
                       {leave.reviewedBy && (
