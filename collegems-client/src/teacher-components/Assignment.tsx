@@ -56,6 +56,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
   const [searchQuery, setSearchQuery] = useState("");
   // Add this with your other state variables
 const [sortBy, setSortBy] = useState<"recent" | "due_soon">("recent");
+const [isDownloadingAll, setIsDownloadingAll] = useState(false);
   // <-- ADDED THIS: State for the document viewer modal
   const [viewerData, setViewerData] = useState<{
     isOpen: boolean;
@@ -201,6 +202,43 @@ const [sortBy, setSortBy] = useState<"recent" | "due_soon">("recent");
     } finally {
       setGradingId(null);
     }
+  };
+  const handleDownloadAllFiles = async () => {
+    // Filter out submissions that actually have a file attached
+    const submissionsWithFiles = viewingSubmissions.submissions?.filter(
+      (sub: any) => sub.file && sub.file.url
+    ) || [];
+    
+    if (submissionsWithFiles.length === 0) {
+      alert("No files attached to these submissions.");
+      return;
+    }
+
+    setIsDownloadingAll(true);
+    
+    // Process downloads sequentially with a slight delay
+    // This prevents the browser's "multiple pop-ups" blocker from stopping the downloads
+    for (let i = 0; i < submissionsWithFiles.length; i++) {
+      const sub = submissionsWithFiles[i];
+      const fileUrl = sub.file.url.startsWith("http") 
+        ? `${sub.file.url}?token=${localStorage.getItem("token")}` 
+        : `${BACKEND_ORIGIN}${sub.file.url}?token=${localStorage.getItem("token")}`;
+      
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      // Hint to the browser to download the file and give it the student's original filename
+      link.setAttribute("download", sub.file.originalName || `student_submission_${i}`);
+      link.target = "_blank"; // Fallback in case it's a PDF the browser insists on opening
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Wait 800ms between downloads
+      await new Promise(resolve => setTimeout(resolve, 800));
+    }
+    
+    setIsDownloadingAll(false);
   };
 const handleDeleteAssignment = (assignmentToDelete: any) => {
     handleDeleteWithUndo(
@@ -765,7 +803,7 @@ const handleDeleteAssignment = (assignmentToDelete: any) => {
               </div>
             ) : viewingSubmissions && !viewingSubmissions.loading && (
               <>
-                {/* ---------- LEFT COLUMN: SUBMISSIONS LIST ---------- */}
+             {/* ---------- LEFT COLUMN: SUBMISSIONS LIST ---------- */}
                 <div className="flex-1 flex flex-col overflow-hidden border-r border-gray-200">
                   {/* Header */}
                   <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
@@ -778,6 +816,31 @@ const handleDeleteAssignment = (assignmentToDelete: any) => {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
+                      
+                      {/* NEW: Download All Files Button */}
+                      {/* Only show if the assignment type expects files AND at least one file exists */}
+                      {(viewingSubmissions.submissionType === "file" || viewingSubmissions.submissionType === "both") && 
+                       viewingSubmissions.submissions?.some((sub: any) => sub.file?.url) && (
+                        <button
+                          onClick={handleDownloadAllFiles}
+                          disabled={isDownloadingAll}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Download all attached student files"
+                        >
+                          {isDownloadingAll ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
+                              Downloading...
+                            </>
+                          ) : (
+                            <>
+                              <Download className="w-4 h-4 text-gray-500" />
+                              Download All Files
+                            </>
+                          )}
+                        </button>
+                      )}
+
                       <button
                         onClick={() => setViewingSubmissions(null)}
                         className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
