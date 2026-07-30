@@ -51,6 +51,15 @@ const assignmentSchema = new mongoose.Schema(
       },
       minTextLength: { type: Number, default: 10 }
     },
+    // Add these inside your schema object:
+  helpfulCount: { 
+    type: Number, 
+    default: 0 
+  },
+  upvotedBy: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User' // Change 'User' to 'Student' if your user model is named differently
+  }],
     submissions: [
       {
         student: {

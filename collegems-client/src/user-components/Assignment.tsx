@@ -24,6 +24,7 @@ import AssignmentComments from "../common-components-management/AssignmentCommen
 import { useAutoSave } from "../hooks/useAutoSave";
 import RichTextEditor from "../common-components-management/RichTExtEditor";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
+import UpvoteButton from "../components/UpvoteButton";
 import {
   fetchStudentAssignments,
   submitAssignment as submitAssignmentAction,
@@ -393,6 +394,7 @@ export default function Assignment() {
         {urgentAssignments.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
             {urgentAssignments.map((assignment) => (
+              
               <div 
                 key={assignment._id} 
                 className="bg-white/20 backdrop-blur-md rounded-lg p-4 border border-white/30 flex flex-col justify-between transition-transform hover:-translate-y-1"
@@ -566,8 +568,7 @@ export default function Assignment() {
           </div>
         )}
       </div>
-
-      {/* Assignments List */}
+{/* Assignments List */}
       {loading ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
@@ -588,12 +589,19 @@ export default function Assignment() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {sortedAssignments.map((assignment) => {
-            const userId = getUserId();
+            // FIX: Add '|| ""' to safely handle potential null returns from localStorage
+            const userId = getUserId() || ""; 
             const studentSubmission = assignment.submissions?.find((s: any) => s.student?.toString() === userId);
             
             const isSubmitted = Boolean(studentSubmission);
             const status = getStatusConfig(assignment);
             const StatusIcon = status.icon;
+
+            // --- ADDED: Calculate Upvote State ---
+            // Safely check if userId exists in the array
+            const isUpvotedByMe = assignment.upvotedBy?.includes(userId) || false;
+            const helpfulCount = assignment.helpfulCount || assignment.upvotedBy?.length || 0;
+            // -------------------------------------
 
             return (
               <div
@@ -601,7 +609,7 @@ export default function Assignment() {
                 className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-shadow"
               >
                 {/* Header */}
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start justify-between mb-4 gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="text-lg font-semibold text-gray-900">
@@ -630,6 +638,17 @@ export default function Assignment() {
                       )}
                     </div>
                   </div>
+
+                  {/* --- ADDED: Upvote Button --- */}
+                  <div className="shrink-0 mt-1">
+                    <UpvoteButton 
+                      resourceId={assignment._id}
+                      initialCount={helpfulCount}
+                      initialIsUpvoted={isUpvotedByMe}
+                      resourceType="assignment"
+                    />
+                  </div>
+                  {/* ---------------------------- */}
                 </div>
 
                {/* Description */}
@@ -715,6 +734,7 @@ export default function Assignment() {
                     <MessageSquare className="w-4 h-4" />
                     Class Comments ({assignment.comments?.length || 0})
                   </button>
+
 
                   {!isSubmitted ? (
                     <button
