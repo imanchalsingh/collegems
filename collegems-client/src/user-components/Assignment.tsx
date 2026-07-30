@@ -267,6 +267,43 @@ export default function Assignment() {
 
     return 0;
   });
+  // --- ADDED: URGENT DEADLINES LOGIC ---
+  const currentUserId = getUserId();
+  const now = new Date();
+  const fortyEightHoursFromNow = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+
+  const urgentAssignments = assignments
+    .filter((a) => {
+      // Must not be submitted
+      const isSubmitted = a.submissions?.some((s: any) => s.student?.toString() === currentUserId);
+      if (isSubmitted) return false;
+
+      // Must be due in the future, but within 48 hours
+      const dueDate = new Date(a.dueDate);
+      return dueDate > now && dueDate <= fortyEightHoursFromNow;
+    })
+    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()); // Sort closest first
+
+  const getRelativeTimeText = (dateString: string) => {
+    const dueDate = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const timeString = dueDate.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+
+    if (dueDate.toDateString() === today.toDateString()) {
+      return `Due Today at ${timeString}`;
+    }
+    if (dueDate.toDateString() === tomorrow.toDateString()) {
+      return `Due Tomorrow at ${timeString}`;
+    }
+    
+    // Fallback just in case it crosses a day boundary but is still within 48h
+    const hoursLeft = Math.round((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60));
+    return `Due in ${hoursLeft} hours`;
+  };
+  // -------------------------------------
 
   // Calculate statistics
   const stats = {
@@ -343,8 +380,58 @@ export default function Assignment() {
     { id: "overdue", label: "Overdue", color: "red", icon: AlertCircle },
   ];
 
-  return (
+ return (
     <div className="space-y-6">
+      
+      {/* --- ADDED: UP NEXT / URGENT DEADLINE BANNER --- */}
+      <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl shadow-md p-6 text-white overflow-hidden relative">
+        {/* Decorative background circle */}
+        <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-white opacity-10 blur-2xl pointer-events-none"></div>
+        
+        <div className="flex items-center gap-2 mb-4 relative z-10">
+          <Clock className="w-6 h-6 animate-pulse" />
+          <h2 className="text-xl font-bold">Up Next</h2>
+        </div>
+
+        {urgentAssignments.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
+            {urgentAssignments.map((assignment) => (
+              <div 
+                key={assignment._id} 
+                className="bg-white/20 backdrop-blur-md rounded-lg p-4 border border-white/30 flex flex-col justify-between transition-transform hover:-translate-y-1"
+              >
+                <div>
+                  <h3 className="font-semibold text-white line-clamp-1" title={assignment.title}>
+                    {assignment.title}
+                  </h3>
+                  <div className="flex items-center gap-1.5 mt-1.5 text-orange-50 text-sm font-medium">
+                    <AlertCircle className="w-4 h-4" />
+                    {getRelativeTimeText(assignment.dueDate)}
+                  </div>
+                </div>
+                <button
+                  onClick={() => openSubmission(assignment)}
+                  className="mt-4 w-full py-2 bg-white text-orange-600 font-semibold rounded-md shadow-sm hover:bg-orange-50 transition-colors text-sm"
+                >
+                  Start Assignment
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md rounded-lg p-4 border border-white/30 relative z-10">
+            <div className="p-2 bg-green-400/30 rounded-full">
+              <CheckCircle className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="font-semibold text-lg text-white">You're all caught up for now!</p>
+              <p className="text-orange-50 text-sm">No assignments are due in the next 48 hours. Great job!</p>
+            </div>
+          </div>
+        )}
+      </div>
+      {/* ----------------------------------------------- */}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-5">
