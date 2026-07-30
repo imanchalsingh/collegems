@@ -579,3 +579,53 @@ export const restoreAssignment = async (req, res) => {
     res.status(500).json({ message: "Server error during restoration" });
   }
 };
+// Add this new function to handle the upvote toggle
+// Add this new function to handle the upvote toggle using ES6 export
+export const toggleUpvote = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { upvoted } = req.body; 
+    
+    // NOTE: req.user._id depends on your auth middleware. 
+    // It might be req.userId or req.studentId depending on your setup!
+    const userId = req.user._id || req.userId; 
+
+    // Assuming you have imported your Assignment model at the top like:
+    // import Assignment from '../models/assignment.model.js';
+    const assignment = await Assignment.findById(id);
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    // Initialize if undefined
+    if (!assignment.upvotedBy) assignment.upvotedBy = [];
+    if (!assignment.helpfulCount) assignment.helpfulCount = 0;
+
+    // Convert ObjectIds to strings for safe comparison
+    const hasUpvoted = assignment.upvotedBy.some(
+      (uid) => uid.toString() === userId.toString()
+    );
+
+    if (upvoted && !hasUpvoted) {
+      // User is upvoting
+      assignment.upvotedBy.push(userId);
+      assignment.helpfulCount += 1;
+    } else if (!upvoted && hasUpvoted) {
+      // User is removing their upvote
+      assignment.upvotedBy = assignment.upvotedBy.filter(
+        (uid) => uid.toString() !== userId.toString()
+      );
+      assignment.helpfulCount = Math.max(0, assignment.helpfulCount - 1);
+    }
+
+    await assignment.save();
+    
+    res.status(200).json({ 
+      success: true, 
+      helpfulCount: assignment.helpfulCount 
+    });
+  } catch (error) {
+    console.error("Error toggling upvote:", error);
+    res.status(500).json({ message: "Server error toggling upvote" });
+  }
+};
