@@ -65,6 +65,10 @@ const assignmentSchema = new mongoose.Schema(
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User' // Change 'User' to 'Student' if your user model is named differently
   }],
+  isPublished: {
+    type: Boolean,
+    default: true
+  },
     submissions: [
       {
         student: {

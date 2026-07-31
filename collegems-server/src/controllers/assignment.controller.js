@@ -30,7 +30,7 @@ import {
 
 export const createAssignment = async (req, res) => {
   try {
-    const { title, courseId, dueDate, description, submissionType, validationRules } = req.body;
+const { title, courseId, dueDate, description, submissionType, validationRules, isPublished }= req.body;
     const totalPointsRaw =
       req.body.totalPoints !== undefined
         ? req.body.totalPoints
@@ -96,6 +96,7 @@ export const createAssignment = async (req, res) => {
       totalPoints: pointsValidation.value,
       submissionType: submissionTypeValidation.value || "file",
       validationRules,
+      isPublished: isPublished !== false,
     });
 
     res.status(201).json(assignment);
@@ -288,7 +289,10 @@ export const getUpcomingAssignments = async (req, res) => {
 
     // 🔴 ADD THIS FILTER: { isDeleted: { $ne: true } }
     // Fetch all active assignments and populate course name
-    const all = await Assignment.find({ isDeleted: { $ne: true } })
+  const all = await Assignment.find({ 
+      isDeleted: { $ne: true },
+      isPublished: true // <-- THIS HIDES DRAFTS FROM STUDENTS
+    })
       .populate("course", "name code")
       .populate("teacher", "name")
       .lean();
