@@ -27,6 +27,7 @@ import EventsStudent from "./user-components/EventsStudent";
 import QuickAccessAll from "./pages/QuickAccessAll";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ReportGenerator from "./pages/ReportGenerator";
+import StudentProgressReportGenerator from "./pages/StudentProgressReportGenerator";
 import ExaminationFormPage from "./pages/ExaminationFormPage";
 import SemesterRegistration from "./user-components/SemesterRegistration";
 //import TimeTable from "./user-components/TimeTable";
@@ -71,6 +72,9 @@ const ResourceBookingTeacherGuarded = withRoleGuard(ResourceBooking, { allowedRo
 
 const HodDashboardGuarded = withRoleGuard(HodDashboard, { allowedRoles: UserRole.HOD });
 const ReportGeneratorGuarded = withRoleGuard(ReportGenerator, { allowedRoles: UserRole.HOD });
+const ProgressReportGuarded = withRoleGuard(StudentProgressReportGenerator, {
+  allowedRoles: [UserRole.TEACHER, UserRole.HOD],
+});
 const ExamHallsGuarded = withRoleGuard(ExamHalls, { allowedRoles: UserRole.HOD });
 const HallAllocationGuarded = withRoleGuard(HallAllocation, { allowedRoles: UserRole.HOD });
 const AuditLogsGuarded = withRoleGuard(AuditLogs, { allowedRoles: UserRole.HOD });
@@ -174,6 +178,11 @@ export default function App() {
           path="/hod/reports"
       element={<ReportGeneratorGuarded />}
     />
+
+        <Route
+          path="/progress-report"
+          element={<ProgressReportGuarded />}
+        />
 
     <Route
       path="/hod/exam-halls"
