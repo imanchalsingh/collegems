@@ -35,6 +35,7 @@ import LostFoundPortal from "./pages/LostFoundPortal";
 import VerifyStudent from "./pages/VerifyStudent";
 import RiskDashboard from "./pages/RiskDashboard";
 import Library from "./common-components-management/Library";
+import LibraryManagementPortal from "./pages/LibraryManagementPortal";
 import ExamHalls from "./hod-components/ExamHalls";
 import HallAllocation from "./hod-components/HallAllocation";
 import StudentSeatView from "./user-components/StudentSeatView";
@@ -80,6 +81,9 @@ const FeePaymentApprovalsGuarded = withRoleGuard(FeePaymentApprovals, { allowedR
 const BulkFieldResetGuarded = withRoleGuard(BulkFieldReset, { allowedRoles: UserRole.HOD });
 
 const ParentDashboardGuarded = withRoleGuard(ParentDashboard, { allowedRoles: UserRole.PARENT });
+const LibraryPortalGuarded = withRoleGuard(LibraryManagementPortal, {
+  allowedRoles: [UserRole.HOD, UserRole.TEACHER, UserRole.STUDENT],
+});
 
 export default function App() {
   return (
@@ -223,6 +227,8 @@ export default function App() {
           path="/parent/dashboard"
           element={<ParentDashboardGuarded />}
         />
+
+        <Route path="/library" element={<LibraryPortalGuarded />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

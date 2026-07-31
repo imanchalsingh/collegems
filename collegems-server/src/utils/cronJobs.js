@@ -1,12 +1,11 @@
 import cron from "node-cron";
 import Fee from "../models/Fee.model.js";
 import User from "../models/User.model.js";
-import BookIssue from "../models/BookIssue.model.js";
-import LibraryFine from "../models/LibraryFine.model.js";
 import Notification from "../models/Notification.model.js";
 import { sendFeeReminderEmail, sendOverdueEmail } from "./email.js";
 import { batchGenerateAnalytics } from "../services/analytics.service.js";
 import { analyzeAttendanceAnomalies } from "../services/attendanceAnomaly.service.js";
+import { runAutomatedFineEngine } from "../controllers/libraryFine.controller.js";
 
 /**
  * Normalizes a date to midnight for accurate day-difference calculations.
@@ -89,66 +88,14 @@ export const startAnalyticsCronJobs = () => {
 export const processLibraryFines = async () => {
   console.log("🔄 Running daily library fine check...");
   try {
-    const today = getMidnightDate(new Date());
-
-    // 1. Mark newly overdue books and create initial fine record
-    const newlyOverdue = await BookIssue.find({
-      status: "issued",
-      dueDate: { $lt: today },
-    }).populate("user");
-
-    for (const issue of newlyOverdue) {
-      issue.status = "overdue";
-      await issue.save();
-
-      const existingFine = await LibraryFine.findOne({ issue: issue._id });
-      if (!existingFine) {
-        const fine = new LibraryFine({
-          student: issue.user._id,
-          issue: issue._id,
-          amount: 10, // Base fine of 10 rupees for the first day
-          daysOverdue: 1,
-          status: "Unpaid"
-        });
-        await fine.save();
-
-        // Notify student
-        const notification = new Notification({
-          recipient: issue.user._id,
-          type: "library",
-          message: `Your library book "${issue.book}" is overdue. A fine of ₹10 has been generated.`,
-        });
-        await notification.save();
-      }
-    }
-
-    console.log(`✅ Processed ${newlyOverdue.length} newly overdue books.`);
-
-    // 2. Update fines for existing overdue books
-    const overdueBooks = await BookIssue.find({
-      status: "overdue",
-    });
-
-    let updatedCount = 0;
-    for (const issue of overdueBooks) {
-      const issueDate = getMidnightDate(issue.dueDate);
-      const timeDiff = today.getTime() - issueDate.getTime();
-      const daysOverdue = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-      if (daysOverdue > 0) {
-        const fine = await LibraryFine.findOne({ issue: issue._id });
-        if (fine && fine.status === "Unpaid" && fine.daysOverdue !== daysOverdue) {
-          fine.daysOverdue = daysOverdue;
-          fine.amount = daysOverdue * 10; // ₹10 per day
-          await fine.save();
-          updatedCount++;
-        }
-      }
-    }
-    
-    console.log(`✅ Updated fines for ${updatedCount} existing overdue books.`);
+    const result = await runAutomatedFineEngine();
+    console.log(
+      `✅ Library fines: ${result.newlyFined} new, ${result.updated} updated (weekends/holidays excluded).`
+    );
+    return result;
   } catch (error) {
     console.error("❌ Error in library fine processor:", error);
+    return { newlyFined: 0, updated: 0, error: error.message };
   }
 };
 

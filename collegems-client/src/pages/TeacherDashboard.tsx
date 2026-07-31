@@ -139,7 +139,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
     { id: "students", label: `${getAcademicLabel("student", academicLabels)}s`, icon: Users },
     { id: "achievements", label: "Add Achievements", icon: Trophy },
     { id: "events", label: "Organize Events", icon: CalendarDays },
-    { id: "library", label: "Library Catalog", icon: Book },
+    { id: "library", label: "Smart Library", icon: Book },
     { id: "book-resources", label: "Book Resources", icon: CalendarDays },
     { id: "clubs", label: "Clubs & Organizations", icon: Users },
     { id: "plagiarism-checker", label: "Plagiarism Checker", icon: ShieldCheck },
@@ -343,7 +343,15 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
                 return (
                   <button
                     key={item.id}
-                    onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+                    onClick={() => {
+                      if (item.id === "library") {
+                        navigate("/library");
+                        setSidebarOpen(false);
+                        return;
+                      }
+                      setActiveTab(item.id);
+                      setSidebarOpen(false);
+                    }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors relative ${isActive ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"}`}
                   >
                     <Icon className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-gray-500 dark:text-gray-400"}`} />
