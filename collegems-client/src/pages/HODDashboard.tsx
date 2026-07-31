@@ -37,6 +37,7 @@ import HODCourses from "../hod-components/Courses";
 import AnnouncementForm from "../common-components-management/AnnouncementForm";
 import AnnouncementManage from "../common-components-management/AnnouncementManage";
 import FeedbackManagement from "../hod-components/FeedbackManagement";
+import ComplaintManagement from "../hod-components/ComplaintManagement";
 import ExamHalls from "../hod-components/ExamHalls";
 import HallAllocation from "../hod-components/HallAllocation";
 import AuditLogs from "../hod-components/AuditLogs";
@@ -80,6 +81,7 @@ type TabType =
   | "exam-forms"
   | "scholarships"
   | "feedback"
+  | "complaints"
   | "bus-routes"
   | "exam-halls"
   | "hall-allocation"
@@ -165,6 +167,7 @@ export default function HODDashboard() {
     { id: "library" as TabType, label: "Library Catalog", icon: BookOpen },
     { id: "reports" as TabType, label: "Report Generator", icon: FileText },
     { id: "feedback" as TabType, label: "Feedback", icon: MessageSquare },
+    { id: "complaints" as TabType, label: "Complaints & SLA", icon: MessageSquare },
     { id: "exam-forms" as TabType, label: "Exam Forms", icon: FileText },
     { id: "scholarships" as TabType, label: "Scholarship Approvals", icon: Award },
     { id: "bus-routes" as TabType, label: "Bus Routes Management", icon: Bus },
@@ -571,6 +574,7 @@ export default function HODDashboard() {
         {activeTab === "courses" && <HODCourses />}
         {activeTab === "settings" && <HODSettings />}
         {activeTab === "feedback" && <FeedbackManagement />}
+        {activeTab === "complaints" && <ComplaintManagement />}
         {activeTab === "exam-forms" && <HODExamForms />}
         {activeTab === "scholarships" && <Scholarships />}
         {activeTab === "bus-routes" && <BusRoutes />}

@@ -15,7 +15,8 @@ export default function StudentComplaints() {
     description: "",
     category: "Academic",
     priority: "Medium",
-    evidenceUrl: ""
+    evidenceUrl: "",
+    isAnonymous: false,
   });
   
   const [commentText, setCommentText] = useState("");
@@ -44,7 +45,14 @@ export default function StudentComplaints() {
       await api.post("/complaints", form);
       setShowModal(false);
       markSubmitted();
-      setForm({ title: "", description: "", category: "Academic", priority: "Medium", evidenceUrl: "" });
+      setForm({
+        title: "",
+        description: "",
+        category: "Academic",
+        priority: "Medium",
+        evidenceUrl: "",
+        isAnonymous: false,
+      });
       fetchComplaints();
     } catch (error) {
       console.error("Failed to submit complaint", error);
@@ -119,9 +127,13 @@ export default function StudentComplaints() {
                 <h3 className="font-semibold text-gray-900 line-clamp-1">{c.title}</h3>
                 <p className="text-sm text-gray-500 line-clamp-2 mt-1">{c.description}</p>
                 <div className="flex justify-between items-center mt-3 text-xs font-medium">
-                  <span className="text-gray-600">{c.category}</span>
+                  <span className="text-gray-600">
+                    {c.category}
+                    {c.isAnonymous ? " · Anonymous" : ""}
+                  </span>
                   <span className={`${getPriorityColor(c.priority)} flex items-center gap-1`}>
                     <AlertCircle className="w-3 h-3" /> {c.priority}
+                    {c.sla?.remainingLabel ? ` · ${c.sla.remainingLabel}` : ""}
                   </span>
                 </div>
               </div>
@@ -147,6 +159,14 @@ export default function StudentComplaints() {
                 <div className="grid grid-cols-2 gap-4 mb-4 text-sm bg-gray-50 p-4 rounded-lg">
                   <div><span className="text-gray-500">Category:</span> <span className="font-medium text-gray-900">{selectedComplaint.category}</span></div>
                   <div><span className="text-gray-500">Priority:</span> <span className="font-medium text-gray-900">{selectedComplaint.priority}</span></div>
+                  <div><span className="text-gray-500">SLA:</span> <span className="font-medium text-gray-900">{selectedComplaint.sla?.remainingLabel || "N/A"}</span></div>
+                  <div><span className="text-gray-500">Handler:</span> <span className="font-medium text-gray-900">{selectedComplaint.currentHandlerRole || "Pending"}</span></div>
+                  {selectedComplaint.isAnonymous && (
+                    <div className="col-span-2">
+                      <span className="text-gray-500">Anonymous Tracking ID:</span>{" "}
+                      <span className="font-mono font-semibold text-indigo-700">{selectedComplaint.anonymousTrackingId}</span>
+                    </div>
+                  )}
                   {selectedComplaint.assignedTo && (
                     <div className="col-span-2"><span className="text-gray-500">Assigned To:</span> <span className="font-medium text-gray-900">{selectedComplaint.assignedTo.name} ({selectedComplaint.assignedTo.department})</span></div>
                   )}
@@ -234,6 +254,8 @@ export default function StudentComplaints() {
                   <select className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" value={form.category} onChange={e => { setForm({...form, category: e.target.value}); trackField("category", 5); }}>
                     <option value="Academic">Academic</option>
                     <option value="Hostel">Hostel</option>
+                    <option value="Ragging">Ragging</option>
+                    <option value="Infrastructure">Infrastructure</option>
                     <option value="Transport">Transport</option>
                     <option value="Technical">Technical</option>
                     <option value="Administration">Administration</option>
@@ -242,10 +264,10 @@ export default function StudentComplaints() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
                   <select className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" value={form.priority} onChange={e => { setForm({...form, priority: e.target.value}); trackField("priority", 5); }}>
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                    <option value="Critical">Critical</option>
+                    <option value="Low">Low (72h SLA)</option>
+                    <option value="Medium">Medium (48h SLA)</option>
+                    <option value="High">High (12h SLA)</option>
+                    <option value="Critical">Urgent/Critical (12h SLA)</option>
                   </select>
                 </div>
               </div>
@@ -257,6 +279,18 @@ export default function StudentComplaints() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Evidence URL (Optional)</label>
                 <input type="url" className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" value={form.evidenceUrl} onChange={e => setForm({...form, evidenceUrl: e.target.value})} onBlur={() => trackField("evidenceUrl", 5)} placeholder="Link to image or document" />
               </div>
+              <label className="flex items-start gap-2 text-sm text-gray-700 bg-indigo-50 border border-indigo-100 rounded-lg p-3">
+                <input
+                  type="checkbox"
+                  checked={form.isAnonymous}
+                  onChange={(e) => setForm({ ...form, isAnonymous: e.target.checked })}
+                  className="mt-0.5"
+                />
+                <span>
+                  Submit anonymously for sensitive grievances. You will receive an
+                  encrypted tracking ID; admins will not see your name.
+                </span>
+              </label>
               <div className="flex justify-end gap-3 pt-4 border-t">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
                 <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Submit Complaint</button>

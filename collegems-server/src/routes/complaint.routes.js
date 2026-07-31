@@ -5,7 +5,11 @@ import {
   getAllComplaints,
   getComplaintById,
   updateComplaint,
-  addComment
+  addComment,
+  getEscalationMatrix,
+  trackAnonymousComplaint,
+  manualEscalateComplaint,
+  runSlaProcessor,
 } from "../controllers/complaint.controller.js";
 import { authenticate, restrictTo } from "../middlewares/auth.middleware.js";
 import { sanitizeInput } from "../middlewares/sanitize.middleware.js";
@@ -17,10 +21,19 @@ router.use(authenticate);
 // Student routes
 router.post("/", restrictTo("student"), sanitizeInput, createComplaint);
 router.get("/my-complaints", restrictTo("student"), getMyComplaints);
+router.get("/track/:trackingId", trackAnonymousComplaint);
 
 // Admin/HOD routes
+router.get("/escalation-matrix", restrictTo("hod", "admin"), getEscalationMatrix);
+router.post("/run-sla", restrictTo("hod", "admin"), runSlaProcessor);
 router.get("/", restrictTo("hod", "admin"), getAllComplaints);
 router.patch("/:id", restrictTo("hod", "admin"), sanitizeInput, updateComplaint);
+router.post(
+  "/:id/escalate",
+  restrictTo("hod", "admin"),
+  sanitizeInput,
+  manualEscalateComplaint
+);
 
 // Shared routes (both can view and comment if authorized)
 router.get("/:id", getComplaintById);
