@@ -30,6 +30,7 @@ import {
   Users,
   UserCircle,
   User,
+  Radio,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import api from "../api/axios";
@@ -83,6 +84,7 @@ import SemesterComparison from "../user-components/SemesterComparison";
 import UserWorkflows from "../user-components/UserWorkflows";
 import StudentQuizList from "../user-components/StudentQuizList";
 import StudentProfile from "../user-components/StudentProfile";
+import LivePollResponseView from "../student-components/LivePollResponseView";
 // HOD Components
 import Teachers from "../hod-components/Teachers";
 import { getAcademicLabel } from "../utils/academicLabels";
@@ -117,6 +119,7 @@ type TabType =
   | "settings"
   | "grade-trend"
   | "online-exams"
+  | "live-polls"
   | "profile"
   ;
 
@@ -159,6 +162,7 @@ const getNavigationItems = (academicLabels: any): {
   { id: "user-workflows", label: "My Workflows", icon: FileText },
   { id: "grade-trend", label: "Grade Trend", icon: BarChart },
   { id: "online-exams", label: "Online Exams", icon: FileText },
+  { id: "live-polls", label: "Live Polls", icon: Radio },
   { id: "profile", label: "My Profile", icon: User },
 ];
 
@@ -781,6 +785,7 @@ export default function StudentDashboard() {
               {activeTab === "placement" && <PlacementEligibility />}
               {activeTab === "user-workflows" && <UserWorkflows />}
               {activeTab === "online-exams" && <StudentQuizList />}
+              {activeTab === "live-polls" && <LivePollResponseView />}
               {activeTab === "profile" && <StudentProfile />}
               {activeTab === "settings" && (
                 <div className="text-sm text-gray-600 dark:text-gray-400">
