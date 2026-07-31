@@ -5,7 +5,7 @@ import {
   LayoutGrid, Users, GraduationCap, BookOpen, Building2, FileText,
   Wallet, DollarSign, Calendar, Menu, X, RefreshCw, ChevronRight,
   Bell, Search, UserCircle, LogOut, Settings, CalendarDays,
-  Moon, Sun, Award, Bus, MessageSquare, Activity, Lock, Wrench, Edit // <-- Added Edit here
+  Moon, Sun, Award, Bus, MessageSquare, Activity, Lock, Wrench, Edit, Shuffle // <-- Added Edit here
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -39,6 +39,7 @@ import AnnouncementManage from "../common-components-management/AnnouncementMana
 import FeedbackManagement from "../hod-components/FeedbackManagement";
 import ExamHalls from "../hod-components/ExamHalls";
 import HallAllocation from "../hod-components/HallAllocation";
+import ExamSeatingGenerator from "../hod-components/ExamSeatingGenerator";
 import AuditLogs from "../hod-components/AuditLogs";
 import BookingManagement from "../hod-components/BookingManagement";
 import ResourceManagement from "../hod-components/ResourceManagement";
@@ -83,6 +84,7 @@ type TabType =
   | "bus-routes"
   | "exam-halls"
   | "hall-allocation"
+  | "exam-seating"
   | "audit-logs"
   | "manage-bookings"
   | "manage-resources"
@@ -170,6 +172,7 @@ export default function HODDashboard() {
     { id: "bus-routes" as TabType, label: "Bus Routes Management", icon: Bus },
     { id: "exam-halls" as TabType, label: "Exam Halls", icon: Building2 },
     { id: "hall-allocation" as TabType, label: "Hall Allocation", icon: Users },
+    { id: "exam-seating" as TabType, label: "Anti-Cheat Seating", icon: Shuffle },
     { id: "audit-logs" as TabType, label: "Audit Logs", icon: FileText },
     { id: "system-logs" as TabType, label: "System Traces", icon: FileText },
     { id: "system-health" as TabType, label: "System Health", icon: Activity },
@@ -576,6 +579,7 @@ export default function HODDashboard() {
         {activeTab === "bus-routes" && <BusRoutes />}
         {activeTab === "exam-halls" && <ExamHalls />}
         {activeTab === "hall-allocation" && <HallAllocation />}
+        {activeTab === "exam-seating" && <ExamSeatingGenerator />}
         {activeTab === "audit-logs" && <AuditLogs />}
         {activeTab === "system-health" && <SystemHealthDashboard />}
         {activeTab === "manage-bookings" && <BookingManagement />}

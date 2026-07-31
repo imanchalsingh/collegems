@@ -37,6 +37,7 @@ import RiskDashboard from "./pages/RiskDashboard";
 import Library from "./common-components-management/Library";
 import ExamHalls from "./hod-components/ExamHalls";
 import HallAllocation from "./hod-components/HallAllocation";
+import ExamSeatingGenerator from "./hod-components/ExamSeatingGenerator";
 import StudentSeatView from "./user-components/StudentSeatView";
 import BackToTop from "./components/BackToTop";
 import PendingChangesBar from "./components/PendingChangesBar";
@@ -73,6 +74,7 @@ const HodDashboardGuarded = withRoleGuard(HodDashboard, { allowedRoles: UserRole
 const ReportGeneratorGuarded = withRoleGuard(ReportGenerator, { allowedRoles: UserRole.HOD });
 const ExamHallsGuarded = withRoleGuard(ExamHalls, { allowedRoles: UserRole.HOD });
 const HallAllocationGuarded = withRoleGuard(HallAllocation, { allowedRoles: UserRole.HOD });
+const ExamSeatingGeneratorGuarded = withRoleGuard(ExamSeatingGenerator, { allowedRoles: UserRole.HOD });
 const AuditLogsGuarded = withRoleGuard(AuditLogs, { allowedRoles: UserRole.HOD });
 const BookingManagementGuarded = withRoleGuard(BookingManagement, { allowedRoles: UserRole.HOD });
 const ResourceManagementGuarded = withRoleGuard(ResourceManagement, { allowedRoles: UserRole.HOD });
@@ -184,6 +186,11 @@ export default function App() {
         <Route
           path="/hod/hall-allocation"
           element={<HallAllocationGuarded />}
+        />
+
+        <Route
+          path="/hod/exam-seating"
+          element={<ExamSeatingGeneratorGuarded />}
         />
 
         <Route
