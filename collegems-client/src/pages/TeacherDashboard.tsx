@@ -33,6 +33,7 @@ import AchievementSubmissionForm from "../teacher-components/AchievementSubmissi
 import AssessmentSettings from "../teacher-components/AssessmentSettings";
 import InternalMarksEntry from "../teacher-components/InternalMarksEntry";
 import OfficeHours from "../teacher-components/OfficeHours";
+import MentorshipSlotBookingHub from "../components/mentorship/MentorshipSlotBookingHub";
 import ResourceBooking from "../user-components/ResourceBooking";
 import AnnouncementForm from "../common-components-management/AnnouncementForm";
 import AnnouncementManage from "../common-components-management/AnnouncementManage";
@@ -122,6 +123,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
     { id: "announcements", label: "Announcements", icon: Bell },
     { id: "myattendance", label: "My Attendance", icon: ClipboardList },
     { id: "officehours", label: "Office Hours", icon: Clock },
+    { id: "mentorship-slots", label: "Mentorship Slots", icon: Users },
     { id: "courses", label: `My ${getAcademicLabel("course", academicLabels)}s`, icon: BookMarked },
     { id: "my-assignments", label: "My Assignments", icon: Briefcase },
     { id: "assignments", label: "Assignments", icon: CheckSquare },
@@ -523,6 +525,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
           {activeTab === "profile" && <TeacherProfile />}
           {activeTab === "myattendance" && <MyAttendance />}
           {activeTab === "officehours" && <OfficeHours />}
+          {activeTab === "mentorship-slots" && <MentorshipSlotBookingHub mode="mentor" />}
           {activeTab === "courses" && <HodCourses />}
           {activeTab === "assignments" && <TeacherAssignments courseId={courses[0]?._id || "default-course-id"} />}
           {activeTab === "attendance" && <StudentAttendance />}

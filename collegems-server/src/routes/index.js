@@ -51,6 +51,7 @@ import clubRoutes from "./clubs.routes.js";
 import discussionRoutes from "./discussion.routes.js";
 import studyGroupRoutes from "./studyGroup.routes.js";
 import mentorshipRoutes from "./mentorship.routes.js";
+import mentorshipBookingRoutes from "./mentorshipBooking.routes.js";
 import complaintRoutes from "./complaint.routes.js";
 import feedbackRoutes from "./feedback.routes.js";
 
@@ -158,6 +159,7 @@ authenticatedRouter.use("/clubs", clubRoutes);
 authenticatedRouter.use("/discussions", discussionRoutes);
 authenticatedRouter.use("/study-groups", studyGroupRoutes);
 authenticatedRouter.use("/mentorships", mentorshipRoutes);
+authenticatedRouter.use("/mentorship-bookings", mentorshipBookingRoutes);
 authenticatedRouter.use("/complaints", complaintRoutes);
 authenticatedRouter.use("/feedback", feedbackRoutes);
 

@@ -18,8 +18,9 @@ const transporter = nodemailer.createTransport({
  * @param {string} subject - Email subject
  * @param {string} text - Plain text body
  * @param {string} html - HTML body (optional)
+ * @param {Array} attachments - Nodemailer attachments (optional)
  */
-export const sendEmail = async (to, subject, text, html = "") => {
+export const sendEmail = async (to, subject, text, html = "", attachments = []) => {
   try {
     const info = await transporter.sendMail({
       from: `"College Management System" <${process.env.EMAIL_USER || "noreply@college.edu"}>`,
@@ -27,6 +28,7 @@ export const sendEmail = async (to, subject, text, html = "") => {
       subject,
       text,
       html: html || text,
+      attachments: attachments?.length ? attachments : undefined,
     });
     console.log(`Email sent: ${info.messageId}`);
     return true;
