@@ -121,6 +121,7 @@ export default function ParentDashboard() {
     { id: "academic-calendar", label: "Academic Calendar", icon: CalendarDays },
     { id: "events", label: "Campus Events", icon: CalendarDays },
     { id: "results", label: "Term Results", icon: AwardIcon },
+    { id: "ptm", label: "PTM Video Hub", icon: HeartHandshake },
     { id: "library", label: "Library Catalog", icon: BookOpen },
   ];
 
@@ -247,6 +248,11 @@ export default function ParentDashboard() {
                   <button
                     key={item.id}
                     onClick={() => {
+                      if (item.id === "ptm") {
+                        navigate("/ptm");
+                        setSidebarOpen(false);
+                        return;
+                      }
                       setActiveTab(item.id);
                       setSidebarOpen(false);
                     }}
