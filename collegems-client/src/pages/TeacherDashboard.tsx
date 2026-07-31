@@ -147,6 +147,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
     { id: "risk-dashboard", label: "Predictive Analytics", icon: LayoutDashboard },
     { id: "user-workflows", label: "My Workflows", icon: FileText },
     { id: "feedback", label: `${getAcademicLabel("student", academicLabels)} Feedback`, icon: MessageSquare },
+    { id: "alumni-portal", label: "Alumni Portal", icon: Users },
     { id: "quizzes", label: "Quizzes & Exams", icon: ClipboardCheck },
   ];
 
@@ -343,7 +344,15 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
                 return (
                   <button
                     key={item.id}
-                    onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+                    onClick={() => {
+                      if (item.id === "alumni-portal") {
+                        navigate("/alumni-portal");
+                        setSidebarOpen(false);
+                        return;
+                      }
+                      setActiveTab(item.id);
+                      setSidebarOpen(false);
+                    }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors relative ${isActive ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"}`}
                   >
                     <Icon className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-gray-500 dark:text-gray-400"}`} />

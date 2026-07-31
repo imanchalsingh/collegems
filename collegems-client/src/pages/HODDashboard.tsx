@@ -77,6 +77,7 @@ type TabType =
   | "library"
   | "settings"
   | "reports"
+  | "alumni-portal"
   | "exam-forms"
   | "scholarships"
   | "feedback"
@@ -164,6 +165,7 @@ export default function HODDashboard() {
     { id: "events" as TabType, label: "Organize Events", icon: CalendarDays },
     { id: "library" as TabType, label: "Library Catalog", icon: BookOpen },
     { id: "reports" as TabType, label: "Report Generator", icon: FileText },
+    { id: "alumni-portal" as TabType, label: "Alumni Portal", icon: Users },
     { id: "feedback" as TabType, label: "Feedback", icon: MessageSquare },
     { id: "exam-forms" as TabType, label: "Exam Forms", icon: FileText },
     { id: "scholarships" as TabType, label: "Scholarship Approvals", icon: Award },
@@ -628,6 +630,8 @@ export default function HODDashboard() {
                     onClick={() => {
                       if (item.id === ("reports" as TabType)) {
                         navigate("/hod/reports");
+                      } else if (item.id === ("alumni-portal" as TabType)) {
+                        navigate("/alumni-portal");
                       } else {
                         setActiveTab(item.id);
                         setSidebarOpen(false);
