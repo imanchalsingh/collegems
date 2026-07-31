@@ -1,7 +1,73 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+:root {
+  --a11y-font-scale: 1;
+}
+
 * {
-  font-family: 'Righteous';
+  font-family: 'Righteous', system-ui, sans-serif;
   scrollbar-width: none;
+}
+
+html {
+  font-size: calc(100% * var(--a11y-font-scale));
+}
+
+/* WCAG high-contrast mode */
+html.a11y-high-contrast {
+  filter: contrast(1.25);
+}
+
+html.a11y-high-contrast body {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+html.a11y-high-contrast a {
+  color: #ffe566 !important;
+  text-decoration: underline;
+}
+
+html.a11y-high-contrast button,
+html.a11y-high-contrast [role="button"] {
+  outline: 2px solid #ffe566;
+}
+
+/* Dyslexia-friendly typography */
+html.a11y-dyslexic,
+html.a11y-dyslexic * {
+  font-family: "Comic Sans MS", "Arial Rounded MT Bold", "Atkinson Hyperlegible", Verdana, sans-serif !important;
+  letter-spacing: 0.04em;
+  word-spacing: 0.08em;
+  line-height: 1.6;
+}
+
+/* Visible keyboard focus for WCAG 2.1 AA */
+:focus-visible {
+  outline: 3px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.focus\:not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
 }

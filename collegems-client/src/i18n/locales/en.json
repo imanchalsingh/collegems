@@ -1,0 +1,70 @@
+{
+  "app": {
+    "name": "College Management System",
+    "tagline": "Smart campus tools for students, teachers, and administrators"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "login": "Sign in",
+    "register": "Create account",
+    "logout": "Sign out",
+    "accessibility": "Accessibility"
+  },
+  "auth": {
+    "welcomeBack": "Sign in to access your dashboard",
+    "email": "Email address",
+    "password": "Password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "signIn": "Sign in",
+    "signingIn": "Signing in...",
+    "noAccount": "Don't have an account?",
+    "registerHere": "Register here",
+    "enterCredentials": "Please enter both email and password",
+    "loginFailed": "Login failed. Please check your credentials."
+  },
+  "roles": {
+    "student": "Student",
+    "teacher": "Teacher",
+    "parent": "Parent",
+    "hod": "HOD"
+  },
+  "a11y": {
+    "toolbar": "Accessibility toolbar",
+    "openToolbar": "Open accessibility settings",
+    "closeToolbar": "Close accessibility settings",
+    "language": "Language",
+    "highContrast": "High contrast",
+    "dyslexicFont": "Dyslexia-friendly font",
+    "fontSize": "Text size",
+    "decreaseFont": "Decrease text size",
+    "increaseFont": "Increase text size",
+    "resetFont": "Reset text size",
+    "voiceAssist": "Voice assistance",
+    "speakSelection": "Read selected text",
+    "speakPage": "Read page summary",
+    "stopSpeaking": "Stop speaking",
+    "voiceRate": "Speech rate",
+    "skipToContent": "Skip to main content",
+    "enabled": "On",
+    "disabled": "Off"
+  },
+  "dashboard": {
+    "quickAccess": "Quick access",
+    "announcements": "Announcements",
+    "results": "Academic Results",
+    "exams": "Examination Schedule",
+    "courses": "Course Catalog",
+    "events": "Campus Events",
+    "timetable": "Class Schedule",
+    "library": "Library Catalog",
+    "readAloud": "Read aloud"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "search": "Search",
+    "back": "Back"
+  }
+}
