@@ -20,10 +20,13 @@ import {
   otpLimiter,
   verifyEmailLimiter,
 } from "../middlewares/rateLimit.middleware.js";
+import { publicAuthLimiter } from "../middlewares/dynamicRateLimiter.js";
 import { detectDevice } from "../middlewares/session.middleware.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
+
+router.use(publicAuthLimiter);
 
 router.post("/register", registerLimiter, detectDevice, validateRegister, register);
 router.post("/login", loginLimiter, detectDevice, login);

@@ -1,6 +1,7 @@
 import express from "express";
 import { protect } from "../middlewares/auth.middleware.js";
 import { allowRoles } from "../middlewares/role.middleware.js";
+import { mlInferenceLimiter } from "../middlewares/dynamicRateLimiter.js";
 import {
   runPlagiarismCheck,
   getAssignmentReports,
@@ -17,6 +18,7 @@ router.post(
   "/check/:assignmentId",
   protect,
   allowRoles("teacher", "hod"),
+  mlInferenceLimiter,
   runPlagiarismCheck
 );
 

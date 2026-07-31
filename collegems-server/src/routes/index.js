@@ -95,11 +95,18 @@ import temporaryLinkRoutes from "./temporaryLink.routes.js";
 // ========================================
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { verifyStudent } from "../controllers/idcard.controller.js";
+import {
+  dynamicRateLimiter,
+  ipBanGuard,
+} from "../middlewares/dynamicRateLimiter.js";
+import securityMetricsRoutes from "./securityMetrics.routes.js";
 
 // ========================================
 // CREATE CENTRALIZED ROUTER
 // ========================================
 const router = express.Router();
+
+router.use(ipBanGuard);
 
 // ========================================
 // PUBLIC & EXCEPTION ROUTES
@@ -113,6 +120,7 @@ router.use("/temporary-links", temporaryLinkRoutes);
 // ========================================
 const authenticatedRouter = express.Router();
 authenticatedRouter.use(authenticate);
+authenticatedRouter.use(dynamicRateLimiter);
 
 // Core Routes
 authenticatedRouter.use("/search", searchRoutes);
@@ -179,6 +187,7 @@ authenticatedRouter.use("/analytics", analyticsRoutes);
 authenticatedRouter.use("/quizzes", quizRoutes);
 authenticatedRouter.use("/audit-logs", auditLogRoutes);
 authenticatedRouter.use("/system-health", systemHealthRoutes);
+authenticatedRouter.use("/security-metrics", securityMetricsRoutes);
 authenticatedRouter.use("/restore", restoreRoutes);
 
 // Miscellaneous
