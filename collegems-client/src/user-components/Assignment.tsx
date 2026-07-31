@@ -25,6 +25,7 @@ import { useAutoSave } from "../hooks/useAutoSave";
 import RichTextEditor from "../common-components-management/RichTExtEditor";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import UpvoteButton from "../components/UpvoteButton";
+import MarkDoneButton from '../components/MarkDoneButton';
 import {
   fetchStudentAssignments,
   submitAssignment as submitAssignmentAction,
@@ -712,9 +713,16 @@ export default function Assignment() {
                     )}
                   </div>
                 )}
-
-                {/* Actions */}
+{/* Actions */}
                 <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-gray-100">
+                  
+                  {/* 1. NEW MARK AS DONE BUTTON GOES HERE */}
+                  <MarkDoneButton 
+                    assignmentId={assignment._id} 
+                    initialIsDone={assignment.completedBy?.includes(getUserId())} 
+                  />
+
+                  {/* 2. Existing Instructions Button */}
                   {assignment.instructionsFile && (
                     <a
                       href={assignment.instructionsFile}
@@ -727,6 +735,7 @@ export default function Assignment() {
                     </a>
                   )}
 
+                  {/* 3. Existing Comments Button */}
                   <button
                     onClick={() => setViewingComments(assignment)}
                     className="inline-flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
@@ -735,10 +744,11 @@ export default function Assignment() {
                     Class Comments ({assignment.comments?.length || 0})
                   </button>
 
-
+                  {/* 4. Existing Submit/Submitted Button (Has ml-auto so it stays on the far right) */}
                   {!isSubmitted ? (
                     <button
                       onClick={() => openSubmission(assignment)}
+// ... rest of your existing code continues exactly the same
                       disabled={loadingAction}
                       className={`inline-flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
                         loadingAction

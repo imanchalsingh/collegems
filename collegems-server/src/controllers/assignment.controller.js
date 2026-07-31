@@ -629,3 +629,43 @@ export const toggleUpvote = async (req, res) => {
     res.status(500).json({ message: "Server error toggling upvote" });
   }
 };
+// Add to src/controllers/assignment.controller.js
+export const toggleComplete = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id || req.user.id; 
+
+    const assignment = await Assignment.findById(id);
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    // Initialize array if it doesn't exist
+    if (!assignment.completedBy) assignment.completedBy = [];
+
+    // Check if already completed by this user
+    const hasCompleted = assignment.completedBy.some(
+      (uid) => uid.toString() === userId.toString()
+    );
+
+    if (hasCompleted) {
+      // Remove from completed list (uncheck)
+      assignment.completedBy = assignment.completedBy.filter(
+        (uid) => uid.toString() !== userId.toString()
+      );
+    } else {
+      // Add to completed list (check)
+      assignment.completedBy.push(userId);
+    }
+
+    await assignment.save();
+    
+    res.status(200).json({ 
+      success: true, 
+      completedBy: assignment.completedBy 
+    });
+  } catch (error) {
+    console.error("Error toggling completion:", error);
+    res.status(500).json({ message: "Server error toggling completion status" });
+  }
+};

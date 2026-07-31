@@ -56,6 +56,11 @@ const assignmentSchema = new mongoose.Schema(
     type: Number, 
     default: 0 
   },
+  // Add this inside your Assignment schema
+  completedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User' // Adjust this if your ref is 'Student'
+  }],
   upvotedBy: [{ 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User' // Change 'User' to 'Student' if your user model is named differently
