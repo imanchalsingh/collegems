@@ -52,7 +52,7 @@ import hallAllocationRoutes from "./routes/hallAllocation.routes.js";
 import Tenant from "./models/Tenant.model.js";
 import reminderRoutes from "./routes/reminder.routes.js";
 import { startReminderCron } from "./cron/reminder.cron.js";
-import { startPTMReminderCron } from "./cron/ptmReminder.cron.js";
+import { startSlaEscalationCron } from "./cron/slaEscalationCron.js";
 // Apply Global Multi-Tenant Plugin
 import tenantPlugin from "./utils/tenantPlugin.js";
 mongoose.plugin(tenantPlugin);
@@ -188,8 +188,6 @@ mongoose.connection.once('open', async () => {
   }
 });
 
-if (!process.env.NODE_TEST_CONTEXT) {
-  startReminderCron();
-  startPTMReminderCron();
-}
+startReminderCron();
+startSlaEscalationCron();
 export default app;

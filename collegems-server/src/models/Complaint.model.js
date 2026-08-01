@@ -16,6 +16,19 @@ const commentSchema = new mongoose.Schema({
   },
 });
 
+const escalationEventSchema = new mongoose.Schema(
+  {
+    fromLevel: { type: Number, required: true },
+    toLevel: { type: Number, required: true },
+    fromHandler: { type: String },
+    toHandler: { type: String, required: true },
+    reason: { type: String, default: "SLA deadline expired" },
+    escalatedAt: { type: Date, default: Date.now },
+    notifiedEmails: [{ type: String }],
+  },
+  { _id: false }
+);
+
 const complaintSchema = new mongoose.Schema(
   {
     student: {
@@ -34,7 +47,15 @@ const complaintSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["Academic", "Hostel", "Transport", "Technical", "Administration"],
+      enum: [
+        "Academic",
+        "Hostel",
+        "Transport",
+        "Technical",
+        "Administration",
+        "Ragging",
+        "Infrastructure",
+      ],
       required: true,
     },
     priority: {
@@ -61,11 +82,51 @@ const complaintSchema = new mongoose.Schema(
       type: Date,
     },
     comments: [commentSchema],
+
+    // SLA & escalation matrix
+    slaDeadline: {
+      type: Date,
+    },
+    slaBreached: {
+      type: Boolean,
+      default: false,
+    },
+    escalationLevel: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 2,
+    },
+    currentHandlerRole: {
+      type: String,
+      default: "Admin Officer",
+    },
+    escalationHistory: [escalationEventSchema],
+    lastEscalatedAt: {
+      type: Date,
+    },
+
+    // Anonymous reporting
+    isAnonymous: {
+      type: Boolean,
+      default: false,
+    },
+    anonymousTrackingId: {
+      type: String,
+      index: true,
+    },
+    trackingIdHash: {
+      type: String,
+      select: false,
+    },
   },
   {
     timestamps: true,
   }
 );
+
+complaintSchema.index({ status: 1, slaDeadline: 1 });
+complaintSchema.index({ escalationLevel: 1, status: 1 });
 
 const Complaint = mongoose.model("Complaint", complaintSchema);
 export default Complaint;

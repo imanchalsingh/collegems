@@ -69,6 +69,7 @@ import ExaminationForm from "../user-components/ExaminationForm";
 import EventsStudent from "../user-components/EventsStudent";
 import Fees from "../user-components/Fee";
 import StudentFeedback from "../user-components/Feedback";
+import StudentComplaints from "../user-components/StudentComplaints";
 import LeaveRequest from "../user-components/LeaveRequest";
 import StudentAchievements from "../user-components/StudentAchievements";
 import ProfileCompletionCard from "../user-components/ProfileCompletionCard";
@@ -111,6 +112,7 @@ type TabType =
   | "scholarships"
   | "id-card"
   | "feedback"
+  | "complaints"
   | "bus-routes"
   | "book-resources"
   | "subject-faculty"
@@ -159,6 +161,7 @@ const getNavigationItems = (academicLabels: any): {
   { id: "scholarships", label: "Scholarships", icon: AwardIcon },
   { id: "id-card", label: "ID Card", icon: UserCircle },
   { id: "feedback", label: "Feedback", icon: MessageSquare },
+  { id: "complaints", label: "Complaints", icon: MessageSquare },
   { id: "placement", label: "Placement", icon: Briefcase },
   { id: "bus-routes", label: "Bus Tracking", icon: Bus },
   { id: "book-resources", label: "Book Resources", icon: CalendarDays },
@@ -791,6 +794,7 @@ export default function StudentDashboard() {
               {activeTab === "faculty" && <FacultyView />}
               {activeTab === "subject-faculty" && <Teachers />}
               {activeTab === "book-resources" && <ResourceBooking />}
+              {activeTab === "complaints" && <StudentComplaints />}
               {activeTab === "placement" && <PlacementEligibility />}
               {activeTab === "user-workflows" && <UserWorkflows />}
               {activeTab === "online-exams" && <StudentQuizList />}
