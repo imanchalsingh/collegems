@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import logger from "../utils/logger.js";
 import { initializeStudyGroupSockets } from "./studyGroupSocket.js";
+import { initializeProctoringSockets } from "./proctoringSocket.js";
 import { allowedOrigins } from "../config/cors.js";
 
 // Store active users in memory
@@ -115,6 +116,7 @@ if (userId) {
 
   // Initialize any specific socket modules
   initializeStudyGroupSockets(io);
+  initializeProctoringSockets(io);
 
   return io;
 };
