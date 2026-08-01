@@ -68,6 +68,7 @@ import resumeRoutes from "./resume.routes.js";
 import libraryRoutes from "./library.routes.js";
 import resourceRoutes from "./resource.routes.js";
 import bookingRoutes from "./booking.routes.js";
+import ptmRoutes from "./ptm.routes.js";
 import busRouteRoutes from "./busRoute.routes.js";
 
 // Reports & Analytics
@@ -191,6 +192,7 @@ authenticatedRouter.use("/resume", resumeRoutes);
 authenticatedRouter.use("/library", libraryRoutes);
 authenticatedRouter.use("/resources", resourceRoutes);
 authenticatedRouter.use("/bookings", bookingRoutes);
+authenticatedRouter.use("/ptm", ptmRoutes);
 authenticatedRouter.use("/bus-routes", busRouteRoutes);
 
 // Reports & Analytics

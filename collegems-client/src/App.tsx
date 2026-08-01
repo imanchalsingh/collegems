@@ -18,6 +18,7 @@ import TeacherDashboard from "./pages/TeacherDashboard";
 import QuizTaker from "./user-components/QuizTaker";
 import HodDashboard from "./pages/HODDashboard";
 import ParentDashboard from "./pages/ParentDashboard";
+import ParentTeacherMeetingHub from "./pages/ParentTeacherMeetingHub";
 import MainDashboard from "./pages/MainDashboard";
 import ExamSchedule from "./user-components/ExamSchedule";
 import Courses from "./user-components/Courses";
@@ -88,8 +89,8 @@ const FeePaymentApprovalsGuarded = withRoleGuard(FeePaymentApprovals, { allowedR
 const BulkFieldResetGuarded = withRoleGuard(BulkFieldReset, { allowedRoles: UserRole.HOD });
 
 const ParentDashboardGuarded = withRoleGuard(ParentDashboard, { allowedRoles: UserRole.PARENT });
-const LibraryPortalGuarded = withRoleGuard(LibraryManagementPortal, {
-  allowedRoles: [UserRole.HOD, UserRole.TEACHER, UserRole.STUDENT],
+const PtmHubParentGuarded = withRoleGuard(ParentTeacherMeetingHub, {
+  allowedRoles: [UserRole.PARENT, UserRole.TEACHER, UserRole.HOD],
 });
 
 export default function App() {
@@ -246,7 +247,10 @@ export default function App() {
           element={<ParentDashboardGuarded />}
         />
 
-        <Route path="/library" element={<LibraryPortalGuarded />} />
+        <Route
+          path="/ptm"
+          element={<PtmHubParentGuarded />}
+        />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

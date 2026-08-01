@@ -126,7 +126,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
     { id: "announcements", label: "Announcements", icon: Bell },
     { id: "myattendance", label: "My Attendance", icon: ClipboardList },
     { id: "officehours", label: "Office Hours", icon: Clock },
-    { id: "mentorship-slots", label: "Mentorship Slots", icon: Users },
+    { id: "ptm", label: "PTM Video Hub", icon: Users },
     { id: "courses", label: `My ${getAcademicLabel("course", academicLabels)}s`, icon: BookMarked },
     { id: "my-assignments", label: "My Assignments", icon: Briefcase },
     { id: "assignments", label: "Assignments", icon: CheckSquare },
@@ -352,8 +352,8 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
                   <button
                     key={item.id}
                     onClick={() => {
-                      if (item.id === "library") {
-                        navigate("/library");
+                      if (item.id === "ptm") {
+                        navigate("/ptm");
                         setSidebarOpen(false);
                         return;
                       }
