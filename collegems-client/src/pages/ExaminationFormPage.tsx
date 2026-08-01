@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { ArrowLeft, Moon, Sun, School } from "lucide-react";
+import { ArrowLeft, Moon, Sun, School, Shield } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import ExaminationForm from "../user-components/ExaminationForm";
 import { getAcademicLabel } from "../utils/academicLabels";
@@ -53,7 +53,17 @@ const ExaminationFormPage: React.FC = () => {
       </header>
 
       {/* Main Page Container */}
-      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-4">
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-100">
+          <div className="flex items-start gap-2">
+            <Shield className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>
+              Online quizzes launched from your portal use AI proctoring (webcam face monitoring,
+              tab-switch detection, and automatic submission after repeated violations). Keep your
+              face visible and stay on the quiz tab during timed assessments.
+            </p>
+          </div>
+        </div>
         <ExaminationForm />
       </main>
     </div>

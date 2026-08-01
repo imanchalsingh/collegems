@@ -14,6 +14,8 @@ const seatSchema = new mongoose.Schema(
     studentName: String,
     rollNumber: String,
     department: String,
+    row: Number,
+    col: Number,
   },
   { _id: false }
 );
@@ -45,7 +47,7 @@ const hallAllocationSchema = new mongoose.Schema(
     },
     strategy: {
       type: String,
-      enum: ["sequential", "department-mixed", "zigzag"],
+      enum: ["sequential", "department-mixed", "zigzag", "anti-cheat-interleaved"],
       default: "department-mixed",
     },
     status: {

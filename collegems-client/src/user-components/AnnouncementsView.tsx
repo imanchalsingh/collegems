@@ -1,8 +1,10 @@
 // FILE: collegems-client/src/user-components/AnnouncementsView.tsx
 
 import { useEffect, useState } from "react";
-import { Bell, AlertCircle, Info, AlertTriangle, Zap, CheckCheck } from "lucide-react";
+import { Bell, AlertCircle, Info, AlertTriangle, Zap, CheckCheck, Volume2 } from "lucide-react";
 import api from "../api/axios";
+import { useAccessibility } from "../context/AccessibilityContext";
+import { useTranslation } from "react-i18next";
 
 interface Announcement {
   _id: string;
@@ -59,6 +61,8 @@ function timeAgo(dateStr: string) {
 }
 
 export default function AnnouncementsView() {
+  const { t } = useTranslation();
+  const { speak, voiceEnabled } = useAccessibility();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -186,9 +190,32 @@ export default function AnnouncementsView() {
                     )}
                   </div>
 
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    {a.title}
-                  </h3>
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      {a.title}
+                    </h3>
+                    {voiceEnabled && (
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          speak(`${a.title}. ${a.message}`);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            speak(`${a.title}. ${a.message}`);
+                          }
+                        }}
+                        className="shrink-0 rounded-md p-1 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950"
+                        aria-label={t("dashboard.readAloud")}
+                      >
+                        <Volume2 size={14} aria-hidden="true" />
+                      </span>
+                    )}
+                  </div>
 
                   <p
                     className={`text-sm text-gray-600 dark:text-gray-300 mt-1 ${

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
 import { MessageSquare, CheckCircle, Clock, Edit } from "lucide-react";
+import GrievanceEscalationTracker from "../components/complaints/GrievanceEscalationTracker";
 
 export default function ComplaintManagement() {
   const [complaints, setComplaints] = useState<any[]>([]);
@@ -9,6 +10,7 @@ export default function ComplaintManagement() {
   const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
   const [filterStatus, setFilterStatus] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
+  const [view, setView] = useState<"inbox" | "sla">("sla");
   
   const [commentText, setCommentText] = useState("");
   const [showStatusModal, setShowStatusModal] = useState(false);
@@ -34,7 +36,7 @@ export default function ComplaintManagement() {
       const res = await api.get(url);
       setComplaints(extractArray(res.data));
       if (selectedComplaint) {
-        const updated = res.data.find((c: any) => c._id === selectedComplaint._id);
+        const updated = extractArray(res.data).find((c: any) => c._id === selectedComplaint._id);
         if (updated) setSelectedComplaint(updated);
       }
     } catch (error) {
@@ -102,7 +104,23 @@ export default function ComplaintManagement() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">Complaint Management</h2>
-        <div className="flex gap-3 w-full md:w-auto">
+        <div className="flex gap-3 w-full md:w-auto flex-wrap">
+          <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setView("sla")}
+              className={`px-3 py-2 text-sm ${view === "sla" ? "bg-indigo-600 text-white" : "bg-white text-gray-700"}`}
+            >
+              SLA Matrix
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("inbox")}
+              className={`px-3 py-2 text-sm ${view === "inbox" ? "bg-indigo-600 text-white" : "bg-white text-gray-700"}`}
+            >
+              Inbox
+            </button>
+          </div>
           <select 
             value={filterCategory} 
             onChange={(e) => setFilterCategory(e.target.value)}
@@ -111,6 +129,8 @@ export default function ComplaintManagement() {
             <option value="">All Categories</option>
             <option value="Academic">Academic</option>
             <option value="Hostel">Hostel</option>
+            <option value="Ragging">Ragging</option>
+            <option value="Infrastructure">Infrastructure</option>
             <option value="Transport">Transport</option>
             <option value="Technical">Technical</option>
             <option value="Administration">Administration</option>
@@ -130,6 +150,9 @@ export default function ComplaintManagement() {
         </div>
       </div>
 
+      {view === "sla" && <GrievanceEscalationTracker />}
+
+      {view === "inbox" && (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="col-span-1 border rounded-xl bg-white overflow-hidden flex flex-col h-[700px]">
           <div className="p-4 border-b bg-gray-50 font-semibold text-gray-700 flex justify-between items-center">
@@ -148,13 +171,18 @@ export default function ComplaintManagement() {
                     className={`p-4 cursor-pointer transition-colors ${selectedComplaint?._id === c._id ? 'bg-blue-50 border-l-4 border-blue-600' : 'hover:bg-gray-50 border-l-4 border-transparent'}`}
                   >
                     <div className="flex justify-between items-start mb-1">
-                      <span className="font-semibold text-gray-900 text-sm">{c.student.name}</span>
+                      <span className="font-semibold text-gray-900 text-sm">
+                        {c.isAnonymous ? "Anonymous" : c.student?.name || "Student"}
+                      </span>
                       <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(c.status)}`}>{c.status}</span>
                     </div>
                     <div className="text-sm font-medium text-gray-800 line-clamp-1 mb-1">{c.title}</div>
                     <div className="flex justify-between items-center mt-2 text-xs">
                       <span className="text-gray-500">{new Date(c.createdAt).toLocaleDateString()}</span>
-                      <span className={`${getPriorityColor(c.priority)}`}>{c.priority}</span>
+                      <span className={`${getPriorityColor(c.priority)}`}>
+                        {c.priority}
+                        {c.sla?.remainingLabel ? ` · ${c.sla.remainingLabel}` : ""}
+                      </span>
                     </div>
                   </li>
                 ))}
@@ -171,7 +199,12 @@ export default function ComplaintManagement() {
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900 mb-1">{selectedComplaint.title}</h2>
                     <p className="text-sm text-gray-500">
-                      From: <span className="font-semibold text-gray-800">{selectedComplaint.student.name}</span> ({selectedComplaint.student.studentId})
+                      From:{" "}
+                      <span className="font-semibold text-gray-800">
+                        {selectedComplaint.isAnonymous
+                          ? `Anonymous (${selectedComplaint.anonymousTrackingId})`
+                          : `${selectedComplaint.student?.name} (${selectedComplaint.student?.studentId})`}
+                      </span>
                     </p>
                   </div>
                   <button 
@@ -182,10 +215,17 @@ export default function ComplaintManagement() {
                   </button>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-4 mb-4 text-sm bg-gray-50 p-4 rounded-lg">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm bg-gray-50 p-4 rounded-lg">
                   <div><span className="text-gray-500">Category:</span> <div className="font-medium text-gray-900">{selectedComplaint.category}</div></div>
                   <div><span className="text-gray-500">Status:</span> <div className={`font-medium ${getStatusColor(selectedComplaint.status)} inline-block px-2 py-0.5 rounded-full text-xs mt-1`}>{selectedComplaint.status}</div></div>
                   <div><span className="text-gray-500">Priority:</span> <div className={`font-medium ${getPriorityColor(selectedComplaint.priority)}`}>{selectedComplaint.priority}</div></div>
+                  <div>
+                    <span className="text-gray-500">SLA / Handler:</span>
+                    <div className="font-medium text-gray-900 text-xs mt-1">
+                      {selectedComplaint.sla?.remainingLabel || "N/A"}
+                      <div className="text-indigo-700">{selectedComplaint.currentHandlerRole}</div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="prose prose-sm max-w-none text-gray-700 bg-white p-4 rounded-lg border">
@@ -252,6 +292,7 @@ export default function ComplaintManagement() {
           )}
         </div>
       </div>
+      )}
 
       {showStatusModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -275,10 +316,10 @@ export default function ComplaintManagement() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Update Priority</label>
                   <select className="w-full px-3 py-2 border rounded-lg focus:ring-blue-500" value={statusForm.priority} onChange={e => setStatusForm({...statusForm, priority: e.target.value})}>
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                    <option value="Critical">Critical</option>
+                    <option value="Low">Low (72h)</option>
+                    <option value="Medium">Medium (48h)</option>
+                    <option value="High">High (12h)</option>
+                    <option value="Critical">Urgent/Critical (12h)</option>
                   </select>
                 </div>
               </div>

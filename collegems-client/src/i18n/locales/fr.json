@@ -1,0 +1,70 @@
+{
+  "app": {
+    "name": "Système de Gestion Universitaire",
+    "tagline": "Outils intelligents pour étudiants, enseignants et administrateurs"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "login": "Se connecter",
+    "register": "Créer un compte",
+    "logout": "Se déconnecter",
+    "accessibility": "Accessibilité"
+  },
+  "auth": {
+    "welcomeBack": "Connectez-vous pour accéder à votre tableau de bord",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "rememberMe": "Se souvenir de moi",
+    "forgotPassword": "Mot de passe oublié ?",
+    "signIn": "Se connecter",
+    "signingIn": "Connexion...",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "registerHere": "Inscrivez-vous ici",
+    "enterCredentials": "Veuillez saisir l'e-mail et le mot de passe",
+    "loginFailed": "Échec de la connexion. Vérifiez vos identifiants."
+  },
+  "roles": {
+    "student": "Étudiant",
+    "teacher": "Enseignant",
+    "parent": "Parent",
+    "hod": "Chef de département"
+  },
+  "a11y": {
+    "toolbar": "Barre d'accessibilité",
+    "openToolbar": "Ouvrir les paramètres d'accessibilité",
+    "closeToolbar": "Fermer les paramètres d'accessibilité",
+    "language": "Langue",
+    "highContrast": "Contraste élevé",
+    "dyslexicFont": "Police adaptée à la dyslexie",
+    "fontSize": "Taille du texte",
+    "decreaseFont": "Réduire le texte",
+    "increaseFont": "Agrandir le texte",
+    "resetFont": "Réinitialiser la taille",
+    "voiceAssist": "Assistance vocale",
+    "speakSelection": "Lire le texte sélectionné",
+    "speakPage": "Lire le résumé de la page",
+    "stopSpeaking": "Arrêter la lecture",
+    "voiceRate": "Vitesse de lecture",
+    "skipToContent": "Aller au contenu principal",
+    "enabled": "Activé",
+    "disabled": "Désactivé"
+  },
+  "dashboard": {
+    "quickAccess": "Accès rapide",
+    "announcements": "Annonces",
+    "results": "Résultats académiques",
+    "exams": "Calendrier des examens",
+    "courses": "Catalogue des cours",
+    "events": "Événements du campus",
+    "timetable": "Emploi du temps",
+    "library": "Catalogue de la bibliothèque",
+    "readAloud": "Lire à voix haute"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "search": "Rechercher",
+    "back": "Retour"
+  }
+}

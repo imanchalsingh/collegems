@@ -24,6 +24,11 @@ const jobApplicationSchema = new mongoose.Schema(
       enum: ["Pending", "Reviewed", "Accepted", "Rejected"],
       default: "Pending",
     },
+    atsScore: { type: Number, min: 0, max: 100 },
+    matchedSkills: [{ type: String }],
+    missingSkills: [{ type: String }],
+    matchLevel: { type: String, enum: ["low", "medium", "high"] },
+    scoredAt: { type: Date },
   },
   { timestamps: true }
 );

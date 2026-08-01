@@ -9,6 +9,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import api from "../api/axios";
+import HallLayoutGrid, { type HallLayoutSeat } from "../hod-components/HallLayoutGrid";
 
 interface MySeatData {
   examName: string;
@@ -18,8 +19,15 @@ interface MySeatData {
   endTime: string;
   hallName: string;
   seatNumber: string;
+  deskNumber?: string;
   building?: string;
+  floor?: number;
   strategy: string;
+  rows?: number;
+  columns?: number;
+  floorMap?: ({ seatNumber?: string; occupied?: boolean; isMine?: boolean; department?: string; empty?: boolean } | null)[][] | null;
+  myRow?: number;
+  myCol?: number;
 }
 
 const StudentSeatView: React.FC = () => {
@@ -38,12 +46,40 @@ const StudentSeatView: React.FC = () => {
       setError("");
       setNoAllocation(false);
 
-      const res = await api.get("/hall-allocations/student/my-seat");
+      try {
+        const res = await api.get("/seating-plans/student/my-seat");
+        const raw = Array.isArray(res.data) ? res.data[0] : res.data;
+        if (raw) {
+          setSeatData({
+            examName: raw.examName || "",
+            course: raw.course || "",
+            examDate: raw.examDate || "",
+            startTime: raw.startTime || "",
+            endTime: raw.endTime || "",
+            hallName: raw.hallName || "",
+            seatNumber: raw.seatNumber || raw.deskNumber || "",
+            deskNumber: raw.deskNumber || raw.seatNumber || "",
+            building: raw.building || "",
+            floor: raw.floor,
+            strategy: raw.strategy || "",
+            rows: raw.rows,
+            columns: raw.columns,
+            floorMap: raw.floorMap,
+            myRow: raw.myRow,
+            myCol: raw.myCol,
+          });
+          return;
+        }
+      } catch (seatPlanErr: any) {
+        if (seatPlanErr.response?.status !== 404) {
+          throw seatPlanErr;
+        }
+      }
 
+      const res = await api.get("/hall-allocations/student/my-seat");
       if (!res.data || (Array.isArray(res.data) && res.data.length === 0)) {
         setNoAllocation(true);
       } else {
-        // API returns an array of seat assignments; map the first one to MySeatData
         const raw = Array.isArray(res.data) ? res.data[0] : res.data;
         const exam = raw.examSchedule || {};
         setSeatData({
@@ -54,6 +90,7 @@ const StudentSeatView: React.FC = () => {
           endTime: exam.endTime || "",
           hallName: raw.hallName || "",
           seatNumber: raw.seatNumber || "",
+          deskNumber: raw.seatNumber || "",
           building: raw.building || "",
           strategy: raw.strategy || "",
         });
@@ -69,6 +106,31 @@ const StudentSeatView: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const floorSeats: HallLayoutSeat[] = [];
+  if (seatData?.floorMap && seatData.rows && seatData.columns) {
+    for (let r = 0; r < seatData.rows; r++) {
+      for (let c = 0; c < seatData.columns; c++) {
+        const cell = seatData.floorMap[r]?.[c];
+        if (cell && !cell.empty && cell.occupied) {
+          floorSeats.push({
+            seatNumber: cell.seatNumber || "",
+            row: r,
+            col: c,
+            isMine: cell.isMine,
+            department: cell.department,
+          });
+        }
+      }
+    }
+  } else if (seatData?.myRow != null && seatData?.myCol != null) {
+    floorSeats.push({
+      seatNumber: seatData.seatNumber,
+      row: seatData.myRow,
+      col: seatData.myCol,
+      isMine: true,
+    });
+  }
 
   if (loading) {
     return (
@@ -127,14 +189,11 @@ const StudentSeatView: React.FC = () => {
   if (!seatData) return null;
 
   return (
-    <div className="max-w-lg mx-auto space-y-6">
-      {/* Main Seat Card */}
+    <div className="max-w-2xl mx-auto space-y-6">
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-md">
-        {/* Header gradient bar */}
         <div className="h-2 bg-gradient-to-r from-blue-500 to-indigo-600" />
 
         <div className="p-6 space-y-6">
-          {/* Exam Info */}
           <div className="text-center">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
               {seatData.examName}
@@ -147,23 +206,18 @@ const StudentSeatView: React.FC = () => {
             </div>
           </div>
 
-          {/* Seat Number Display */}
           <div className="flex justify-center">
-            <div className="relative">
-              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <div className="text-center">
-                  <p className="text-3xl font-black text-white">{seatData.seatNumber}</p>
-                  <p className="text-[10px] text-blue-100 uppercase tracking-widest font-semibold mt-0.5">
-                    Seat
-                  </p>
-                </div>
+            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <div className="text-center">
+                <p className="text-3xl font-black text-white">{seatData.deskNumber || seatData.seatNumber}</p>
+                <p className="text-[10px] text-blue-100 uppercase tracking-widest font-semibold mt-0.5">
+                  Desk
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Details Grid */}
           <div className="grid grid-cols-1 gap-3">
-            {/* Date */}
             <div className="flex items-center gap-3 p-3.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl">
               <div className="p-2 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400">
                 <Calendar className="w-4 h-4" />
@@ -183,7 +237,6 @@ const StudentSeatView: React.FC = () => {
               </div>
             </div>
 
-            {/* Time */}
             <div className="flex items-center gap-3 p-3.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl">
               <div className="p-2 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
                 <Clock className="w-4 h-4" />
@@ -198,14 +251,13 @@ const StudentSeatView: React.FC = () => {
               </div>
             </div>
 
-            {/* Hall & Building */}
             <div className="flex items-center gap-3 p-3.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl">
               <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400">
                 <MapPin className="w-4 h-4" />
               </div>
               <div>
                 <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold">
-                  Location
+                  Hall Number
                 </p>
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
                   {seatData.hallName}
@@ -213,38 +265,46 @@ const StudentSeatView: React.FC = () => {
                     <span className="text-gray-500 dark:text-gray-400 font-normal">
                       {" "}
                       • {seatData.building}
+                      {seatData.floor != null ? ` • Floor ${seatData.floor}` : ""}
                     </span>
                   )}
                 </p>
               </div>
             </div>
 
-            {/* Seat */}
             <div className="flex items-center gap-3 p-3.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl">
               <div className="p-2 rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/30 dark:text-purple-400">
                 <Armchair className="w-4 h-4" />
               </div>
               <div>
                 <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold">
-                  Seat Number
+                  Desk Number
                 </p>
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                  {seatData.seatNumber}
+                  {seatData.deskNumber || seatData.seatNumber}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Strategy tag */}
+          {seatData.rows && seatData.columns && floorSeats.length > 0 && (
+            <HallLayoutGrid
+              title="Hall floor map"
+              rows={seatData.rows}
+              columns={seatData.columns}
+              seats={floorSeats}
+              highlightMine
+            />
+          )}
+
           <div className="text-center pt-2">
             <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Allocation: {seatData.strategy.replace("-", " ")}
+              Allocation: {(seatData.strategy || "").replace(/-/g, " ")}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Refresh Button */}
       <div className="text-center">
         <button
           onClick={fetchMySeat}

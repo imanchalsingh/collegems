@@ -19,14 +19,17 @@ import {
 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "../context/ThemeContext";
 import { useNotifications } from "../hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { RecentHistorySection } from "../components/RecentHistorySection";
+import SpeakableText from "../components/common/SpeakableText";
 import { getAcademicLabel } from "../utils/academicLabels";
 import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 export default function MainDashboard() {
+  const { t } = useTranslation();
   const { data: academicLabels } = useAcademicLabels();
   const navigate = useNavigate();
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
@@ -38,7 +41,7 @@ export default function MainDashboard() {
   const dashboardCards = [
     {
       id: 1,
-      title: "Academic Results",
+      title: t("dashboard.results"),
       description: "View your semester grades and performance",
       icon: FileText,
       count: `4 ${getAcademicLabel("subject", academicLabels)}s`,
@@ -47,7 +50,7 @@ export default function MainDashboard() {
     },
     {
       id: 2,
-      title: "Examination Schedule",
+      title: t("dashboard.exams"),
       description: "Upcoming exams dates and venues",
       icon: Calendar,
       count: "2 Upcoming",
@@ -56,7 +59,7 @@ export default function MainDashboard() {
     },
     {
       id: 3,
-      title: `${getAcademicLabel("course", academicLabels)} Catalog`,
+      title: t("dashboard.courses"),
       description: "Browse and manage your enrolled courses",
       icon: BookOpen,
       count: "6 Enrolled",
@@ -65,7 +68,7 @@ export default function MainDashboard() {
     },
     {
       id: 4,
-      title: "Campus Events",
+      title: t("dashboard.events"),
       description: "Upcoming activities and events",
       icon: Bell,
       count: "3 New",
@@ -74,7 +77,7 @@ export default function MainDashboard() {
     },
     {
       id: 5,
-      title: "Class Schedule",
+      title: t("dashboard.timetable"),
       description: "Daily timetable and class details",
       icon: Clock,
       count: "This Week",
@@ -92,7 +95,7 @@ export default function MainDashboard() {
     },
     {
       id: 7,
-      title: "Library Catalog",
+      title: t("dashboard.library"),
       description: "Manage and borrow books from the library",
       icon: Library,
       count: "Explore",
@@ -212,17 +215,19 @@ export default function MainDashboard() {
                 <button
                   onClick={() => navigate("/login")}
                   className="px-2 sm:px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors flex items-center gap-1"
+                  aria-label={t("nav.login")}
                 >
-                  <LogIn size={14} />
-                  <span className="hidden xs:inline">Sign In</span>
+                  <LogIn size={14} aria-hidden="true" />
+                  <span className="hidden xs:inline">{t("nav.login")}</span>
                 </button>
 
                 <button
                   onClick={() => navigate("/register")}
                   className="px-2 sm:px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1"
+                  aria-label={t("nav.register")}
                 >
-                  <UserPlus size={14} />
-                  <span className="hidden xs:inline">Register</span>
+                  <UserPlus size={14} aria-hidden="true" />
+                  <span className="hidden xs:inline">{t("nav.register")}</span>
                 </button>
               </div>
             </div>
@@ -234,11 +239,15 @@ export default function MainDashboard() {
           {/* Welcome Section */}
           <div className="mb-8">
             <h1 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-              Welcome back, {getAcademicLabel("student", academicLabels)}! Here's your academic overview
+              {t("app.name")}
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
-              Here's your academic overview and upcoming activities
-            </p>
+            <SpeakableText
+              as="p"
+              text={t("app.tagline")}
+              className="text-gray-500 dark:text-gray-400 mt-1"
+            >
+              {t("app.tagline")}
+            </SpeakableText>
           </div>
 
           {/* Quick Stats */}
@@ -273,7 +282,7 @@ export default function MainDashboard() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <Home className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                Quick Access
+                {t("dashboard.quickAccess")}
               </h2>
               <button
                 onClick={() => navigate("/quickaccess")}

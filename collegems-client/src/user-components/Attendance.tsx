@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { getAcademicLabel } from "../utils/academicLabels";
 import { useAcademicLabels } from "../hooks/useAcademicLabels";
+import QRAttendanceScanner from "../student-components/QRAttendanceScanner";
 
 export default function StudentAttendance() {
   const { data: academicLabels } = useAcademicLabels();
@@ -161,6 +162,10 @@ export default function StudentAttendance() {
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <QRAttendanceScanner />
+        </div>
+
         {/* Header - FIXED */}
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
