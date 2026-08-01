@@ -8,6 +8,7 @@ import express from "express";
 
 // Auth & Core
 import authRoutes from "./auth.routes.js";
+import verificationRoutes from "./verification.routes.js";
 import dashboardRoutes from "./dashboard.routes.js";
 import userRoutes from "./user.routes.js";
 import historyRoutes from "./history.routes.js";
@@ -105,6 +106,7 @@ const router = express.Router();
 // PUBLIC & EXCEPTION ROUTES
 // ========================================
 router.use("/auth", authRoutes);
+router.use(verificationRoutes);
 router.use("/assignment", assignmentRoutes);
 router.use("/temporary-links", temporaryLinkRoutes);
 
