@@ -18,8 +18,9 @@ const transporter = nodemailer.createTransport({
  * @param {string} subject - Email subject
  * @param {string} text - Plain text body
  * @param {string} html - HTML body (optional)
+ * @param {Array} attachments - Nodemailer attachments (optional)
  */
-export const sendEmail = async (to, subject, text, html = "") => {
+export const sendEmail = async (to, subject, text, html = "", attachments = []) => {
   try {
     const info = await transporter.sendMail({
       from: `"College Management System" <${process.env.EMAIL_USER || "noreply@college.edu"}>`,
@@ -27,6 +28,7 @@ export const sendEmail = async (to, subject, text, html = "") => {
       subject,
       text,
       html: html || text,
+      attachments: attachments?.length ? attachments : undefined,
     });
     console.log(`Email sent: ${info.messageId}`);
     return true;
@@ -89,6 +91,38 @@ export const sendOverdueEmail = async (user, fee) => {
     </div>
   `;
 
+  return sendEmail(user.email, subject, text, html);
+};
+
+/**
+ * Reminder for a specific EMI installment due date
+ */
+export const sendEmiInstallmentReminder = async (user, fee, slot, daysLeft) => {
+  const subject =
+    daysLeft > 0
+      ? `EMI reminder: installment #${slot.sequence} due in ${daysLeft} day(s)`
+      : `EMI overdue: installment #${slot.sequence}`;
+  const amountDue = (slot.amount || 0) + (slot.lateFee || 0);
+  const text = `Dear ${user.name},\n\nEMI #${slot.sequence} of ₹${amountDue} is ${
+    daysLeft > 0 ? `due in ${daysLeft} day(s)` : "overdue"
+  }.\nDue date: ${new Date(slot.dueDate).toLocaleDateString()}\nPlan: ${
+    fee.emiPlan?.planType || "EMI"
+  }\n\nPlease pay via the Fee EMI Scheduler in your student portal.\n\nRegards,\nCollege Administration`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+      <h2 style="color: #333;">Fee EMI Reminder</h2>
+      <p>Dear <strong>${user.name}</strong>,</p>
+      <p>Installment <strong>#${slot.sequence}</strong> (${
+        daysLeft > 0 ? `due in ${daysLeft} day(s)` : "OVERDUE"
+      }).</p>
+      <ul>
+        <li>Amount: ₹${slot.amount}${slot.lateFee ? ` + late fee ₹${slot.lateFee}` : ""}</li>
+        <li>Due: ${new Date(slot.dueDate).toLocaleDateString()}</li>
+        <li>Plan: ${fee.emiPlan?.planType || "EMI"}</li>
+      </ul>
+      <p>Pay securely via Stripe/Razorpay in the Fee EMI Scheduler.</p>
+    </div>
+  `;
   return sendEmail(user.email, subject, text, html);
 };
 
