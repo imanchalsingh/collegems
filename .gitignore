@@ -11,5 +11,5 @@ collegems-server/secure-uploads/**
 !collegems-server/secure-uploads/**/
 !collegems-server/secure-uploads/**/.gitkeep
 
-# Local crypto key material
+# Local signing / secrets artifacts
 collegems-server/.keys/
