@@ -167,7 +167,7 @@ export default function HODDashboard() {
     { id: "salary" as TabType, label: "Salary", icon: DollarSign },
     { id: "examSchedule" as TabType, label: "Exam Schedule", icon: Calendar },
     { id: "events" as TabType, label: "Organize Events", icon: CalendarDays },
-    { id: "library" as TabType, label: "Library Catalog", icon: BookOpen },
+    { id: "library" as TabType, label: "Smart Library", icon: BookOpen },
     { id: "reports" as TabType, label: "Report Generator", icon: FileText },
     { id: "progress-report" as TabType, label: "Progress Report Cards", icon: FileText },
     { id: "feedback" as TabType, label: "Feedback", icon: MessageSquare },
@@ -639,8 +639,9 @@ export default function HODDashboard() {
                     onClick={() => {
                       if (item.id === ("reports" as TabType)) {
                         navigate("/hod/reports");
-                      } else if (item.id === ("progress-report" as TabType)) {
-                        navigate("/progress-report");
+                      } else if (item.id === ("library" as TabType)) {
+                        navigate("/library");
+                        setSidebarOpen(false);
                       } else {
                         setActiveTab(item.id);
                         setSidebarOpen(false);

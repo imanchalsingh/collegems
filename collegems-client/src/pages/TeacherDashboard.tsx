@@ -142,7 +142,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
     { id: "students", label: `${getAcademicLabel("student", academicLabels)}s`, icon: Users },
     { id: "achievements", label: "Add Achievements", icon: Trophy },
     { id: "events", label: "Organize Events", icon: CalendarDays },
-    { id: "library", label: "Library Catalog", icon: Book },
+    { id: "library", label: "Smart Library", icon: Book },
     { id: "book-resources", label: "Book Resources", icon: CalendarDays },
     { id: "clubs", label: "Clubs & Organizations", icon: Users },
     { id: "plagiarism-checker", label: "Plagiarism Checker", icon: ShieldCheck },
@@ -350,8 +350,9 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
                   <button
                     key={item.id}
                     onClick={() => {
-                      if (item.id === "progress-report") {
-                        navigate("/progress-report");
+                      if (item.id === "library") {
+                        navigate("/library");
+                        setSidebarOpen(false);
                         return;
                       }
                       setActiveTab(item.id);
