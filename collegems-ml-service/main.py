@@ -185,6 +185,77 @@ async def predict_sentiment(data: SentimentRequest, request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ---------------------------------------------------------
+# Code plagiarism (AST + Winnowing)
+# ---------------------------------------------------------
+
+from services.code_plagiarism_engine import analyze_submissions, compare_pair
+
+
+class CodeSubmission(BaseModel):
+    id: str
+    label: str | None = None
+    code: str
+    language: str | None = "python"
+    filename: str | None = None
+    studentId: str | None = None
+    studentName: str | None = None
+
+
+class CodePlagiarismRequest(BaseModel):
+    submissions: list[CodeSubmission]
+    threshold: float = 0.35
+    k: int = 5
+    window: int = 4
+
+
+class CodePairRequest(BaseModel):
+    left: CodeSubmission
+    right: CodeSubmission
+    k: int = 5
+    window: int = 4
+
+
+@app.post("/analyze/code-plagiarism")
+async def analyze_code_plagiarism(payload: CodePlagiarismRequest, request: Request):
+    correlation_id = request.headers.get("x-correlation-id", "N/A")
+    log_adapter = logging.LoggerAdapter(logger, {"correlation_id": correlation_id})
+
+    if len(payload.submissions) < 2:
+        raise HTTPException(status_code=400, detail="At least two submissions are required")
+
+    try:
+        result = analyze_submissions(
+            [s.model_dump() for s in payload.submissions],
+            k=payload.k,
+            window=payload.window,
+            threshold=payload.threshold,
+        )
+        log_adapter.info(
+            "Code plagiarism analyzed %s submissions; flagged=%s",
+            len(payload.submissions),
+            len(result.get("flaggedPairs", [])),
+        )
+        return result
+    except Exception as e:
+        log_adapter.error("Code plagiarism analysis failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/analyze/code-pair")
+async def analyze_code_pair(payload: CodePairRequest, request: Request):
+    try:
+        return compare_pair(
+            payload.left.model_dump(),
+            payload.right.model_dump(),
+            k=payload.k,
+            window=payload.window,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "CollegeMS ML Analytics", "model_loaded": dropout_model is not None}

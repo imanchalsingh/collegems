@@ -24,6 +24,7 @@ import courseRoutes from "./course.routes.js";
 import classRoutes from "./class.route.js";
 import syllabusRoutes from "./syllabus.route.js";
 import timetableRoutes from "./timetable.routes.js";
+import timetableGeneratorRoutes from "./timetableGenerator.routes.js";
 import academicCalendarRoutes from "./academicCalendar.routes.js";
 
 // Examination Routes
@@ -69,8 +70,10 @@ import busRouteRoutes from "./busRoute.routes.js";
 
 // Reports & Analytics
 import reportRoutes from "./report.routes.js";
+import progressReportRoutes from "./progressReport.routes.js";
 import analyticsRoutes from "./analytics.routes.js";
 import quizRoutes from "./quiz.routes.js";
+import proctoringRoutes from "./proctoring.routes.js";
 import auditLogRoutes from "./auditLog.routes.js";
 import systemHealthRoutes from "./systemHealth.routes.js";
 import restoreRoutes from "./restore.routes.js";
@@ -131,6 +134,7 @@ authenticatedRouter.use("/courses", courseRoutes);
 authenticatedRouter.use("/classes", classRoutes);
 authenticatedRouter.use("/syllabus", syllabusRoutes);
 authenticatedRouter.use("/timetable", timetableRoutes);
+authenticatedRouter.use("/timetable-generator", timetableGeneratorRoutes);
 authenticatedRouter.use("/academic-calendar", academicCalendarRoutes);
 
 // Examination Routes
@@ -179,8 +183,10 @@ authenticatedRouter.use("/bus-routes", busRouteRoutes);
 
 // Reports & Analytics
 authenticatedRouter.use("/reports", reportRoutes);
+authenticatedRouter.use("/progress-reports", progressReportRoutes);
 authenticatedRouter.use("/analytics", analyticsRoutes);
 authenticatedRouter.use("/quizzes", quizRoutes);
+authenticatedRouter.use("/proctoring", proctoringRoutes);
 authenticatedRouter.use("/audit-logs", auditLogRoutes);
 authenticatedRouter.use("/system-health", systemHealthRoutes);
 authenticatedRouter.use("/restore", restoreRoutes);

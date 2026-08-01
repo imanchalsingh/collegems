@@ -41,7 +41,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
   const { data: academicLabels } = useAcademicLabels();
   const dispatch = useAppDispatch();
   const { teacherAssignments, loadingTeacher, loadingAction, error } = useAppSelector((state) => state.assignments);
-
+const [isPublished, setIsPublished] = useState(true);
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -112,6 +112,7 @@ const [isDownloadingAll, setIsDownloadingAll] = useState(false);
         dueDate,
         maxMarks: maxMarks || undefined,
         submissionType,
+        isPublished
       })).unwrap();
 
       const successMessage = document.createElement("div");
@@ -262,6 +263,7 @@ const handleDeleteAssignment = (assignmentToDelete: any) => {
     setDescription("");
     setDueDate("");
     setMaxMarks("");
+    setIsPublished(true);
     setSubmissionType("file");
     setLocalError(null);
     dispatch(clearError());
@@ -547,14 +549,33 @@ const handleDeleteAssignment = (assignmentToDelete: any) => {
                 </div>
               </div>
 
-              {/* Course Info */}
+             {/* Course Info */}
               <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <p className="text-xs text-gray-500 mb-1">{getAcademicLabel("course", academicLabels)} ID</p>
                 <p className="text-sm font-medium text-gray-900">
                   {courseId || "Not available"}
                 </p>
               </div>
-            </div>
+
+              {/* 🔴 3. ADD THIS DRAFT TOGGLE SWITCH HERE */}
+              <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm mt-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900">Publish Immediately?</h4>
+                  <p className="text-xs text-gray-500">Uncheck to save as a draft. Students cannot see drafts.</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer"
+                    checked={isPublished}
+                    onChange={(e) => setIsPublished(e.target.checked)}
+                    disabled={loadingAction}
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+
+            </div> {/* <-- This is the end of the form div */}
 
             {/* Footer Buttons */}
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
@@ -720,10 +741,18 @@ const handleDeleteAssignment = (assignmentToDelete: any) => {
                       <div className="p-2 bg-blue-50 rounded-lg">
                         <FileText className="w-4 h-4 text-blue-600" />
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {assignment.title}
-                        </p>
+                     <div>
+                        {/* 🔴 4. UPDATE TITLE TO INCLUDE DRAFT BADGE */}
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-gray-900">
+                            {assignment.title}
+                          </p>
+                          {assignment.isPublished === false && (
+                            <span className="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-[10px] font-bold border border-yellow-200 uppercase tracking-wider">
+                              Draft
+                            </span>
+                          )}
+                        </div>
                         {/* NEW: The Read More / Show Less Component */}
                         <ExpandableText text={assignment.description} maxLength={100} />
                         <p className="text-xs text-gray-500">
