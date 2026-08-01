@@ -20,6 +20,7 @@ import { extractArray } from "../utils/apiHelpers";
 import EmptyState from "../components/EmptyState";
 import { getAcademicLabel } from "../utils/academicLabels";
 import { useAcademicLabels } from "../hooks/useAcademicLabels";
+import DynamicClassroomQR from "./DynamicClassroomQR";
 
 // interface Attendance {
 //   studentId: string;
@@ -49,7 +50,7 @@ export default function TeacherAttendance() {
   const [search, setSearch] = useState("");
   const [courseId, setCourseId] = useState("");
   const [courses, setCourses] = useState<Course[]>([]);
-  const [activeView, setActiveView] = useState<"mark" | "low">("mark");
+  const [activeView, setActiveView] = useState<"mark" | "low" | "qr">("mark");
   const [lowAttendanceStudents, setLowAttendanceStudents] = useState<any[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
   const [startDate, setStartDate] = useState("");
@@ -276,9 +277,19 @@ export default function TeacherAttendance() {
           <Filter className="w-4 h-4" />
           View Records
         </button>
+        <button
+          onClick={() => setActiveView("qr")}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
+            activeView === "qr" ? "bg-white text-emerald-600 shadow-sm" : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          QR Live Session
+        </button>
       </div>
 
-      {activeView === "low" ? (
+      {activeView === "qr" ? (
+        <DynamicClassroomQR />
+      ) : activeView === "low" ? (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="p-6 border-b border-gray-200 flex justify-between items-center">
             <div>

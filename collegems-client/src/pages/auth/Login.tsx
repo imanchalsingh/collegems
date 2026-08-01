@@ -9,6 +9,7 @@ import {
 import api from "../../api/axios";
 import { useToast } from "../../hooks/useToast";
 import ThemeSwitcher from "../../components/ThemeSwitcher";
+import MFAVerifyStep from "../../components/auth/MFAVerifyStep";
 
 export default function Login() {
   const { t } = useTranslation();
@@ -23,6 +24,27 @@ export default function Login() {
   const [error, setError] = useState("");
   const [unverifiedEmail, setUnverifiedEmail] = useState("");
   const [resending, setResending] = useState(false);
+  const [mfaToken, setMfaToken] = useState<string | null>(null);
+
+  const completeLogin = (accessToken: string, user: { id: string; name?: string; role: string }) => {
+    localStorage.setItem("token", accessToken);
+    localStorage.setItem("role", user.role);
+    localStorage.setItem("userId", user.id);
+    localStorage.setItem("userData", JSON.stringify(user));
+    if (rememberMe) localStorage.setItem("rememberEmail", email);
+    else localStorage.removeItem("rememberEmail");
+
+    toast.success(`Welcome back, ${user.name || "User"}!`);
+
+    const routes: Record<string, string> = {
+      student: "/student/dashboard",
+      teacher: "/teacher/dashboard",
+      hod: "/hod/dashboard",
+      parent: "/parent/dashboard",
+    };
+    navigate(routes[user.role] || "/");
+  };
+
   const handleLogin = async () => {
     if (!email || !password) {
       toast.warning(t("auth.enterCredentials"));
@@ -32,23 +54,19 @@ export default function Login() {
     if (loading) return;
     setLoading(true);
     try {
-const res = await api.post("/auth/login", { email, password }, {
-  headers: {
-    "x-tenant-id": "collegems" // Replace "collegems" with your actual tenant ID if it's different!
-  }
-});
-      localStorage.setItem("token", res.data.accessToken);
-      localStorage.setItem("role", res.data.user.role);
-      localStorage.setItem("userId", res.data.user.id);
-      localStorage.setItem("userData", JSON.stringify(res.data.user));
-      if (rememberMe) localStorage.setItem("rememberEmail", email);
-      else localStorage.removeItem("rememberEmail");
-      
-      toast.success(`Welcome back, ${res.data.user.name || 'User'}!`);
-      
-      const role = res.data.user.role;
-      const routes: Record<string, string> = { student: "/student/dashboard", teacher: "/teacher/dashboard", hod: "/hod/dashboard", parent: "/parent/dashboard" };
-      navigate(routes[role] || "/");
+      const res = await api.post("/auth/login", { email, password }, {
+        headers: {
+          "x-tenant-id": "collegems",
+        },
+      });
+
+      if (res.data?.mfaRequired && res.data?.mfaToken) {
+        setMfaToken(res.data.mfaToken);
+        toast.info("Enter your authenticator code to continue");
+        return;
+      }
+
+      completeLogin(res.data.accessToken, res.data.user);
     } catch (err: any) {
       if (err.response?.status === 403 && err.response?.data?.isEmailVerified === false) {
         setUnverifiedEmail(err.response.data.email || email);
@@ -120,6 +138,17 @@ const res = await api.post("/auth/login", { email, password }, {
           </div>
 
           <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+            {mfaToken ? (
+              <MFAVerifyStep
+                mfaToken={mfaToken}
+                onSuccess={({ accessToken, user }) => {
+                  setMfaToken(null);
+                  completeLogin(accessToken, user);
+                }}
+                onCancel={() => setMfaToken(null)}
+              />
+            ) : (
+              <>
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -236,6 +265,8 @@ const res = await api.post("/auth/login", { email, password }, {
                   {resending ? "Sending..." : "Resend Verification Email"}
                 </button>
               </div>
+            )}
+              </>
             )}
           </form>
 
