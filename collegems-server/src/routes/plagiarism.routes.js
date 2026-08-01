@@ -9,8 +9,26 @@ import {
   submitAppeal,
   reviewAppeal,
 } from "../controllers/plagiarism.controller.js";
+import {
+  runCodePlagiarismAnalysis,
+  analyzeCodeSnippets,
+} from "../controllers/codePlagiarism.controller.js";
 
 const router = express.Router();
+
+// AST / Winnowing code similarity (programming assignments)
+router.post(
+  "/code/check/:assignmentId",
+  protect,
+  allowRoles("teacher", "hod"),
+  runCodePlagiarismAnalysis
+);
+router.post(
+  "/code/analyze",
+  protect,
+  allowRoles("teacher", "hod"),
+  analyzeCodeSnippets
+);
 
 // Run (or re-run) a plagiarism check across all submissions for an assignment
 router.post(
