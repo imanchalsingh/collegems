@@ -103,6 +103,15 @@ export default function MainDashboard() {
       route: "/library",
     },
     {
+      id: 9,
+      title: "Alumni Portal",
+      description: "Directory, job referrals, mentorship & donations",
+      icon: Award,
+      count: "Network",
+      color: "indigo",
+      route: "/alumni-portal",
+    },
+    {
       id: 8,
       title: "Academic Calendar",
       description: "View academic events, exams and holidays",

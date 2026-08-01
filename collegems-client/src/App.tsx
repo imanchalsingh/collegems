@@ -65,6 +65,7 @@ import { UserRole } from "./constants/role.constants";
 import AccessDenied from "./pages/AccessDenied";
 import NotFound from "./pages/NotFound";
 import RoleRoute from "./routes/RoleRoute";
+import AlumniPortal from "./pages/AlumniPortal";
 import { Toaster } from 'react-hot-toast';
 // Define Guarded Components
 const StudentDashboardGuarded = withRoleGuard(StudentDashboard, { allowedRoles: UserRole.STUDENT });
@@ -253,8 +254,12 @@ export default function App() {
         />
 
         <Route
-          path="/ptm"
-          element={<PtmHubParentGuarded />}
+          path="/alumni-portal"
+          element={
+            <ProtectedRoute>
+              <AlumniPortal />
+            </ProtectedRoute>
+          }
         />
 
         <Route path="*" element={<NotFound />} />

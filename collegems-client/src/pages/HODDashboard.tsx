@@ -82,7 +82,7 @@ type TabType =
   | "library"
   | "settings"
   | "reports"
-  | "progress-report"
+  | "alumni-portal"
   | "exam-forms"
   | "scholarships"
   | "feedback"
@@ -175,7 +175,7 @@ export default function HODDashboard() {
     { id: "events" as TabType, label: "Organize Events", icon: CalendarDays },
     { id: "library" as TabType, label: "Smart Library", icon: BookOpen },
     { id: "reports" as TabType, label: "Report Generator", icon: FileText },
-    { id: "progress-report" as TabType, label: "Progress Report Cards", icon: FileText },
+    { id: "alumni-portal" as TabType, label: "Alumni Portal", icon: Users },
     { id: "feedback" as TabType, label: "Feedback", icon: MessageSquare },
     { id: "complaints" as TabType, label: "Complaints & SLA", icon: MessageSquare },
     { id: "exam-forms" as TabType, label: "Exam Forms", icon: FileText },
@@ -651,9 +651,8 @@ export default function HODDashboard() {
                     onClick={() => {
                       if (item.id === ("reports" as TabType)) {
                         navigate("/hod/reports");
-                      } else if (item.id === ("library" as TabType)) {
-                        navigate("/library");
-                        setSidebarOpen(false);
+                      } else if (item.id === ("alumni-portal" as TabType)) {
+                        navigate("/alumni-portal");
                       } else {
                         setActiveTab(item.id);
                         setSidebarOpen(false);

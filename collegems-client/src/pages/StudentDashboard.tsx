@@ -108,6 +108,7 @@ type TabType =
   | "exam-form"
   | "my-seat"
   | "placement"
+  | "alumni-portal"
   | "faculty"
   | "scholarships"
   | "id-card"
@@ -163,6 +164,7 @@ const getNavigationItems = (academicLabels: any): {
   { id: "feedback", label: "Feedback", icon: MessageSquare },
   { id: "complaints", label: "Complaints", icon: MessageSquare },
   { id: "placement", label: "Placement", icon: Briefcase },
+  { id: "alumni-portal", label: "Alumni Portal", icon: Users },
   { id: "bus-routes", label: "Bus Tracking", icon: Bus },
   { id: "book-resources", label: "Book Resources", icon: CalendarDays },
   { id: "user-workflows", label: "My Workflows", icon: FileText },
@@ -413,9 +415,8 @@ export default function StudentDashboard() {
                   <button
                     key={item.id}
                     onClick={() => {
-                      if (item.id === "library") {
-                        navigate("/library");
-                        setSidebarOpen(false);
+                      if (item.id === "alumni-portal") {
+                        navigate("/alumni-portal");
                         return;
                       }
                       setActiveTab(item.id);

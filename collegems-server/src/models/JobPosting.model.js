@@ -15,6 +15,14 @@ const jobPostingSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    isReferral: {
+      type: Boolean,
+      default: false,
+    },
+    referralNote: {
+      type: String,
+      maxlength: 500,
+    },
     status: {
       type: String,
       enum: ["open", "closed"],

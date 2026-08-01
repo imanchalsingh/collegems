@@ -154,6 +154,7 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
     { id: "progress-report", label: "Progress Report Cards", icon: FileText },
     { id: "user-workflows", label: "My Workflows", icon: FileText },
     { id: "feedback", label: `${getAcademicLabel("student", academicLabels)} Feedback`, icon: MessageSquare },
+    { id: "alumni-portal", label: "Alumni Portal", icon: Users },
     { id: "quizzes", label: "Quizzes & Exams", icon: ClipboardCheck },
     { id: "live-polls", label: "Live Polls", icon: Radio },
   ];
@@ -352,8 +353,8 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
                   <button
                     key={item.id}
                     onClick={() => {
-                      if (item.id === "ptm") {
-                        navigate("/ptm");
+                      if (item.id === "alumni-portal") {
+                        navigate("/alumni-portal");
                         setSidebarOpen(false);
                         return;
                       }

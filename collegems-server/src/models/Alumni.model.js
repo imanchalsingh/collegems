@@ -7,10 +7,13 @@ const alumniSchema = new mongoose.Schema({
   department: { type: String, required: true }, // e.g. "Computer Science", "Electrical Engineering"
   currentCompany: { type: String },
   designation: { type: String },
+  industry: { type: String },
+  location: { type: String },
   linkedInUrl: { type: String },
   skills: [{ type: String }],
   achievements: { type: String },
   experience: { type: String },
+  openToMentorship: { type: Boolean, default: true },
   isVerified: { type: Boolean, default: false },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
 }, { timestamps: true });
