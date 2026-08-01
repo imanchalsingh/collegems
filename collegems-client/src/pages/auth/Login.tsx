@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "../../context/ThemeContext";
 import {
   Mail, Lock, Eye, EyeOff, LogIn, ChevronRight,
@@ -8,8 +9,10 @@ import {
 import api from "../../api/axios";
 import { useToast } from "../../hooks/useToast";
 import ThemeSwitcher from "../../components/ThemeSwitcher";
+import MFAVerifyStep from "../../components/auth/MFAVerifyStep";
 
 export default function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { darkMode, toggleTheme } = useTheme();
   const { toast } = useToast();
@@ -21,32 +24,49 @@ export default function Login() {
   const [error, setError] = useState("");
   const [unverifiedEmail, setUnverifiedEmail] = useState("");
   const [resending, setResending] = useState(false);
+  const [mfaToken, setMfaToken] = useState<string | null>(null);
+
+  const completeLogin = (accessToken: string, user: { id: string; name?: string; role: string }) => {
+    localStorage.setItem("token", accessToken);
+    localStorage.setItem("role", user.role);
+    localStorage.setItem("userId", user.id);
+    localStorage.setItem("userData", JSON.stringify(user));
+    if (rememberMe) localStorage.setItem("rememberEmail", email);
+    else localStorage.removeItem("rememberEmail");
+
+    toast.success(`Welcome back, ${user.name || "User"}!`);
+
+    const routes: Record<string, string> = {
+      student: "/student/dashboard",
+      teacher: "/teacher/dashboard",
+      hod: "/hod/dashboard",
+      parent: "/parent/dashboard",
+    };
+    navigate(routes[user.role] || "/");
+  };
+
   const handleLogin = async () => {
     if (!email || !password) {
-      toast.warning("Please enter both email and password");
+      toast.warning(t("auth.enterCredentials"));
       return;
     }
 
     if (loading) return;
     setLoading(true);
     try {
-const res = await api.post("/auth/login", { email, password }, {
-  headers: {
-    "x-tenant-id": "collegems" // Replace "collegems" with your actual tenant ID if it's different!
-  }
-});
-      localStorage.setItem("token", res.data.accessToken);
-      localStorage.setItem("role", res.data.user.role);
-      localStorage.setItem("userId", res.data.user.id);
-      localStorage.setItem("userData", JSON.stringify(res.data.user));
-      if (rememberMe) localStorage.setItem("rememberEmail", email);
-      else localStorage.removeItem("rememberEmail");
-      
-      toast.success(`Welcome back, ${res.data.user.name || 'User'}!`);
-      
-      const role = res.data.user.role;
-      const routes: Record<string, string> = { student: "/student/dashboard", teacher: "/teacher/dashboard", hod: "/hod/dashboard", parent: "/parent/dashboard" };
-      navigate(routes[role] || "/");
+      const res = await api.post("/auth/login", { email, password }, {
+        headers: {
+          "x-tenant-id": "collegems",
+        },
+      });
+
+      if (res.data?.mfaRequired && res.data?.mfaToken) {
+        setMfaToken(res.data.mfaToken);
+        toast.info("Enter your authenticator code to continue");
+        return;
+      }
+
+      completeLogin(res.data.accessToken, res.data.user);
     } catch (err: any) {
       if (err.response?.status === 403 && err.response?.data?.isEmailVerified === false) {
         setUnverifiedEmail(err.response.data.email || email);
@@ -55,7 +75,7 @@ const res = await api.post("/auth/login", { email, password }, {
       }
       const errorMessage =
         err.response?.data?.message ||
-        "Login failed. Please check your credentials.";
+        t("auth.loginFailed");
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -65,10 +85,10 @@ const res = await api.post("/auth/login", { email, password }, {
   const handleKeyPress = (e: React.KeyboardEvent) => { if (e.key === "Enter") handleLogin(); };
 
   const roleHighlights = [
-    { role: "Student", icon: Users, color: "blue" },
-    { role: "Teacher", icon: BookOpen, color: "amber" },
-    { role: "Parent", icon: Users, color: "purple" },
-    { role: "HOD", icon: Shield, color: "emerald" },
+    { role: t("roles.student"), icon: Users, color: "blue" },
+    { role: t("roles.teacher"), icon: BookOpen, color: "amber" },
+    { role: t("roles.parent"), icon: Users, color: "purple" },
+    { role: t("roles.hod"), icon: Shield, color: "emerald" },
   ];
 
   return (
@@ -81,15 +101,15 @@ const res = await api.post("/auth/login", { email, password }, {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="bg-blue-600 p-3 rounded-xl">
+          <div className="bg-blue-600 p-3 rounded-xl" aria-hidden="true">
             <School className="w-8 h-8 text-white" />
           </div>
         </div>
-        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
-          College Management System
-        </h2>
+        <h1 className="mt-6 text-center text-3xl font-bold text-gray-900 dark:text-white">
+          {t("app.name")}
+        </h1>
         <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-          Sign in to access your dashboard
+          {t("auth.welcomeBack")}
         </p>
       </div>
 
@@ -118,10 +138,21 @@ const res = await api.post("/auth/login", { email, password }, {
           </div>
 
           <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+            {mfaToken ? (
+              <MFAVerifyStep
+                mfaToken={mfaToken}
+                onSuccess={({ accessToken, user }) => {
+                  setMfaToken(null);
+                  completeLogin(accessToken, user);
+                }}
+                onCancel={() => setMfaToken(null)}
+              />
+            ) : (
+              <>
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Email address
+                {t("auth.email")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -148,7 +179,7 @@ const res = await api.post("/auth/login", { email, password }, {
             {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Password
+                {t("auth.password")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -188,11 +219,11 @@ const res = await api.post("/auth/login", { email, password }, {
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                  Remember me
+                  {t("auth.rememberMe")}
                 </label>
               </div>
               <button type="button" onClick={() => navigate("/forgot-password")} className="text-sm font-medium text-blue-600 hover:text-blue-500">
-                Forgot password?
+                {t("auth.forgotPassword")}
               </button>
             </div>
 
@@ -202,9 +233,9 @@ const res = await api.post("/auth/login", { email, password }, {
               className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? (
-                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Signing in...</span></>
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" aria-hidden="true" /><span>{t("auth.signingIn")}</span></>
               ) : (
-                <><LogIn className="w-4 h-4" /><span>Sign in</span></>
+                <><LogIn className="w-4 h-4" aria-hidden="true" /><span>{t("auth.signIn")}</span></>
               )}
             </button>
 
@@ -235,6 +266,8 @@ const res = await api.post("/auth/login", { email, password }, {
                 </button>
               </div>
             )}
+              </>
+            )}
           </form>
 
           {/* Register Link */}
@@ -245,7 +278,7 @@ const res = await api.post("/auth/login", { email, password }, {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-                  New to the system?
+                  {t("auth.noAccount")}
                 </span>
               </div>
             </div>
@@ -254,8 +287,8 @@ const res = await api.post("/auth/login", { email, password }, {
                 onClick={() => navigate("/register")}
                 className="w-full flex items-center justify-center gap-2 py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none transition-colors"
               >
-                <span>Create an account</span>
-                <ChevronRight className="w-4 h-4" />
+                <span>{t("nav.register")}</span>
+                <ChevronRight className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
           </div>

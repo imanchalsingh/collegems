@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface ScholarshipApp {
   _id: string;
@@ -40,6 +42,7 @@ interface ScholarshipApp {
 }
 
 export default function Scholarships() {
+  const { data: academicLabels } = useAcademicLabels();
   const [role, setRole] = useState<string>("");
   const [applications, setApplications] = useState<ScholarshipApp[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,6 +99,11 @@ export default function Scholarships() {
     e.preventDefault();
     if (!formData.scholarshipName || !formData.amount || !formData.reason) {
       alert("Please fill in all required fields.");
+      return;
+    }
+
+    if (Number(formData.amount) <= 0) {
+      alert("Amount must be a positive number.");
       return;
     }
 
@@ -415,6 +423,7 @@ export default function Scholarships() {
                   <input
                     type="number"
                     name="amount"
+                    min="0"
                     value={formData.amount}
                     onChange={handleInputChange}
                     placeholder="e.g. 50000"
@@ -500,7 +509,7 @@ export default function Scholarships() {
                 Review Scholarship Application
               </h3>
               <p className="text-sm text-gray-500">
-                Process request for {selectedApp.studentId?.name || "Student"}.
+                Process request for {selectedApp.studentId?.name || `${getAcademicLabel("student", academicLabels)}`}.
               </p>
             </div>
 
@@ -512,7 +521,7 @@ export default function Scholarships() {
                 <strong>Amount Requested:</strong> ₹{selectedApp.amount.toLocaleString()}
               </p>
               <p>
-                <strong>Student Reason:</strong> "{selectedApp.reason}"
+                <strong>{getAcademicLabel("student", academicLabels)} Reason:</strong> "{selectedApp.reason}"
               </p>
             </div>
 

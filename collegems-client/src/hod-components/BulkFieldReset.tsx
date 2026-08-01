@@ -1,9 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
-const ALLOWED_FIELDS = [
+const getAllowedFields = (academicLabels: any) => [
   { value: "phone", label: "Phone Number" },
-  { value: "department", label: "Department" },
+  {
+    value: "department",
+    label: getAcademicLabel("department", academicLabels),
+  },
   { value: "tags", label: "Tags" },
   { value: "teacherId", label: "Teacher ID" },
 ];
@@ -24,6 +29,8 @@ interface PreviewUser {
 }
 
 const BulkFieldReset = () => {
+  const { data: academicLabels } = useAcademicLabels();
+  const ALLOWED_FIELDS = getAllowedFields(academicLabels);
   const [users, setUsers] = useState<User[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [field, setField] = useState("");
@@ -102,9 +109,9 @@ const BulkFieldReset = () => {
   };
 
   // Load users on mount
-  useState(() => {
+  useEffect(() => {
     fetchUsers();
-  });
+  }, []);
 
   return (
     <div className="p-6 max-w-4xl mx-auto">

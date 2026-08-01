@@ -18,8 +18,11 @@ import {
   AwardIcon,
   BookOpen,
 } from "lucide-react";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 export default function SemesterComparison() {
+  const { data: academicLabels } = useAcademicLabels();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +99,7 @@ export default function SemesterComparison() {
       current: data.current.averageMarks,
     },
     {
-      metric: "Courses",
+      metric: `${getAcademicLabel("course", academicLabels)}s`,
       previous: data.previous.enrolledCourses,
       current: data.current.enrolledCourses,
     },
@@ -116,7 +119,7 @@ export default function SemesterComparison() {
       diff: data.difference.averageMarks,
     },
     {
-      title: "Enrolled Courses",
+      title: `Enrolled ${getAcademicLabel("course", academicLabels)}s`,
       icon: BookOpen,
       current: data.current.enrolledCourses,
       diff: data.difference.enrolledCourses,

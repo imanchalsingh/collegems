@@ -5,7 +5,7 @@ import {
   LayoutGrid, Users, GraduationCap, BookOpen, Building2, FileText,
   Wallet, DollarSign, Calendar, Menu, X, RefreshCw, ChevronRight,
   Bell, Search, UserCircle, LogOut, Settings, CalendarDays,
-  Moon, Sun, Award, Bus, MessageSquare, Activity, Lock, Wrench
+  Moon, Sun, Award, Bus, MessageSquare, Activity, Lock, Wrench, Edit, Shuffle // <-- Added Edit here
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -37,9 +37,12 @@ import HODCourses from "../hod-components/Courses";
 import AnnouncementForm from "../common-components-management/AnnouncementForm";
 import AnnouncementManage from "../common-components-management/AnnouncementManage";
 import FeedbackManagement from "../hod-components/FeedbackManagement";
+import ComplaintManagement from "../hod-components/ComplaintManagement";
 import ExamHalls from "../hod-components/ExamHalls";
 import HallAllocation from "../hod-components/HallAllocation";
+import ExamSeatingGenerator from "../hod-components/ExamSeatingGenerator";
 import AuditLogs from "../hod-components/AuditLogs";
+import RecordHistoryDiffViewer from "../components/audit/RecordHistoryDiffViewer";
 import BookingManagement from "../hod-components/BookingManagement";
 import ResourceManagement from "../hod-components/ResourceManagement";
 import SemesterManagement from "../hod-components/SemesterManagement";
@@ -48,14 +51,19 @@ import { SequenceRepair } from "../common-components-management/SequenceRepair";
 import FormAbandonmentStats from "../hod-components/FormAbandonmentStats";
 import WorkflowAdmin from "../hod-components/WorkflowAdmin";
 import WorkflowApprovals from "../hod-components/WorkflowApprovals";
-
+import ReminderManagement from "../common-components-management/ReminderManagement";
+import BulkRenameSections from "../common-components-management/BulkRenameSections"; // <-- Add this line
+import IssueCertificatePanel from "../hod-components/IssueCertificatePanel";
 // Pages
 import RiskDashboard from "./RiskDashboard";
 import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget";
 import TrackingWidget from "../hod-components/TrackingWidget";
 import SystemHealthDashboard from "../hod-components/SystemHealthDashboard";
+import SecurityMetricsDashboard from "../hod-components/SecurityMetricsDashboard";
 import HodAnalyticsWidget from "../components/AnalyticsWidgets/HodAnalyticsWidget";
-
+import LiveTrafficWidget from '../hod-components/LiveTrafficWidget';
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 type TabType =
   | "overview"
   | "analytics"
@@ -74,25 +82,33 @@ type TabType =
   | "library"
   | "settings"
   | "reports"
+  | "alumni-portal"
   | "exam-forms"
   | "scholarships"
   | "feedback"
+  | "complaints"
   | "bus-routes"
   | "exam-halls"
   | "hall-allocation"
+  | "exam-seating"
   | "audit-logs"
+  | "record-history"
   | "manage-bookings"
   | "manage-resources"
   | "risk-dashboard"
   | "system-logs"
   | "system-health"
+  | "security-metrics"
   | "freeze-semesters"
   | "data-locks"
   | "sequence-repair"
   | "form-insights"
   | "department-analytics"
   | "workflow-admin"
-  | "workflow-approvals";
+  | "workflow-approvals"
+  | "reminders"
+  | "bulk-rename"
+  | "sealed-certificates";
 
 interface Data {
   cards: Array<{ title: string; value: number }>;
@@ -113,6 +129,7 @@ interface ProfileData {
 }
 
 export default function HODDashboard() {
+  const { data: academicLabels } = useAcademicLabels();
   const navigate = useNavigate();
   const { darkMode, toggleTheme } = useTheme();
 
@@ -147,36 +164,44 @@ export default function HODDashboard() {
     { id: "announcements" as TabType, label: "Announcements", icon: Bell },
     { id: "teachers" as TabType, label: "Teachers", icon: Users },
     { id: "teachers-attendance" as TabType, label: "Teachers Attendance", icon: Users },
-    { id: "students" as TabType, label: "Students", icon: GraduationCap },
+    { id: "students" as TabType, label: `${getAcademicLabel("student", academicLabels)}s`, icon: GraduationCap },
     { id: "academic-calendar" as TabType, label: "Academic Calendar", icon: Calendar },
-    { id: "courses" as TabType, label: "Courses", icon: BookOpen },
+    { id: "courses" as TabType, label: `${getAcademicLabel("course", academicLabels)}s`, icon: BookOpen },
     { id: "classes" as TabType, label: "Classes", icon: Building2 },
     { id: "syllabus" as TabType, label: "Syllabus", icon: FileText },
     { id: "fees" as TabType, label: "Fees", icon: Wallet },
     { id: "salary" as TabType, label: "Salary", icon: DollarSign },
     { id: "examSchedule" as TabType, label: "Exam Schedule", icon: Calendar },
     { id: "events" as TabType, label: "Organize Events", icon: CalendarDays },
-    { id: "library" as TabType, label: "Library Catalog", icon: BookOpen },
+    { id: "library" as TabType, label: "Smart Library", icon: BookOpen },
     { id: "reports" as TabType, label: "Report Generator", icon: FileText },
+    { id: "alumni-portal" as TabType, label: "Alumni Portal", icon: Users },
     { id: "feedback" as TabType, label: "Feedback", icon: MessageSquare },
+    { id: "complaints" as TabType, label: "Complaints & SLA", icon: MessageSquare },
     { id: "exam-forms" as TabType, label: "Exam Forms", icon: FileText },
     { id: "scholarships" as TabType, label: "Scholarship Approvals", icon: Award },
     { id: "bus-routes" as TabType, label: "Bus Routes Management", icon: Bus },
     { id: "exam-halls" as TabType, label: "Exam Halls", icon: Building2 },
     { id: "hall-allocation" as TabType, label: "Hall Allocation", icon: Users },
+    { id: "exam-seating" as TabType, label: "Anti-Cheat Seating", icon: Shuffle },
     { id: "audit-logs" as TabType, label: "Audit Logs", icon: FileText },
+    { id: "record-history" as TabType, label: "Record History", icon: History },
     { id: "system-logs" as TabType, label: "System Traces", icon: FileText },
     { id: "system-health" as TabType, label: "System Health", icon: Activity },
+    { id: "security-metrics" as TabType, label: "Security Metrics", icon: Shield },
     { id: "manage-bookings" as TabType, label: "Manage Bookings", icon: Calendar },
     { id: "manage-resources" as TabType, label: "Manage Resources", icon: Building2 },
-    { id: "freeze-semesters" as TabType, label: "Freeze Semesters", icon: BookOpen },
+    { id: "freeze-semesters" as TabType, label: `Freeze ${getAcademicLabel("semester", academicLabels)}s`, icon: BookOpen },
     { id: "data-locks" as TabType, label: "Data Locks", icon: Lock },
     { id: "sequence-repair" as TabType, label: "Sequence Repair", icon: Wrench },
     { id: "form-insights" as TabType, label: "Form Insights", icon: Activity },
     { id: "risk-dashboard" as TabType, label: "Predictive Analytics", icon: LayoutGrid },
     { id: "workflow-admin" as TabType, label: "Workflow Builder", icon: Settings },
     { id: "workflow-approvals" as TabType, label: "Pending Approvals", icon: Activity },
-    { id: "department-analytics" as TabType, label: "Department Analytics", icon: LayoutGrid },
+    { id: "department-analytics" as TabType, label: `${getAcademicLabel("department", academicLabels)} Analytics`, icon: LayoutGrid },
+    { id: "reminders" as TabType, label: "Profile Reminders", icon: Bell },
+    { id: "bulk-rename" as TabType, label: `Bulk Rename ${getAcademicLabel("section", academicLabels)}s`, icon: Edit },
+    { id: "sealed-certificates" as TabType, label: "Sealed Certificates", icon: Shield },
   ];
 
   // Fetch data on mount
@@ -294,7 +319,7 @@ export default function HODDashboard() {
   }));
 
   const activeLabel = navigationItems.find((item) => item.id === activeTab)?.label || "Overview";
-  const profileDepartment = profile?.department || profile?.departmentCode || "Department not set";
+  const profileDepartment = profile?.department || profile?.departmentCode || `${getAcademicLabel("department", academicLabels)} not set`;
   const profileInitials = profile?.name
     ?.split(" ")
     .filter(Boolean)
@@ -442,7 +467,7 @@ export default function HODDashboard() {
                     </span>
                   </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    {profile?.department || "Department not assigned"}
+                    {profile?.department || `${getAcademicLabel("department", academicLabels)} not assigned`}
                     {profile?.departmentCode ? ` • ${profile.departmentCode}` : ""}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-3">
@@ -455,7 +480,7 @@ export default function HODDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:min-w-[320px]">
                 <div className="rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-4">
                   <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Designation</p>
-                  <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">Head of Department</p>
+                  <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">Head of {getAcademicLabel("department", academicLabels)}</p>
                 </div>
                 <div className="rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-4">
                   <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Last sync</p>
@@ -509,8 +534,9 @@ export default function HODDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
                   { label: "Generate Reports", icon: FileText, color: "bg-blue-50 text-blue-700 hover:bg-blue-100", onClick: () => navigate("/hod/reports") },
-                  { label: "View Students", icon: GraduationCap, color: "bg-amber-50 text-amber-700 hover:bg-amber-100", onClick: () => setActiveTab("students") },
-                  { label: "Manage Courses", icon: BookOpen, color: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100", onClick: () => setActiveTab("courses") },
+                  { label: "Progress Report Cards", icon: FileText, color: "bg-teal-50 text-teal-700 hover:bg-teal-100", onClick: () => navigate("/progress-report") },
+                  { label: `View ${getAcademicLabel("student", academicLabels)}s`, icon: GraduationCap, color: "bg-amber-50 text-amber-700 hover:bg-amber-100", onClick: () => setActiveTab("students") },
+                  { label: `Manage ${getAcademicLabel("course", academicLabels)}s`, icon: BookOpen, color: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100", onClick: () => setActiveTab("courses") },
                 ].map((action, index) => {
                   const Icon = action.icon;
                   return (
@@ -526,6 +552,7 @@ export default function HODDashboard() {
             <div className="space-y-6">
               <AttendanceAlertsWidget />
               <TrackingWidget />
+              <LiveTrafficWidget />
             </div>
           </div>
         </div>
@@ -562,13 +589,17 @@ export default function HODDashboard() {
         {activeTab === "courses" && <HODCourses />}
         {activeTab === "settings" && <HODSettings />}
         {activeTab === "feedback" && <FeedbackManagement />}
+        {activeTab === "complaints" && <ComplaintManagement />}
         {activeTab === "exam-forms" && <HODExamForms />}
         {activeTab === "scholarships" && <Scholarships />}
         {activeTab === "bus-routes" && <BusRoutes />}
         {activeTab === "exam-halls" && <ExamHalls />}
         {activeTab === "hall-allocation" && <HallAllocation />}
+        {activeTab === "exam-seating" && <ExamSeatingGenerator />}
         {activeTab === "audit-logs" && <AuditLogs />}
+        {activeTab === "record-history" && <RecordHistoryDiffViewer />}
         {activeTab === "system-health" && <SystemHealthDashboard />}
+        {activeTab === "security-metrics" && <SecurityMetricsDashboard />}
         {activeTab === "manage-bookings" && <BookingManagement />}
         { activeTab === "manage-resources" && <ResourceManagement /> }
         { activeTab === "freeze-semesters" && <SemesterManagement /> }
@@ -579,6 +610,9 @@ export default function HODDashboard() {
         { activeTab === "workflow-admin" && <WorkflowAdmin /> }
         { activeTab === "workflow-approvals" && <WorkflowApprovals /> }
         { activeTab === "department-analytics" && <HodAnalyticsWidget /> }
+        { activeTab === "reminders" && <ReminderManagement /> }
+        { activeTab === "bulk-rename" && <BulkRenameSections /> }
+        {activeTab === "sealed-certificates" && <IssueCertificatePanel />}
       </>
     );
   };
@@ -617,6 +651,8 @@ export default function HODDashboard() {
                     onClick={() => {
                       if (item.id === ("reports" as TabType)) {
                         navigate("/hod/reports");
+                      } else if (item.id === ("alumni-portal" as TabType)) {
+                        navigate("/alumni-portal");
                       } else {
                         setActiveTab(item.id);
                         setSidebarOpen(false);

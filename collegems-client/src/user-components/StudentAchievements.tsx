@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Trophy, Medal, Award, Star, Code, BookOpen, Globe, Dumbbell, Palette, Sparkles, ChevronRight, Music } from "lucide-react";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 // Types 
 interface Achievement {
@@ -260,6 +262,7 @@ const ALL_CATEGORIES = [
 ];
 
 export default function StudentAchievements() {
+  const { data: academicLabels } = useAcademicLabels();
   const [activeCategory, setActiveCategory] = useState("All");
   const [showAll, setShowAll] = useState(false);
 
@@ -288,7 +291,7 @@ export default function StudentAchievements() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Student Achievements
+                  {getAcademicLabel("student", academicLabels)} Achievements
                 </h1>
                 <p className="text-gray-500 dark:text-gray-400 mt-0.5">
                   Celebrating our community's excellence

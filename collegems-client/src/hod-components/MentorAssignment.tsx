@@ -2,8 +2,11 @@ import { useState, useEffect } from "react";
 import api from "../api/axios";
 import { Users, Plus } from "lucide-react";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 export default function MentorAssignment() {
+  const { data: academicLabels } = useAcademicLabels();
   const [mentorships, setMentorships] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
@@ -71,7 +74,7 @@ export default function MentorAssignment() {
             </select>
           </div>
           <div className="flex-1">
-            <label htmlFor="mentor-mentee" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mentee (Student)</label>
+            <label htmlFor="mentor-mentee" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mentee ({getAcademicLabel("student", academicLabels)})</label>
             <select
               id="mentor-mentee"
               className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"

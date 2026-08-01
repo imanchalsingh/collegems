@@ -15,9 +15,12 @@ import {
   Eye,
   CheckCircle,
   Download,
+  Trash2,
+  Search,
+  ListFilter,
 } from "lucide-react";
 import api from "../api/axios";
-
+import { handleDeleteWithUndo } from "../utils/toastActions";
 const BACKEND_ORIGIN = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api").replace(/\/api\/?$/, "");
 import AssignmentComments from "../common-components-management/AssignmentComments";
 import RichTextEditor from "../common-components-management/RichTExtEditor";
@@ -27,13 +30,18 @@ import {
   fetchTeacherAssignments,
   createAssignment,
   evaluateAssignment,
-  clearError
+  clearError,
+  removeAssignmentOptimistically, // <-- ADDED
+  restoreAssignmentOptimistically // <-- ADDED
 } from "../store/slices/assignmentSlice";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 export default function TeacherAssignments({ courseId }: { courseId: string }) {
+  const { data: academicLabels } = useAcademicLabels();
   const dispatch = useAppDispatch();
   const { teacherAssignments, loadingTeacher, loadingAction, error } = useAppSelector((state) => state.assignments);
-
+const [isPublished, setIsPublished] = useState(true);
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -45,7 +53,10 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [editedMarks, setEditedMarks] = useState<Record<string, string>>({});
   const [gradingId, setGradingId] = useState<string | null>(null);
-  
+  const [searchQuery, setSearchQuery] = useState("");
+  // Add this with your other state variables
+const [sortBy, setSortBy] = useState<"recent" | "due_soon">("recent");
+const [isDownloadingAll, setIsDownloadingAll] = useState(false);
   // <-- ADDED THIS: State for the document viewer modal
   const [viewerData, setViewerData] = useState<{
     isOpen: boolean;
@@ -69,7 +80,15 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
   useEffect(() => {
     dispatch(fetchTeacherAssignments());
   }, [courseId, dispatch]);
-
+// 2. Add the filtering logic
+  const filteredAssignments = assignments.filter((assignment) => {
+    const titleLower = (assignment?.title || "").toLowerCase();
+    const searchLower = (searchQuery || "").toLowerCase();
+    
+    return titleLower.includes(searchLower);
+  });
+  
+  
   const handleCreateAssignment = async () => {
     if (!hasCourseId) {
       setLocalError("Select a course before creating an assignment.");
@@ -93,6 +112,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
         dueDate,
         maxMarks: maxMarks || undefined,
         submissionType,
+        isPublished
       })).unwrap();
 
       const successMessage = document.createElement("div");
@@ -184,12 +204,66 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
       setGradingId(null);
     }
   };
+  const handleDownloadAllFiles = async () => {
+    // Filter out submissions that actually have a file attached
+    const submissionsWithFiles = viewingSubmissions.submissions?.filter(
+      (sub: any) => sub.file && sub.file.url
+    ) || [];
+    
+    if (submissionsWithFiles.length === 0) {
+      alert("No files attached to these submissions.");
+      return;
+    }
 
+    setIsDownloadingAll(true);
+    
+    // Process downloads sequentially with a slight delay
+    // This prevents the browser's "multiple pop-ups" blocker from stopping the downloads
+    for (let i = 0; i < submissionsWithFiles.length; i++) {
+      const sub = submissionsWithFiles[i];
+      const fileUrl = sub.file.url.startsWith("http") 
+        ? `${sub.file.url}?token=${localStorage.getItem("token")}` 
+        : `${BACKEND_ORIGIN}${sub.file.url}?token=${localStorage.getItem("token")}`;
+      
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      // Hint to the browser to download the file and give it the student's original filename
+      link.setAttribute("download", sub.file.originalName || `student_submission_${i}`);
+      link.target = "_blank"; // Fallback in case it's a PDF the browser insists on opening
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Wait 800ms between downloads
+      await new Promise(resolve => setTimeout(resolve, 800));
+    }
+    
+    setIsDownloadingAll(false);
+  };
+const handleDeleteAssignment = (assignmentToDelete: any) => {
+    handleDeleteWithUndo(
+      assignmentToDelete._id,
+      
+      // ❌ REMOVE THE "s" HERE
+      (id) => api.delete(`/assignment/${id}`), 
+      
+      // ❌ REMOVE THE "s" HERE (and ensure it matches your backend structure)
+      (id) => api.put(`/assignment/restore/${id}`), 
+      
+      // Instantly remove from Redux UI
+      (id) => dispatch(removeAssignmentOptimistically(id)),
+      
+      // Put it back in Redux UI if undone
+      () => dispatch(restoreAssignmentOptimistically(assignmentToDelete))
+    );
+  };
   const resetForm = () => {
     setTitle("");
     setDescription("");
     setDueDate("");
     setMaxMarks("");
+    setIsPublished(true);
     setSubmissionType("file");
     setLocalError(null);
     dispatch(clearError());
@@ -200,19 +274,19 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
       value: "file",
       label: "File Upload",
       icon: Paperclip,
-      description: "Students upload files",
+      description: `${getAcademicLabel("student", academicLabels)}s upload files`,
     },
     {
       value: "text",
       label: "Text Input",
       icon: Type,
-      description: "Students enter text",
+      description: `${getAcademicLabel("student", academicLabels)}s enter text`,
     },
     {
       value: "link",
       label: "Link",
       icon: Link2,
-      description: "Students submit URLs",
+      description: `${getAcademicLabel("student", academicLabels)}s submit URLs`,
     },
     {
       value: "both",
@@ -475,14 +549,33 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                 </div>
               </div>
 
-              {/* Course Info */}
+             {/* Course Info */}
               <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <p className="text-xs text-gray-500 mb-1">Course ID</p>
+                <p className="text-xs text-gray-500 mb-1">{getAcademicLabel("course", academicLabels)} ID</p>
                 <p className="text-sm font-medium text-gray-900">
                   {courseId || "Not available"}
                 </p>
               </div>
-            </div>
+
+              {/* 🔴 3. ADD THIS DRAFT TOGGLE SWITCH HERE */}
+              <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm mt-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900">Publish Immediately?</h4>
+                  <p className="text-xs text-gray-500">Uncheck to save as a draft. Students cannot see drafts.</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer"
+                    checked={isPublished}
+                    onChange={(e) => setIsPublished(e.target.checked)}
+                    disabled={loadingAction}
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+
+            </div> {/* <-- This is the end of the form div */}
 
             {/* Footer Buttons */}
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
@@ -517,7 +610,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
         </div>
       )}
 
-      {/* Recent Assignments Preview */}
+    {/* Recent Assignments Preview */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-gray-900">Recent Assignments</h3>
@@ -525,46 +618,143 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
             View all
           </button>
         </div>
-        <div className="space-y-3">
-          {assignments.length === 0 ? (
-            <div className="flex flex-col items-center py-6 text-center">
-              <FileText className="w-8 h-8 text-gray-300 mb-2" />
-              <p className="text-sm text-gray-500">No assignments yet</p>
-              {hasCourseId && (
-                <button
-                  onClick={() => setOpen(true)}
-                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Create First Assignment
-                </button>
-              )}
+        
+    {/* Controls Section: Search and Sort */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          {/* The Search Bar */}
+          <div className="relative flex-1 sm:max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search assignments by title..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-10 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+            />
+            {searchQuery.length > 0 && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 bg-transparent hover:bg-gray-100 rounded-md transition-colors"
+                title="Clear search"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* NEW: Sorting Dropdown */}
+          <div className="flex items-center gap-2 sm:ml-auto">
+            <label htmlFor="sort-assignments" className="sr-only">Sort by</label>
+            <div className="relative w-full sm:w-48">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <ListFilter className="w-4 h-4 text-gray-400" />
+              </div>
+              <select
+                id="sort-assignments"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as "recent" | "due_soon")}
+                className="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 block w-full pl-9 p-2 transition-all outline-none appearance-none cursor-pointer pr-8"
+              >
+                <option value="recent">Recently Created</option>
+                <option value="due_soon">Due Soonest</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
             </div>
+          </div>
+        </div>
+<div className="space-y-3">
+          {filteredAssignments.length === 0 ? (
+            // 1. Check if they have zero assignments in total
+            assignments.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-gray-50/50 rounded-xl border-2 border-dashed border-gray-200 my-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-5 shadow-sm">
+                  <FileText className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  No assignments created yet!
+                </h3>
+                <p className="text-sm text-gray-500 max-w-sm mx-auto mb-6 leading-relaxed">
+                  Your course is looking a little empty. Create your very first assignment to start engaging with your students.
+                </p>
+                {hasCourseId ? (
+                  <button
+                    onClick={() => setOpen(true)}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Create Your First Assignment
+                  </button>
+                ) : (
+                  <p className="text-sm font-medium text-amber-700 bg-amber-50 px-4 py-2 rounded-lg border border-amber-200">
+                    Please select a course first to create an assignment.
+                  </p>
+                )}
+              </div>
+            ) : (
+              // 2. If they have assignments, but the search filtered them all out
+              <div className="flex flex-col items-center justify-center py-12 text-center bg-white rounded-lg border border-gray-100">
+                <div className="p-3 bg-gray-50 rounded-full mb-3">
+                  <FileText className="w-6 h-6 text-gray-400" />
+                </div>
+                <p className="text-gray-900 font-medium mb-1">No assignments match your search</p>
+                <p className="text-sm text-gray-500">Try typing a different keyword or title.</p>
+              </div>
+            )
           ) : (
-            [...assignments]
+     [...filteredAssignments]
               .sort((a, b) => {
-                const aTime = new Date(a.createdAt || a.dueDate || 0).getTime();
-                const bTime = new Date(b.createdAt || b.dueDate || 0).getTime();
-                return bTime - aTime;
+                if (sortBy === "recent") {
+                  // Newest first
+                  const aTime = new Date(a.createdAt || 0).getTime();
+                  const bTime = new Date(b.createdAt || 0).getTime();
+                  return bTime - aTime; 
+                } 
+                else if (sortBy === "due_soon") {
+                  // Closest due date first (no due date goes to bottom)
+                  const aTime = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+                  const bTime = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+                  return aTime - bTime;
+                }
+                return 0;
               })
               .map((assignment) => {
                 const dueDate = assignment.dueDate
                   ? new Date(assignment.dueDate)
                   : null;
                 const isActive = dueDate ? dueDate >= new Date() : false;
+                
+                // ADD THIS LINE HERE: Calculate how many submissions need grading
+                // (Make sure 'submissions' and 'status' match your database fields!)
+             const needsGradingCount = assignment.submissions?.filter(
+  (sub: { status: string }) => sub.status === "submitted"
+).length || 0;
+
                 return (
                   <div
                     key={assignment._id || assignment.title}
                     className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
                   >
+                    {/* === LEFT SIDE: Icon, Title, and Date === */}
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-blue-50 rounded-lg">
                         <FileText className="w-4 h-4 text-blue-600" />
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {assignment.title}
-                        </p>
+                     <div>
+                        {/* 🔴 4. UPDATE TITLE TO INCLUDE DRAFT BADGE */}
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-gray-900">
+                            {assignment.title}
+                          </p>
+                          {assignment.isPublished === false && (
+                            <span className="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-[10px] font-bold border border-yellow-200 uppercase tracking-wider">
+                              Draft
+                            </span>
+                          )}
+                        </div>
+                        {/* NEW: The Read More / Show Less Component */}
+                        <ExpandableText text={assignment.description} maxLength={100} />
                         <p className="text-xs text-gray-500">
                           {dueDate
                             ? `Due ${dueDate.toLocaleDateString("en-US", {
@@ -575,6 +765,8 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                         </p>
                       </div>
                     </div>
+
+                    {/* === RIGHT SIDE: Badges and Buttons === */}
                     <div className="flex items-center gap-3">
                       <span
                         className={`text-xs px-2 py-1 rounded-full border ${
@@ -593,6 +785,23 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                       >
                         <Eye className="w-4 h-4" /> View
                       </button>
+                      {needsGradingCount > 0 && (
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-full text-amber-700 text-xs font-medium shadow-sm">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                          </span>
+                          {needsGradingCount} to grade
+                        </div>
+                      )}
+
+                      <button 
+                        onClick={() => handleDeleteAssignment(assignment)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1 text-sm font-medium"
+                        title="Delete Assignment"
+                      >
+                        <Trash2 className="w-4 h-4" /> Delete
+                      </button>
                     </div>
                   </div>
                 );
@@ -600,6 +809,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
           )}
         </div>
       </div>
+      
 
       {/* ========================================================================
         SPLIT LAYOUT WITH COMMENTS INTEGRATION 
@@ -622,7 +832,7 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
               </div>
             ) : viewingSubmissions && !viewingSubmissions.loading && (
               <>
-                {/* ---------- LEFT COLUMN: SUBMISSIONS LIST ---------- */}
+             {/* ---------- LEFT COLUMN: SUBMISSIONS LIST ---------- */}
                 <div className="flex-1 flex flex-col overflow-hidden border-r border-gray-200">
                   {/* Header */}
                   <div className="px-6 py-5 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
@@ -635,6 +845,31 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
+                      
+                      {/* NEW: Download All Files Button */}
+                      {/* Only show if the assignment type expects files AND at least one file exists */}
+                      {(viewingSubmissions.submissionType === "file" || viewingSubmissions.submissionType === "both") && 
+                       viewingSubmissions.submissions?.some((sub: any) => sub.file?.url) && (
+                        <button
+                          onClick={handleDownloadAllFiles}
+                          disabled={isDownloadingAll}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Download all attached student files"
+                        >
+                          {isDownloadingAll ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
+                              Downloading...
+                            </>
+                          ) : (
+                            <>
+                              <Download className="w-4 h-4 text-gray-500" />
+                              Download All Files
+                            </>
+                          )}
+                        </button>
+                      )}
+
                       <button
                         onClick={() => setViewingSubmissions(null)}
                         className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
@@ -653,43 +888,60 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {viewingSubmissions.submissions.map((sub: any, idx: number) => {
-                          
-                          // Helper to construct secure file URL
-                          const getFileUrl = () => {
-                            if (!sub.file || !sub.file.url) return "";
-                            return sub.file.url.startsWith("http") 
-                                ? `${sub.file.url}?token=${localStorage.getItem("token")}` 
-                                : `http://localhost:5000${sub.file.url}?token=${localStorage.getItem("token")}`;
-                          };
+                     {viewingSubmissions.submissions.map((sub: any, idx: number) => {
+    
+    // 1. Calculate if the submission is late
+    const isLate = viewingSubmissions.dueDate && sub.submittedAt 
+      ? new Date(sub.submittedAt) > new Date(viewingSubmissions.dueDate)
+      : false;
 
-                          return (
-                          <div key={idx} className="bg-white rounded-lg border border-gray-200 p-5 shadow-sm">
-                            <div className="flex items-start justify-between flex-wrap gap-4">
-                              <div className="flex items-center gap-4 min-w-[200px]">
-                                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold overflow-hidden">
-                                  {sub.student?.avatarUrl || sub.student?.photo ? (
-                                    <img src={sub.student.avatarUrl || sub.student.photo} alt={sub.student?.name} className="w-full h-full object-cover" />
-                                  ) : sub.student?.name?.charAt(0).toUpperCase() || "S"}
-                                </div>
-                                <div>
-                                 <p className="font-semibold text-gray-900 flex items-center">
-                                 {sub.student?.name || "Unknown Student"}
-                                    </p>
-                                  <p className="text-sm text-gray-500">{sub.student?.email || "No email"}</p>
-                                </div>
-                              </div>
-                              
-                              <div className="flex flex-col items-end min-w-[150px]">
-                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${sub.status === 'graded' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
-                                  {sub.status === 'graded' ? <CheckCircle className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                                  {sub.status === 'graded' ? 'Graded' : 'Submitted'}
-                                </span>
-                                <p className="text-xs text-gray-500 mt-2">
-                                  {new Date(sub.submittedAt).toLocaleString()}
-                                </p>
-                              </div>
-                            </div>
+    // Helper to construct secure file URL
+    const getFileUrl = () => {
+      if (!sub.file || !sub.file.url) return "";
+      return sub.file.url.startsWith("http") 
+          ? `${sub.file.url}?token=${localStorage.getItem("token")}` 
+          : `${BACKEND_ORIGIN}${sub.file.url}?token=${localStorage.getItem("token")}`;
+    };
+
+    return (
+    <div key={idx} className="bg-white rounded-lg border border-gray-200 p-5 shadow-sm">
+      <div className="flex items-start justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-4 min-w-[200px]">
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold overflow-hidden">
+            {sub.student?.avatarUrl || sub.student?.photo ? (
+              <img src={sub.student.avatarUrl || sub.student.photo} alt={sub.student?.name} className="w-full h-full object-cover" />
+            ) : sub.student?.name?.charAt(0).toUpperCase() || "S"}
+          </div>
+          <div>
+           <p className="font-semibold text-gray-900 flex items-center">
+           {sub.student?.name || `Unknown ${getAcademicLabel("student", academicLabels)}`}
+              </p>
+            <p className="text-sm text-gray-500">{sub.student?.email || "No email"}</p>
+          </div>
+        </div>
+        
+        <div className="flex flex-col items-end min-w-[150px]">
+          {/* 2. Added a wrapper div to hold both badges side-by-side */}
+          <div className="flex items-center gap-2">
+            {/* Added the red Late badge */}
+            {isLate && (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">
+                Late
+              </span>
+            )}
+            
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${sub.status === 'graded' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
+              {sub.status === 'graded' ? <CheckCircle className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+              {sub.status === 'graded' ? 'Graded' : 'Submitted'}
+            </span>
+          </div>
+          
+          {/* Changed the date text color to red if it's late to make it extra obvious */}
+          <p className={`text-xs mt-2 ${isLate ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
+            {new Date(sub.submittedAt).toLocaleString()}
+          </p>
+        </div>
+      </div>
                             
                             <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
                               {(sub.textResponse || sub.link) && (
@@ -784,3 +1036,29 @@ export default function TeacherAssignments({ courseId }: { courseId: string }) {
     </div>
   );
 }
+const ExpandableText = ({ text, maxLength = 120 }: { text: string; maxLength?: number }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // If there's no text, don't render anything
+  if (!text) return null;
+
+  // If the text is shorter than the max length, just render it normally
+  if (text.length <= maxLength) {
+    return <p className="text-sm text-gray-500 mt-1">{text}</p>;
+  }
+
+  // Otherwise, slice the text and show the toggle button
+  return (
+    <div className="mt-1">
+      <p className="text-sm text-gray-500 inline">
+        {isExpanded ? text : `${text.slice(0, maxLength).trim()}...`}
+      </p>
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="text-blue-600 hover:text-blue-800 text-sm font-medium ml-2 transition-colors focus:outline-none"
+      >
+        {isExpanded ? "Show Less" : "Read More"}
+      </button>
+    </div>
+  );
+};

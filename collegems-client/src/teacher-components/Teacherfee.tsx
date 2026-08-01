@@ -18,6 +18,8 @@ import {
   MoreHorizontal,
   ChevronDown,
 } from "lucide-react";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Student {
   _id: string;
@@ -57,6 +59,7 @@ const courses = [
 const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
 
 export default function TeacherFee() {
+  const { data: academicLabels } = useAcademicLabels();
   const [fees, setFees] = useState<Fee[]>([]);
   const [filteredFees, setFilteredFees] = useState<Fee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -237,9 +240,9 @@ export default function TeacherFee() {
 
   const exportToCSV = () => {
     const headers = [
-      "Student Name",
-      "Course",
-      "Semester",
+      `${getAcademicLabel("student", academicLabels)} Name`,
+      getAcademicLabel("course", academicLabels),
+      getAcademicLabel("semester", academicLabels),
       "Total Fee",
       "Paid",
       "Remaining",
@@ -335,12 +338,12 @@ export default function TeacherFee() {
           <div className="text-2xl font-bold text-red-600">
             {stats.overdueFees}
           </div>
-          <div className="text-xs text-gray-500 mt-1">Students overdue</div>
+          <div className="text-xs text-gray-500 mt-1">{getAcademicLabel("student", academicLabels)}s overdue</div>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-500">Active Students</span>
+            <span className="text-sm text-gray-500">Active {getAcademicLabel("student", academicLabels)}s</span>
             <div className="p-2 bg-purple-50 rounded-lg">
               <Users className="w-4 h-4 text-purple-600" />
             </div>
@@ -413,14 +416,14 @@ export default function TeacherFee() {
               {/* Course Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Course
+                  {getAcademicLabel("course", academicLabels)}
                 </label>
                 <select
                   value={selectedCourse}
                   onChange={(e) => setSelectedCourse(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="all">All Courses</option>
+                  <option value="all">All {getAcademicLabel("course", academicLabels)}s</option>
                   {courses.map((course) => (
                     <option key={course.id} value={course.id}>
                       {course.name}
@@ -432,14 +435,14 @@ export default function TeacherFee() {
               {/* Semester Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Semester
+                  {getAcademicLabel("semester", academicLabels)}
                 </label>
                 <select
                   value={selectedSemester}
                   onChange={(e) => setSelectedSemester(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="all">All Semesters</option>
+                  <option value="all">All {getAcademicLabel("semester", academicLabels)}s</option>
                   {semesters.map((sem) => (
                     <option key={sem} value={sem}>
                       Semester {sem}
@@ -538,10 +541,10 @@ export default function TeacherFee() {
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Student
+                  {getAcademicLabel("student", academicLabels)}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Course
+                  {getAcademicLabel("course", academicLabels)}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Sem
@@ -616,7 +619,7 @@ export default function TeacherFee() {
                     >
                       <td className="px-4 py-3">
                         <div className="font-medium text-gray-900">
-                          {fee.student?.name || "Deleted Student"}
+                          {fee.student?.name || `Deleted ${getAcademicLabel("student", academicLabels)}`}
                         </div>
                         {fee.student?.email && (
                           <div className="text-xs text-gray-500">

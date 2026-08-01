@@ -7,49 +7,96 @@ import fs from "fs";
 import path from "path";
 import { publishEvent } from "../utils/rabbitmq.js";
 import { checkSemesterFrozen } from "../services/semesterService.js";
+import {
+  validateCourseId,
+  validateTotalPoints,
+  validateTitle,
+  validateDescription,
+  validateDueDate,
+  validateSubmissionType,
+  validateFile,
+  validateLink,
+  validateTextSubmission,
+  validateMarks,
+  validateComment,
+  validateAssignmentId,
+  validateSubmissionId,
+  sanitizeString
+} from "../utils/assignmentValidators.js";
+
+// ============================================
+// CONTROLLER FUNCTIONS
+// ============================================
 
 export const createAssignment = async (req, res) => {
   try {
-    const { title, courseId, dueDate, description, submissionType, validationRules } = req.body;
+const { title, courseId, dueDate, description, submissionType, validationRules, isPublished }= req.body;
     const totalPointsRaw =
       req.body.totalPoints !== undefined
         ? req.body.totalPoints
         : req.body.maxMarks;
 
-    if (!title || !courseId || !dueDate) {
-      return res.status(400).json({ message: "All fields are required" });
+    // Validate Title
+    const titleValidation = validateTitle(title);
+    if (!titleValidation.valid) {
+      return res.status(400).json({ message: titleValidation.error });
     }
-    if (!mongoose.Types.ObjectId.isValid(courseId)) {
-      return res.status(400).json({ message: "Invalid course ID" });
+
+    // Validate Course ID
+    const courseValidation = validateCourseId(courseId);
+    if (!courseValidation.valid) {
+      return res.status(400).json({ message: courseValidation.error });
     }
+
+    // Validate Due Date
+    const dueDateValidation = validateDueDate(dueDate);
+    if (!dueDateValidation.valid) {
+      return res.status(400).json({ message: dueDateValidation.error });
+    }
+
+    // Validate Total Points
+    const pointsValidation = validateTotalPoints(totalPointsRaw);
+    if (!pointsValidation.valid) {
+      return res.status(400).json({ message: pointsValidation.error });
+    }
+
+    // Validate Submission Type
+    const submissionTypeValidation = validateSubmissionType(submissionType);
+    if (!submissionTypeValidation.valid) {
+      return res.status(400).json({ message: submissionTypeValidation.error });
+    }
+
+    // Validate Description (optional but validate if provided)
+    let validDescription = "";
+    if (description) {
+      const descValidation = validateDescription(description);
+      if (!descValidation.valid) {
+        return res.status(400).json({ message: descValidation.error });
+      }
+      validDescription = descValidation.value;
+    }
+
+    // Check authorization
     if (!req.user) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const totalPoints =
-      totalPointsRaw !== undefined && totalPointsRaw !== ""
-        ? Number(totalPointsRaw)
-        : undefined;
-
-    if (totalPointsRaw !== undefined && Number.isNaN(totalPoints)) {
-      return res.status(400).json({ message: "Invalid total points" });
-    }
-
-    const course = await Course.findById(courseId);
+    const course = await Course.findById(courseValidation.value);
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
     await checkSemesterFrozen(course.semester);
 
     const assignment = await Assignment.create({
-      title,
-      description,
-      course: courseId,
+      title: titleValidation.value,
+      description: validDescription,
+      course: courseValidation.value,
       teacher: req.user.id,
-      dueDate,
-      totalPoints,
-      submissionType: submissionType || "file",
+      dueDate: dueDateValidation.value,
+      totalPoints: pointsValidation.value,
+      submissionType: submissionTypeValidation.value || "file",
       validationRules,
+      isPublished: isPublished !== false,
     });
 
     res.status(201).json(assignment);
@@ -66,12 +113,15 @@ export const submitAssignment = async (req, res) => {
     if (!assignment) {
       return res.status(404).json({ message: "Assignment not found" });
     }
+
+    // Check if already submitted
     const alreadySubmitted = assignment.submissions.some(
       (s) => s.student.toString() === req.user.id
     );
     if (alreadySubmitted) {
       return res.status(400).json({ message: "Assignment already submitted" });
     }
+
     const submissionType = assignment.submissionType || "file";
     const textResponse =
       typeof req.body.textResponse === "string" ? req.body.textResponse.trim() : "";
@@ -79,14 +129,22 @@ export const submitAssignment = async (req, res) => {
     const hasFile = Boolean(req.file);
     const hasText = Boolean(textResponse);
     const hasLink = Boolean(link);
-    if (submissionType === "file" && !hasFile)
+
+    // Validate submission type requirements
+    if (submissionType === "file" && !hasFile) {
+      if (req.file && req.file.path) fs.unlinkSync(req.file.path);
       return res.status(400).json({ message: "File is required" });
-    if (submissionType === "text" && !hasText)
+    }
+    if (submissionType === "text" && !hasText) {
       return res.status(400).json({ message: "Text response is required" });
-    if (submissionType === "link" && !hasLink)
+    }
+    if (submissionType === "link" && !hasLink) {
       return res.status(400).json({ message: "Link is required" });
-    if (submissionType === "both" && (!hasFile || !hasText))
+    }
+    if (submissionType === "both" && (!hasFile || !hasText)) {
+      if (req.file && req.file.path) fs.unlinkSync(req.file.path);
       return res.status(400).json({ message: "File and text response are required" });
+    }
 
     // Validate using assignment validation rules
     const rules = assignment.validationRules || {
@@ -95,40 +153,40 @@ export const submitAssignment = async (req, res) => {
       minTextLength: 10
     };
 
+    // Validate file if present
     if (hasFile && req.file) {
-      const maxSizeBytes = (rules.maxFileSizeMB || 5) * 1024 * 1024;
-      if (req.file.size > maxSizeBytes) {
-        // Also remove the uploaded file to free space
+      const fileValidation = validateFile(req.file, (rules.maxFileSizeMB || 5) * 1024 * 1024);
+      if (!fileValidation.valid) {
         if (req.file.path) fs.unlinkSync(req.file.path);
-        return res.status(400).json({ message: `File size exceeds maximum limit of ${rules.maxFileSizeMB}MB` });
-      }
-      if (rules.allowedFileTypes && rules.allowedFileTypes.length > 0) {
-        if (!rules.allowedFileTypes.includes(req.file.mimetype)) {
-          if (req.file.path) fs.unlinkSync(req.file.path);
-          return res.status(400).json({ message: "Invalid file type uploaded" });
-        }
+        return res.status(400).json({ message: fileValidation.error });
       }
     }
 
+    // Validate text if present
     if (hasText) {
+      const textValidation = validateTextSubmission(textResponse);
+      if (!textValidation.valid) {
+        if (req.file && req.file.path) fs.unlinkSync(req.file.path);
+        return res.status(400).json({ message: textValidation.error });
+      }
+      // Check min length from rules
       if (textResponse.length < (rules.minTextLength || 10)) {
         if (req.file && req.file.path) fs.unlinkSync(req.file.path);
-        return res.status(400).json({ message: `Text response must be at least ${rules.minTextLength} characters long` });
+        return res.status(400).json({ 
+          message: `Text response must be at least ${rules.minTextLength || 10} characters long` 
+        });
       }
     }
 
+    // Validate link if present
     if (hasLink) {
-      try {
-        const parsed = new URL(link);
-        if (!/^https?:$/.test(parsed.protocol)) {
-          if (req.file && req.file.path) fs.unlinkSync(req.file.path);
-          return res.status(400).json({ message: "Invalid link format. Must be http or https." });
-        }
-      } catch {
+      const linkValidation = validateLink(link);
+      if (!linkValidation.valid) {
         if (req.file && req.file.path) fs.unlinkSync(req.file.path);
-        return res.status(400).json({ message: "Invalid link format" });
+        return res.status(400).json({ message: linkValidation.error });
       }
     }
+
     const baseUrl = `${req.protocol}://${req.get("host")}`;
     const submission = {
       student: req.user.id,
@@ -145,8 +203,8 @@ export const submitAssignment = async (req, res) => {
             filename: req.file.filename,
           }
         : undefined,
-
     };
+
     assignment.submissions.push(submission);
     await assignment.save();
     
@@ -162,7 +220,7 @@ export const submitAssignment = async (req, res) => {
     if (error.status === 403) return res.status(403).json({ message: error.message });
     res.status(500).json({ message: "Submission failed" });
   }
-}; 
+};
 
 export const evaluateAssignment = async (req, res) => {
   try {
@@ -172,6 +230,8 @@ export const evaluateAssignment = async (req, res) => {
     if (!assignment) {
       return res.status(404).json({ message: "Assignment not found" });
     }
+
+    // Check semester frozen
     if (assignment.course && assignment.course.semester) {
       await checkSemesterFrozen(assignment.course.semester);
     }
@@ -184,15 +244,17 @@ export const evaluateAssignment = async (req, res) => {
       });
     }
 
-    if (!studentId) {
+    // Validate Student ID
+    const studentValidation = validateSubmissionId(studentId);
+    if (!studentValidation.valid) {
       return res.status(400).json({
         success: false,
-        message: "studentId is required",
+        message: studentValidation.error,
       });
     }
 
     const submission = assignment.submissions.find(
-      (s) => s.student.toString() === studentId
+      (s) => s.student.toString() === studentValidation.value
     );
     if (!submission) {
       return res.status(404).json({
@@ -201,22 +263,16 @@ export const evaluateAssignment = async (req, res) => {
       });
     }
 
-    // Validate marks
-    const numericMarks = Number(marks);
-    if (
-      marks === undefined ||
-      marks === null ||
-      isNaN(numericMarks) ||
-      numericMarks < 0 ||
-      (assignment.totalPoints !== undefined && assignment.totalPoints !== null && numericMarks > assignment.totalPoints)
-    ) {
+    // Validate Marks
+    const marksValidation = validateMarks(marks, assignment.totalPoints);
+    if (!marksValidation.valid) {
       return res.status(400).json({
         success: false,
-        message: `Marks must be between 0 and ${assignment.totalPoints}`,
+        message: marksValidation.error,
       });
     }
 
-    submission.marks = numericMarks;
+    submission.marks = marksValidation.value;
     submission.status = "graded";
     await assignment.save();
     res.json({ message: "Assignment evaluated" });
@@ -231,8 +287,12 @@ export const getUpcomingAssignments = async (req, res) => {
   try {
     const studentId = req.user.id;
 
-    // Fetch all assignments and populate course name
-    const all = await Assignment.find()
+    // 🔴 ADD THIS FILTER: { isDeleted: { $ne: true } }
+    // Fetch all active assignments and populate course name
+  const all = await Assignment.find({ 
+      isDeleted: { $ne: true },
+      isPublished: true // <-- THIS HIDES DRAFTS FROM STUDENTS
+    })
       .populate("course", "name code")
       .populate("teacher", "name")
       .lean();
@@ -307,11 +367,13 @@ export const getTeacherAssignments = async (req, res) => {
   try {
     const teacherId = req.user.id;
 
-    // Fetch all assignments created by this teacher
-    const assignments = await Assignment.find({ teacher: teacherId })
+    // UPDATE: Add { isDeleted: { $ne: true } } to the query
+    const assignments = await Assignment.find({ 
+      teacher: teacherId, 
+      isDeleted: { $ne: true } // 🔴 Filters out deleted assignments
+    })
       .populate("course", "name code")
-      .populate("submissions.student", "name email avatarUrl photo") // Important for viewing submissions!
-      // 👇 NEW: Populate the user details inside the comments array for the teacher's view!
+      .populate("submissions.student", "name email avatarUrl photo")
       .populate("comments.user", "name role avatarUrl photo") 
       .sort({ createdAt: -1 })
       .lean();
@@ -323,7 +385,10 @@ export const getTeacherAssignments = async (req, res) => {
   }
 };
 
-// download assignment file securely
+/**
+ * GET /api/assignment/download/:filename
+ * Download assignment file securely
+ */
 export const downloadAssignmentFile = async (req, res) => {
   try {
     const { filename } = req.params;
@@ -365,10 +430,10 @@ export const downloadAssignmentFile = async (req, res) => {
     res.setHeader("Content-Security-Policy", "default-src 'none'");
 
     // Serve the file as a download/attachment with the original filename
-  res.set({
-    'Content-Disposition': `inline; filename="${submission.file.originalName}"`
-});
-res.sendFile(filePath);
+    res.set({
+      'Content-Disposition': `inline; filename="${submission.file.originalName}"`
+    });
+    res.sendFile(filePath);
   } catch (error) {
     console.error("Download Assignment Error:", error);
     res.status(500).json({ message: "Failed to download file" });
@@ -383,11 +448,17 @@ export const getAssignmentSubmissions = async (req, res) => {
   try {
     const assignmentId = req.params.id;
     
+    // Validate Assignment ID
+    const assignmentValidation = validateAssignmentId(assignmentId);
+    if (!assignmentValidation.valid) {
+      return res.status(400).json({ message: assignmentValidation.error });
+    }
+    
     // Find the assignment and populate the student details inside the submissions array
-    const assignment = await Assignment.findById(assignmentId)
+    const assignment = await Assignment.findById(assignmentValidation.value)
       .populate({
         path: "submissions.student",
-        select: "name email avatarUrl photo", // Pulling in necessary student profile data
+        select: "name email avatarUrl photo",
       });
 
     if (!assignment) {
@@ -402,7 +473,7 @@ export const getAssignmentSubmissions = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// NEW FUNCTION — Adds a public comment/question to an assignment
+// ADD COMMENT — Adds a public comment/question to an assignment
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const addAssignmentComment = async (req, res) => {
@@ -410,11 +481,19 @@ export const addAssignmentComment = async (req, res) => {
     const { id } = req.params;
     const { text } = req.body;
     
-    if (!text || text.trim() === "") {
-      return res.status(400).json({ message: "Comment text is required" });
+    // Validate Comment
+    const commentValidation = validateComment(text);
+    if (!commentValidation.valid) {
+      return res.status(400).json({ message: commentValidation.error });
     }
 
-    const assignment = await Assignment.findById(id).populate("course");
+    // Validate Assignment ID
+    const assignmentValidation = validateAssignmentId(id);
+    if (!assignmentValidation.valid) {
+      return res.status(400).json({ message: assignmentValidation.error });
+    }
+
+    const assignment = await Assignment.findById(assignmentValidation.value).populate("course");
     if (!assignment) {
       return res.status(404).json({ message: "Assignment not found" });
     }
@@ -426,7 +505,7 @@ export const addAssignmentComment = async (req, res) => {
     // Add the comment
     assignment.comments.push({
       user: req.user.id,
-      text: text.trim()
+      text: commentValidation.value
     });
 
     await assignment.save();
@@ -445,5 +524,152 @@ export const addAssignmentComment = async (req, res) => {
     console.error("Error adding comment:", error);
     if (error.status === 403) return res.status(403).json({ message: error.message });
     res.status(500).json({ message: "Failed to add comment" });
+  }
+};
+// ─────────────────────────────────────────────────────────────────────────────
+// SOFT DELETE & RESTORE ASSIGNMENT
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const deleteAssignment = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate Assignment ID
+    const assignmentValidation = validateAssignmentId(id);
+    if (!assignmentValidation.valid) {
+      return res.status(400).json({ message: assignmentValidation.error });
+    }
+
+    const deletedAssignment = await Assignment.findByIdAndUpdate(
+      assignmentValidation.value, 
+      { isDeleted: true }, // Soft delete flag
+      { new: true }
+    );
+
+    if (!deletedAssignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    res.status(200).json({ message: "Assignment deleted successfully", assignment: deletedAssignment });
+  } catch (error) {
+    console.error("Delete Assignment Error:", error);
+    res.status(500).json({ message: "Server error during deletion" });
+  }
+};
+
+export const restoreAssignment = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate Assignment ID
+    const assignmentValidation = validateAssignmentId(id);
+    if (!assignmentValidation.valid) {
+      return res.status(400).json({ message: assignmentValidation.error });
+    }
+
+    const restoredAssignment = await Assignment.findByIdAndUpdate(
+      assignmentValidation.value, 
+      { isDeleted: false }, // Remove soft delete flag
+      { new: true }
+    );
+
+    if (!restoredAssignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    res.status(200).json({ message: "Assignment restored successfully", assignment: restoredAssignment });
+  } catch (error) {
+    console.error("Restore Assignment Error:", error);
+    res.status(500).json({ message: "Server error during restoration" });
+  }
+};
+// Add this new function to handle the upvote toggle
+// Add this new function to handle the upvote toggle using ES6 export
+export const toggleUpvote = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { upvoted } = req.body; 
+    
+    // NOTE: req.user._id depends on your auth middleware. 
+    // It might be req.userId or req.studentId depending on your setup!
+    const userId = req.user._id || req.userId; 
+
+    // Assuming you have imported your Assignment model at the top like:
+    // import Assignment from '../models/assignment.model.js';
+    const assignment = await Assignment.findById(id);
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    // Initialize if undefined
+    if (!assignment.upvotedBy) assignment.upvotedBy = [];
+    if (!assignment.helpfulCount) assignment.helpfulCount = 0;
+
+    // Convert ObjectIds to strings for safe comparison
+    const hasUpvoted = assignment.upvotedBy.some(
+      (uid) => uid.toString() === userId.toString()
+    );
+
+    if (upvoted && !hasUpvoted) {
+      // User is upvoting
+      assignment.upvotedBy.push(userId);
+      assignment.helpfulCount += 1;
+    } else if (!upvoted && hasUpvoted) {
+      // User is removing their upvote
+      assignment.upvotedBy = assignment.upvotedBy.filter(
+        (uid) => uid.toString() !== userId.toString()
+      );
+      assignment.helpfulCount = Math.max(0, assignment.helpfulCount - 1);
+    }
+
+    await assignment.save();
+    
+    res.status(200).json({ 
+      success: true, 
+      helpfulCount: assignment.helpfulCount 
+    });
+  } catch (error) {
+    console.error("Error toggling upvote:", error);
+    res.status(500).json({ message: "Server error toggling upvote" });
+  }
+};
+// Add to src/controllers/assignment.controller.js
+export const toggleComplete = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id || req.user.id; 
+
+    const assignment = await Assignment.findById(id);
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    // Initialize array if it doesn't exist
+    if (!assignment.completedBy) assignment.completedBy = [];
+
+    // Check if already completed by this user
+    const hasCompleted = assignment.completedBy.some(
+      (uid) => uid.toString() === userId.toString()
+    );
+
+    if (hasCompleted) {
+      // Remove from completed list (uncheck)
+      assignment.completedBy = assignment.completedBy.filter(
+        (uid) => uid.toString() !== userId.toString()
+      );
+    } else {
+      // Add to completed list (check)
+      assignment.completedBy.push(userId);
+    }
+
+    await assignment.save();
+    
+    res.status(200).json({ 
+      success: true, 
+      completedBy: assignment.completedBy 
+    });
+  } catch (error) {
+    console.error("Error toggling completion:", error);
+    res.status(500).json({ message: "Server error toggling completion status" });
   }
 };

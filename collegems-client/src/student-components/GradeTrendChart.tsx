@@ -2,8 +2,11 @@ import React, { useState } from "react";
 import { useStudentGradeTrend } from "../hooks/useStudentGradeTrend";
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from "recharts";
 import { ChartBarIcon } from "lucide-react";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 export const GradeTrendChart: React.FC<{ studentId: string }> = ({ studentId }) => {
+  const { data: academicLabels } = useAcademicLabels();
   const [semester, setSemester] = useState<string>("");
   const [subject, setSubject] = useState<string>("");
 
@@ -66,11 +69,11 @@ export const GradeTrendChart: React.FC<{ studentId: string }> = ({ studentId }) 
           className="rounded bg-slate-800/30 text-slate-200 px-3 py-2 focus:outline-none"
           aria-label="Filter by semester"
         >
-          <option value="">All Semesters</option>
-          <option value="1">Semester 1</option>
-          <option value="2">Semester 2</option>
-          <option value="3">Semester 3</option>
-          <option value="4">Semester 4</option>
+          <option value="">All {getAcademicLabel("semester", academicLabels)}s</option>
+          <option value="1">{getAcademicLabel("semester", academicLabels)} 1</option>
+          <option value="2">{getAcademicLabel("semester", academicLabels)} 2</option>
+          <option value="3">{getAcademicLabel("semester", academicLabels)} 3</option>
+          <option value="4">{getAcademicLabel("semester", academicLabels)} 4</option>
         </select>
         <select
           value={subject}
@@ -78,7 +81,7 @@ export const GradeTrendChart: React.FC<{ studentId: string }> = ({ studentId }) 
           className="rounded bg-slate-800/30 text-slate-200 px-3 py-2 focus:outline-none"
           aria-label="Filter by subject"
         >
-          <option value="">All Subjects</option>
+          <option value="">All {getAcademicLabel("subject", academicLabels)}s</option>
           {/* In a full implementation these would be fetched dynamically */}
           <option value="CS101">CS101 - Intro to CS</option>
           <option value="CS102">CS102 - Data Structures</option>

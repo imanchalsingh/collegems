@@ -32,8 +32,12 @@ import {
   ChevronDown,
   Activity,
 } from "lucide-react";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
+import QRAttendanceScanner from "../student-components/QRAttendanceScanner";
 
 export default function StudentAttendance() {
+  const { data: academicLabels } = useAcademicLabels();
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("month");
@@ -158,6 +162,10 @@ export default function StudentAttendance() {
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <QRAttendanceScanner />
+        </div>
+
         {/* Header - FIXED */}
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -205,21 +213,21 @@ export default function StudentAttendance() {
                     >
                       <option value="week">This Week</option>
                       <option value="month">This Month</option>
-                      <option value="semester">This Semester</option>
+                      <option value="semester">This {getAcademicLabel("semester", academicLabels)}</option>
                       <option value="all">All Time</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Subject
+                      {getAcademicLabel("subject", academicLabels)}
                     </label>
                     <select
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={selectedSubject}
                       onChange={(e) => setSelectedSubject(e.target.value)}
                     >
-                      <option value="all">All Subjects</option>
+                      <option value="all">All {getAcademicLabel("subject", academicLabels)}s</option>
                       {subjects.map((subject) => (
                         <option key={subject} value={subject}>
                           {subject}
@@ -333,7 +341,7 @@ export default function StudentAttendance() {
           {/* Bar Chart */}
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Attendance by Subject
+              Attendance by {getAcademicLabel("subject", academicLabels)}
             </h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
@@ -518,7 +526,7 @@ export default function StudentAttendance() {
                   <thead>
                     <tr className="border-b border-gray-200 dark:border-gray-700">
                       <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">Date</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">Subject</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">{getAcademicLabel("subject", academicLabels)}</th>
                       <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">Time</th>
                       <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">Status</th>
                       <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-400">Remarks</th>

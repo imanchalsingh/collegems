@@ -23,6 +23,8 @@ import BulkTagModal from "./BulkTagModal";
 import CompareStudentsModal from "./CompareStudentsModal";
 import StudentTimeline from "./StudentTimeline";
 import { trackView } from "../utils/trackView";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Student {
   _id?: string;
@@ -40,6 +42,7 @@ interface Student {
 }
 
 const Students: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const navigate = useNavigate();
   const { data, isLoading, isError, refetch, tableState, actions } =
     useServerDataTable({
@@ -131,7 +134,7 @@ const Students: React.FC = () => {
     });
   };
 
-  const studentHeaders = ["Name", "Email", "Student ID", "Course", "Semester", "Department", "Joined Date"];
+  const studentHeaders = ["Name", "Email", `${getAcademicLabel("student", academicLabels)} ID`, getAcademicLabel("course", academicLabels), getAcademicLabel("semester", academicLabels), getAcademicLabel("department", academicLabels), "Joined Date"];
   const studentMapper = (student: Student) => [
     student.name || "N/A",
     student.email || "N/A",
@@ -152,7 +155,7 @@ const Students: React.FC = () => {
               <Users className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Students</p>
+              <p className="text-sm text-gray-500">Total {getAcademicLabel("student", academicLabels)}s</p>
               <p className="text-xl font-bold text-gray-900">{meta.totalRecords}</p>
             </div>
           </div>
@@ -208,7 +211,7 @@ const Students: React.FC = () => {
               <AdvancedExportButton
                 data={students}
                 filename="Students_Export"
-                pdfTitle="Students Report"
+                pdfTitle={`${getAcademicLabel("student", academicLabels)}s Report`}
                 headers={studentHeaders}
                 dataMapper={studentMapper}
               />
@@ -221,14 +224,14 @@ const Students: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Course
+                    {getAcademicLabel("course", academicLabels)}
                   </label>
                   <select
                     value={tableState.filters.course || "all"}
                     onChange={(e) => actions.setFilter("course", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all">All Courses</option>
+                    <option value="all">All {getAcademicLabel("course", academicLabels)}s</option>
                     <option value="BCA">BCA</option>
                     <option value="BBA">BBA</option>
                     <option value="MCA">MCA</option>
@@ -237,14 +240,14 @@ const Students: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Semester
+                    {getAcademicLabel("semester", academicLabels)}
                   </label>
                   <select
                     value={tableState.filters.semester || "all"}
                     onChange={(e) => actions.setFilter("semester", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all">All Semesters</option>
+                    <option value="all">All {getAcademicLabel("semester", academicLabels)}s</option>
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
                       <option key={sem} value={sem}>
                         Semester {sem}
@@ -254,14 +257,14 @@ const Students: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Department
+                    {getAcademicLabel("department", academicLabels)}
                   </label>
                   <select
                     value={tableState.filters.department || "all"}
                     onChange={(e) => actions.setFilter("department", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all">All Departments</option>
+                    <option value="all">All {getAcademicLabel("department", academicLabels)}s</option>
                     <option value="Computer Science">Computer Science</option>
                     <option value="Business">Business</option>
                     <option value="Mathematics">Mathematics</option>
@@ -312,7 +315,7 @@ const Students: React.FC = () => {
                 icon={<Users className="w-7 h-7 text-blue-600" />}
                 title="No students yet"
                 description="Create the first student record to start building your roster."
-                actionLabel="Create First Student"
+                actionLabel={`Create First ${getAcademicLabel("student", academicLabels)}`}
                 onAction={() => navigate("/register")}
                 actionHint="Opens the registration page for a new student account."
               />
@@ -381,7 +384,7 @@ const Students: React.FC = () => {
                       <div className="flex items-center gap-2 text-sm">
                         <GraduationCap className="w-4 h-4 text-gray-400" />
                         <span className="text-gray-600">
-                          {student.course || "Course not set"}
+                          {student.course || `${getAcademicLabel("course", academicLabels)} not set`}
                         </span>
                         <span className="text-gray-400">·</span>
                         <span className="text-gray-600">
@@ -401,7 +404,7 @@ const Students: React.FC = () => {
                         <span
                           className={`px-2 py-1 rounded-md text-xs font-medium ${getCourseColor(student.course)}`}
                         >
-                          {student.course || "No Course"}
+                          {student.course || `No ${getAcademicLabel("course", academicLabels)}`}
                         </span>
                         <button
                           onClick={() => setSelectedStudent(student)}
@@ -468,7 +471,7 @@ const Students: React.FC = () => {
             <div className="p-6 bg-blue-600">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold text-white">
-                  Student Details
+                  {getAcademicLabel("student", academicLabels)} Details
                 </h3>
                 <button
                   onClick={() => { setSelectedStudent(null); setFullProfile(null); setProfileError(""); }}
@@ -508,7 +511,7 @@ const Students: React.FC = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-500 mb-1">Student ID</p>
+                      <p className="text-xs text-gray-500 mb-1">{getAcademicLabel("student", academicLabels)} ID</p>
                       <p className="text-sm font-medium text-gray-900">
                         {fullProfile?.studentId || selectedStudent.studentId || "N/A"}
                       </p>
@@ -524,13 +527,13 @@ const Students: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-500 mb-1">Course</p>
+                      <p className="text-xs text-gray-500 mb-1">{getAcademicLabel("course", academicLabels)}</p>
                       <p className="text-sm font-medium text-gray-900">
                         {fullProfile?.course || selectedStudent.course || "Not assigned"}
                       </p>
                     </div>
                     <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-500 mb-1">Semester</p>
+                      <p className="text-xs text-gray-500 mb-1">{getAcademicLabel("semester", academicLabels)}</p>
                       <p className="text-sm font-medium text-gray-900">
                         {fullProfile?.semester || selectedStudent.semester || "N/A"}
                       </p>
@@ -546,7 +549,7 @@ const Students: React.FC = () => {
                         </p>
                       </div>
                       <div className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-500 mb-1">Department</p>
+                        <p className="text-xs text-gray-500 mb-1">{getAcademicLabel("department", academicLabels)}</p>
                         <p className="text-sm font-medium text-gray-900">
                           {fullProfile.department || selectedStudent.department || "N/A"}
                         </p>

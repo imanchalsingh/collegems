@@ -17,6 +17,8 @@ import {
   BookOpen,
 } from "lucide-react";
 import EmptyState from "../components/EmptyState";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -158,6 +160,7 @@ const StatusBadge: React.FC<{ sem: Semester }> = ({ sem }) => {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 const SemesterManagement: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -361,7 +364,7 @@ const SemesterManagement: React.FC = () => {
             onKeyDown={(e) => {
               if (e.key === "Enter" && newSessionName.trim()) setShowConfirm(true);
             }}
-            placeholder='e.g. "Fall 2025-26" or "Semester 3"'
+            placeholder={`e.g. "Fall 2025-26" or "${getAcademicLabel("semester", academicLabels)} 3"`}
             className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
           />
           <button

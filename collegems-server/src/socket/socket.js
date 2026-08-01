@@ -2,7 +2,11 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import logger from "../utils/logger.js";
 import { initializeStudyGroupSockets } from "./studyGroupSocket.js";
+import { initializeProctoringSockets } from "./proctoringSocket.js";
 import { allowedOrigins } from "../config/cors.js";
+
+// Store active users in memory
+const activeUsers = new Map();
 
 /**
  * Configures and initializes the Socket.IO server.
@@ -43,21 +47,76 @@ const configureSocketIO = (httpServer, app) => {
     }
   });
 
+  // Helper function to broadcast stats
+const broadcastLiveStats = () => {
+    const stats = { students: 0, teachers: 0, activePages: {} };
+    
+    activeUsers.forEach((user) => {
+      if (user.role === 'student') stats.students++;
+      if (user.role === 'teacher') stats.teachers++;
+      
+      const page = user.currentPage;
+      stats.activePages[page] = (stats.activePages[page] || 0) + 1;
+    });
+
+    // ADD THIS LINE TO DEBUG:
+    console.log("Broadcasting Stats to HOD:", stats); 
+
+    // Send update only to admin and hod rooms
+    io.to('admin').to('hod').emit('live_traffic_update', stats);
+  };
+
   // Socket.IO Connection & Disconnection Events
   io.on("connection", (socket) => {
     const userId = socket.user?.id || socket.user?._id;
-    if (userId) {
+    const userRole = socket.user?.role; // Extracting role from your JWT payload
+if (userId) {
+      // Join individual user room
       socket.join(`user_${userId}`);
-      logger.info(`User connected to socket: ${userId}`);
+      
+      // Join role-based room 
+      if (userRole) {
+        socket.join(userRole); 
+      }
+
+      // Add user to our active tracking map
+      activeUsers.set(socket.id, {
+        userId: userId,
+        role: userRole,
+        currentPage: '/dashboard' // Default starting point
+      });
+
+      // --- ADD THESE TWO LOGS ---
+      console.log(`\n--- NEW CONNECTION ---`);
+      console.log(`User ID: ${userId}`);
+      console.log(`Raw User Role from JWT: "${userRole}"`); // This is where the bug likely is!
+      // --------------------------
+
+     logger.info(`🔥🔥🔥 SUPER CUSTOM LOG: ${userId}`);
+      broadcastLiveStats(); 
     }
 
+    // Track when user clicks to a new page
+    socket.on('page_change', (newRoute) => {
+      if (activeUsers.has(socket.id)) {
+        activeUsers.get(socket.id).currentPage = newRoute;
+        broadcastLiveStats();
+      }
+    });
+
     socket.on("disconnect", () => {
-      if (userId) logger.info(`User disconnected from socket: ${userId}`);
+      if (userId) {
+        logger.info(`User disconnected from socket: ${userId}`);
+        // Remove user and update admins immediately on logout/close
+        activeUsers.delete(socket.id);
+        broadcastLiveStats();
+      }
     });
   });
 
   // Initialize any specific socket modules
   initializeStudyGroupSockets(io);
+  initializeProctoringSockets(io);
 
   return io;
 };

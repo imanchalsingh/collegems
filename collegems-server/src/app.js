@@ -7,7 +7,52 @@ import mongoose from "mongoose";
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import httpContext from "express-http-context";
 import { v4 as uuidv4 } from "uuid";
+import {
+  handleRazorpayWebhook,
+  handleStripeWebhook,
+} from "./controllers/paymentWebhook.controller.js";
 
+// Add this line near your other imports at the top of app.js
+import resourceRoutes from "./routes/resource.routes.js";
+// Auth & Core
+import authRoutes from "./routes/auth.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
+import userRoutes from "./routes/user.routes.js";
+
+// Student / Teacher
+import attendanceRoutes from "./routes/attendance.routes.js";
+import assignmentRoutes from "./routes/assignment.routes.js";
+import feeRoutes from "./routes/fee.routes.js";
+import examScheduleRoutes from "./routes/examschedule.routes.js";
+import classRoutes from "./routes/class.route.js";
+import teacherAttendanceRoutes from "./routes/teacher.attendance.route.js";
+import eventRoute from "./routes/event.routes.js";
+import resultsRoutes from "./routes/results.routes.js";
+import libraryRoutes from "./routes/library.routes.js";
+import assessmentRoutes from "./routes/assessment.routes.js";
+import bookingRoutes from "./routes/booking.routes.js";
+import courseRoutes from "./routes/course.routes.js";
+import salaryRoutes from "./routes/salary.route.js";
+import academicCalendarRoutes from "./routes/academicCalendar.routes.js";
+import reportRoutes from "./routes/report.routes.js";
+import feedbackRoutes from "./routes/feedback.routes.js"; // ← NEW
+import examFormRoutes from "./routes/examForm.routes.js";
+import leaveRoutes from "./routes/leave.routes.js";
+import visitorRoutes from "./routes/visitors.routes.js";
+import transferRoutes from "./routes/transfer.routes.js";
+import scholarshipRoutes from "./routes/scholarship.routes.js";
+import { authenticate } from "./middlewares/auth.middleware.js";
+import syllabusRoutes from "./routes/syllabus.route.js";
+import idCardRoutes from "./routes/idcard.routes.js";
+import { verifyStudent } from "./controllers/idcard.controller.js";
+import busRouteRoutes from "./routes/busRoute.routes.js";
+import officeHoursRoutes from "./routes/officeHours.routes.js";
+import examHallRoutes from "./routes/examHall.routes.js";
+import hallAllocationRoutes from "./routes/hallAllocation.routes.js";
+import Tenant from "./models/Tenant.model.js";
+import reminderRoutes from "./routes/reminder.routes.js";
+import { startReminderCron } from "./cron/reminder.cron.js";
+import { startSlaEscalationCron } from "./cron/slaEscalationCron.js";
 // Apply Global Multi-Tenant Plugin
 import tenantPlugin from "./utils/tenantPlugin.js";
 mongoose.plugin(tenantPlugin);
@@ -21,7 +66,6 @@ import tenantResolver from "./middlewares/tenantResolver.js";
 import log from "./utils/logger.js";
 import cookieParser from "cookie-parser";
 import { allowedOrigins } from "./config/cors.js";
-
 const app = express();
 app.set("query parser", "extended");
 
@@ -41,6 +85,34 @@ app.use(cors({
   // Just add "x-tenant-id" to the end of this list!
   allowedHeaders: ["Content-Type", "Authorization", "X-Correlation-ID", "x-tenant-id"]
 }));
+
+// Payment gateway webhooks need the raw body for signature verification
+// (must be registered before express.json()).
+app.post(
+  "/api/webhooks/stripe",
+  express.raw({ type: "application/json" }),
+  (req, res) => {
+    req.rawBody = Buffer.isBuffer(req.body)
+      ? req.body.toString("utf8")
+      : String(req.body || "");
+    return handleStripeWebhook(req, res);
+  }
+);
+app.post(
+  "/api/webhooks/razorpay",
+  express.raw({ type: "application/json" }),
+  (req, res) => {
+    req.rawBody = Buffer.isBuffer(req.body)
+      ? req.body.toString("utf8")
+      : String(req.body || "");
+    try {
+      req.body = JSON.parse(req.rawBody || "{}");
+    } catch {
+      req.body = {};
+    }
+    return handleRazorpayWebhook(req, res);
+  }
+);
 
 app.use(express.json());
 
@@ -67,6 +139,7 @@ app.get("/", (_req, res) => res.send("SCMS Backend Running 🚀"));
 // ========================================
 // Fixed ReferenceError: changed 'router.use' to 'app.use'
 app.use('/analytics', analyticsRoutes);
+app.use("/api/reminders", reminderRoutes); // <-- Paste it right here!
 app.use("/api", apiRouter);
 
 // ========================================
@@ -115,4 +188,6 @@ mongoose.connection.once('open', async () => {
   }
 });
 
+startReminderCron();
+startSlaEscalationCron();
 export default app;

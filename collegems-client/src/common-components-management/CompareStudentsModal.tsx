@@ -2,9 +2,11 @@ import React from 'react';
 import { useQueries } from '@tanstack/react-query';
 import api from '../api/axios';
 import { X, Percent, TrendingUp, GraduationCap } from 'lucide-react';
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 export interface Student {
-  _id: string;
+  _id?: string;
   name: string;
   email: string;
   studentId: string;
@@ -20,6 +22,7 @@ interface CompareStudentsModalProps {
 }
 
 export default function CompareStudentsModal({ students, onClose }: CompareStudentsModalProps) {
+  const { data: academicLabels } = useAcademicLabels();
   const fetchSummary = async (id: string) => {
     const res = await api.get(`/users/students/${id}/summary`);
     return res.data;
@@ -28,7 +31,7 @@ export default function CompareStudentsModal({ students, onClose }: CompareStude
   const results = useQueries({
     queries: students.map(student => ({
       queryKey: ['studentSummary', student._id],
-      queryFn: () => fetchSummary(student._id),
+      queryFn: () => fetchSummary(student._id!),
       enabled: !!student._id
     }))
   });
@@ -45,7 +48,7 @@ export default function CompareStudentsModal({ students, onClose }: CompareStude
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gray-50 dark:bg-gray-900">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Compare Students</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Compare {getAcademicLabel("student", academicLabels)}s</h2>
           <button onClick={onClose} className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg">
             <X className="w-5 h-5" />
           </button>
@@ -115,11 +118,11 @@ export default function CompareStudentsModal({ students, onClose }: CompareStude
                            <span>Enrollment</span>
                         </div>
                         <div className="flex justify-between items-center text-sm border-b border-gray-200 dark:border-gray-700 pb-2">
-                          <span className="text-gray-500 dark:text-gray-400">Course</span>
+                          <span className="text-gray-500 dark:text-gray-400">{getAcademicLabel("course", academicLabels)}</span>
                           <span className="font-semibold text-gray-900 dark:text-white">{s.course || "N/A"}</span>
                         </div>
                         <div className="flex justify-between items-center text-sm border-b border-gray-200 dark:border-gray-700 pb-2">
-                          <span className="text-gray-500 dark:text-gray-400">Semester</span>
+                          <span className="text-gray-500 dark:text-gray-400">{getAcademicLabel("semester", academicLabels)}</span>
                           <span className="font-semibold text-gray-900 dark:text-white">{s.semester || "N/A"}</span>
                         </div>
                         <div className="flex justify-between items-center text-sm">

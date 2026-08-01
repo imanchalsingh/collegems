@@ -5,6 +5,8 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface ExamSchedule {
   _id: string;
@@ -20,6 +22,7 @@ interface ExamSchedule {
 }
 
 const ExamSchedule: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [examSchedules, setExamSchedules] = useState<ExamSchedule[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourse, setSelectedCourse] = useState<string>("all");
@@ -97,7 +100,7 @@ const ExamSchedule: React.FC = () => {
       change: `${getTodayExams()} scheduled today`,
     },
     {
-      label: "Active Courses",
+      label: `Active ${getAcademicLabel("course", academicLabels)}s`,
       value: uniqueCourses.length - 1,
       icon: GraduationCap,
       color: "emerald",
@@ -178,7 +181,7 @@ const ExamSchedule: React.FC = () => {
                     >
                       {uniqueCourses.map((course) => (
                         <option key={course} value={course}>
-                          {course === "all" ? "All Courses" : course}
+                          {course === "all" ? `All ${getAcademicLabel("course", academicLabels)}s` : course}
                         </option>
                       ))}
                     </select>
@@ -259,7 +262,7 @@ const ExamSchedule: React.FC = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
-                      {["Exam Details", "Course", "Date & Time", "Duration", "Location", "Venue", "Status"].map((h) => (
+                      {["Exam Details", getAcademicLabel("course", academicLabels), "Date & Time", "Duration", "Location", "Venue", "Status"].map((h) => (
                         <th key={h} className="text-left py-3 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                           {h}
                         </th>

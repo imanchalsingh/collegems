@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Save, AlertCircle, CheckCircle, Loader2, User, BookOpen } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Course {
   _id: string;
@@ -22,6 +24,7 @@ interface AssessmentComponent {
 }
 
 export default function InternalMarksEntry() {
+  const { data: academicLabels } = useAcademicLabels();
   const [courses, setCourses] = useState<Course[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedCourse, setSelectedCourse] = useState("");
@@ -150,7 +153,7 @@ export default function InternalMarksEntry() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Select Course</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Select {getAcademicLabel("course", academicLabels)}</label>
               <div className="relative">
                 <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <select
@@ -170,7 +173,7 @@ export default function InternalMarksEntry() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Select Student</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Select {getAcademicLabel("student", academicLabels)}</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <select

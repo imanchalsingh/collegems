@@ -24,13 +24,18 @@ import AssignmentComments from "../common-components-management/AssignmentCommen
 import { useAutoSave } from "../hooks/useAutoSave";
 import RichTextEditor from "../common-components-management/RichTExtEditor";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
+import UpvoteButton from "../components/UpvoteButton";
+import MarkDoneButton from '../components/MarkDoneButton';
 import {
   fetchStudentAssignments,
   submitAssignment as submitAssignmentAction,
   clearError
 } from "../store/slices/assignmentSlice";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 export default function Assignment() {
+  const { data: academicLabels } = useAcademicLabels();
   const dispatch = useAppDispatch();
   const { studentAssignments: assignments, loadingStudent: loading, loadingAction } = useAppSelector((state) => state.assignments);
   const getUserId = () => {
@@ -264,6 +269,43 @@ export default function Assignment() {
 
     return 0;
   });
+  // --- ADDED: URGENT DEADLINES LOGIC ---
+  const currentUserId = getUserId();
+  const now = new Date();
+  const fortyEightHoursFromNow = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+
+  const urgentAssignments = assignments
+    .filter((a) => {
+      // Must not be submitted
+      const isSubmitted = a.submissions?.some((s: any) => s.student?.toString() === currentUserId);
+      if (isSubmitted) return false;
+
+      // Must be due in the future, but within 48 hours
+      const dueDate = new Date(a.dueDate);
+      return dueDate > now && dueDate <= fortyEightHoursFromNow;
+    })
+    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()); // Sort closest first
+
+  const getRelativeTimeText = (dateString: string) => {
+    const dueDate = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const timeString = dueDate.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+
+    if (dueDate.toDateString() === today.toDateString()) {
+      return `Due Today at ${timeString}`;
+    }
+    if (dueDate.toDateString() === tomorrow.toDateString()) {
+      return `Due Tomorrow at ${timeString}`;
+    }
+    
+    // Fallback just in case it crosses a day boundary but is still within 48h
+    const hoursLeft = Math.round((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60));
+    return `Due in ${hoursLeft} hours`;
+  };
+  // -------------------------------------
 
   // Calculate statistics
   const stats = {
@@ -340,8 +382,59 @@ export default function Assignment() {
     { id: "overdue", label: "Overdue", color: "red", icon: AlertCircle },
   ];
 
-  return (
+ return (
     <div className="space-y-6">
+      
+      {/* --- ADDED: UP NEXT / URGENT DEADLINE BANNER --- */}
+      <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl shadow-md p-6 text-white overflow-hidden relative">
+        {/* Decorative background circle */}
+        <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-white opacity-10 blur-2xl pointer-events-none"></div>
+        
+        <div className="flex items-center gap-2 mb-4 relative z-10">
+          <Clock className="w-6 h-6 animate-pulse" />
+          <h2 className="text-xl font-bold">Up Next</h2>
+        </div>
+
+        {urgentAssignments.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
+            {urgentAssignments.map((assignment) => (
+              
+              <div 
+                key={assignment._id} 
+                className="bg-white/20 backdrop-blur-md rounded-lg p-4 border border-white/30 flex flex-col justify-between transition-transform hover:-translate-y-1"
+              >
+                <div>
+                  <h3 className="font-semibold text-white line-clamp-1" title={assignment.title}>
+                    {assignment.title}
+                  </h3>
+                  <div className="flex items-center gap-1.5 mt-1.5 text-orange-50 text-sm font-medium">
+                    <AlertCircle className="w-4 h-4" />
+                    {getRelativeTimeText(assignment.dueDate)}
+                  </div>
+                </div>
+                <button
+                  onClick={() => openSubmission(assignment)}
+                  className="mt-4 w-full py-2 bg-white text-orange-600 font-semibold rounded-md shadow-sm hover:bg-orange-50 transition-colors text-sm"
+                >
+                  Start Assignment
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md rounded-lg p-4 border border-white/30 relative z-10">
+            <div className="p-2 bg-green-400/30 rounded-full">
+              <CheckCircle className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="font-semibold text-lg text-white">You're all caught up for now!</p>
+              <p className="text-orange-50 text-sm">No assignments are due in the next 48 hours. Great job!</p>
+            </div>
+          </div>
+        )}
+      </div>
+      {/* ----------------------------------------------- */}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -456,10 +549,10 @@ export default function Assignment() {
             <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Course
+                  {getAcademicLabel("course", academicLabels)}
                 </label>
                 <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="all">All Courses</option>
+                  <option value="all">All {getAcademicLabel("course", academicLabels)}s</option>
                   <option value="bca">BCA</option>
                   <option value="bba">BBA</option>
                   <option value="mba">MBA</option>
@@ -472,15 +565,14 @@ export default function Assignment() {
                 <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="dueDate">Due Date</option>
                   <option value="title">Title</option>
-                  <option value="course">Course</option>
+                  <option value="course">{getAcademicLabel("course", academicLabels)}</option>
                 </select>
               </div>
             </div>
           </div>
         )}
       </div>
-
-      {/* Assignments List */}
+{/* Assignments List */}
       {loading ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
@@ -501,12 +593,19 @@ export default function Assignment() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {sortedAssignments.map((assignment) => {
-            const userId = getUserId();
+            // FIX: Add '|| ""' to safely handle potential null returns from localStorage
+            const userId = getUserId() || ""; 
             const studentSubmission = assignment.submissions?.find((s: any) => s.student?.toString() === userId);
             
             const isSubmitted = Boolean(studentSubmission);
             const status = getStatusConfig(assignment);
             const StatusIcon = status.icon;
+
+            // --- ADDED: Calculate Upvote State ---
+            // Safely check if userId exists in the array
+            const isUpvotedByMe = assignment.upvotedBy?.includes(userId) || false;
+            const helpfulCount = assignment.helpfulCount || assignment.upvotedBy?.length || 0;
+            // -------------------------------------
 
             return (
               <div
@@ -514,7 +613,7 @@ export default function Assignment() {
                 className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-shadow"
               >
                 {/* Header */}
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start justify-between mb-4 gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="text-lg font-semibold text-gray-900">
@@ -543,6 +642,17 @@ export default function Assignment() {
                       )}
                     </div>
                   </div>
+
+                  {/* --- ADDED: Upvote Button --- */}
+                  <div className="shrink-0 mt-1">
+                    <UpvoteButton 
+                      resourceId={assignment._id}
+                      initialCount={helpfulCount}
+                      initialIsUpvoted={isUpvotedByMe}
+                      resourceType="assignment"
+                    />
+                  </div>
+                  {/* ---------------------------- */}
                 </div>
 
                {/* Description */}
@@ -606,9 +716,16 @@ export default function Assignment() {
                     )}
                   </div>
                 )}
-
-                {/* Actions */}
+{/* Actions */}
                 <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-gray-100">
+                  
+                  {/* 1. NEW MARK AS DONE BUTTON GOES HERE */}
+                  <MarkDoneButton 
+                    assignmentId={assignment._id} 
+                    initialIsDone={assignment.completedBy?.includes(getUserId())} 
+                  />
+
+                  {/* 2. Existing Instructions Button */}
                   {assignment.instructionsFile && (
                     <a
                       href={assignment.instructionsFile}
@@ -621,6 +738,7 @@ export default function Assignment() {
                     </a>
                   )}
 
+                  {/* 3. Existing Comments Button */}
                   <button
                     onClick={() => setViewingComments(assignment)}
                     className="inline-flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
@@ -629,9 +747,11 @@ export default function Assignment() {
                     Class Comments ({assignment.comments?.length || 0})
                   </button>
 
+                  {/* 4. Existing Submit/Submitted Button (Has ml-auto so it stays on the far right) */}
                   {!isSubmitted ? (
                     <button
                       onClick={() => openSubmission(assignment)}
+// ... rest of your existing code continues exactly the same
                       disabled={loadingAction}
                       className={`inline-flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
                         loadingAction

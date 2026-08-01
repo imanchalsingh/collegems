@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DollarSign,
   Calendar,
@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Teacher {
   _id: string;
@@ -44,6 +46,7 @@ interface Salary {
 }
 
 export default function Salary() {
+  const { data: academicLabels } = useAcademicLabels();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [salaries, setSalaries] = useState<Salary[]>([]);
   const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
@@ -58,6 +61,10 @@ export default function Salary() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDepartment, setFilterDepartment] = useState<string>("all");
+  // Kept stable per teacher across retries of the same payment attempt so a
+  // resubmit (timeout retry or double-click) is recognized as a duplicate
+  // server-side instead of double-crediting the salary.
+  const singlePayIdempotencyKeys = useRef<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<"set" | "pay" | "history">("set");
   const [selectedPaymentTeacher, setSelectedPaymentTeacher] =
     useState<string>("");
@@ -214,6 +221,7 @@ export default function Salary() {
         api.post("/salary/pay", {
           staff: teacherId,
           amount: Number(paymentAmount),
+          idempotencyKey: crypto.randomUUID(),
         }),
       );
 
@@ -256,10 +264,17 @@ export default function Salary() {
     setMessage(null);
 
     try {
+      if (!singlePayIdempotencyKeys.current[teacherId]) {
+        singlePayIdempotencyKeys.current[teacherId] = crypto.randomUUID();
+      }
+
       await api.post("/salary/pay", {
         staff: teacherId,
         amount: Number(paymentAmount),
+        idempotencyKey: singlePayIdempotencyKeys.current[teacherId],
       });
+
+      delete singlePayIdempotencyKeys.current[teacherId];
 
       setMessage({
         type: "success",
@@ -461,14 +476,14 @@ export default function Salary() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Department
+                        {getAcademicLabel("department", academicLabels)}
                       </label>
                       <select
                         value={filterDepartment}
                         onChange={(e) => setFilterDepartment(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="all">All Departments</option>
+                        <option value="all">All {getAcademicLabel("department", academicLabels)}s</option>
                         <option value="computer">Computer Science</option>
                         <option value="mathematics">Mathematics</option>
                         <option value="physics">Physics</option>
@@ -503,7 +518,7 @@ export default function Salary() {
                 />
               </div>
               <div className="flex-1 font-medium text-gray-700">Teacher</div>
-              <div className="w-32 font-medium text-gray-700">Department</div>
+              <div className="w-32 font-medium text-gray-700">{getAcademicLabel("department", academicLabels)}</div>
               <div className="w-24 font-medium text-gray-700">Status</div>
             </div>
 

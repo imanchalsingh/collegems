@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 export const SemesterRegistration: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [status, setStatus] = useState<string>("Not Submitted");
   const [formData, setFormData] = useState({
@@ -14,13 +17,13 @@ export const SemesterRegistration: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("Pending");
-    alert("Semester Registration Form Submitted Successfully!");
+    alert(`${getAcademicLabel("semester", academicLabels)} Registration Form Submitted Successfully!`);
     setCurrentStep(3);
   };
 
   return (
     <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>🎓 Semester Registration Portal</h2>
+      <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>🎓 {getAcademicLabel("semester", academicLabels)} Registration Portal</h2>
       <div style={{
         padding: '15px', marginBottom: '20px', borderRadius: '5px',
         backgroundColor: status === 'Pending' ? '#fff3cd' : status === 'Approved' ? '#d4edda' : '#f8d7da',
@@ -44,14 +47,14 @@ export const SemesterRegistration: React.FC = () => {
       )}
       {currentStep === 2 && (
         <div>
-          <h3>Step 2: Select Upcoming Semester &amp; Electives</h3>
+          <h3>Step 2: Select Upcoming {getAcademicLabel("semester", academicLabels)} &amp; Electives</h3>
           <div style={{margin:'10px 0'}}>
-            <label htmlFor="sr-next-semester" style={{display:'block', marginBottom:'4px', fontWeight:'600'}}>Next Semester</label>
+            <label htmlFor="sr-next-semester" style={{display:'block', marginBottom:'4px', fontWeight:'600'}}>Next {getAcademicLabel("semester", academicLabels)}</label>
             <select id="sr-next-semester" style={{display:'block', width:'100%', padding:'8px', borderRadius:'4px', border:'1px solid #ccc'}} value={formData.nextSemester} onChange={(e)=>setFormData({...formData, nextSemester: e.target.value})}>
-              <option value="">-- Select Next Semester --</option>
-              <option value="Semester 3">Semester 3</option>
-              <option value="Semester 5">Semester 5</option>
-              <option value="Semester 7">Semester 7</option>
+              <option value="">-- Select Next {getAcademicLabel("semester", academicLabels)} --</option>
+              <option value="Semester 3">{getAcademicLabel("semester", academicLabels)} 3</option>
+              <option value="Semester 5">{getAcademicLabel("semester", academicLabels)} 5</option>
+              <option value="Semester 7">{getAcademicLabel("semester", academicLabels)} 7</option>
             </select>
           </div>
           <form onSubmit={handleSubmit}>

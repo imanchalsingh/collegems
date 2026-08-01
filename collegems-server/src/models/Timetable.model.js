@@ -4,7 +4,7 @@ const timetableSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true, // e.g. "Spring 2026 CS Dept"
+      required: true,
     },
     department: {
       type: String,
@@ -25,12 +25,22 @@ const timetableSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    solver: {
+      type: String,
+      enum: ["local", "genetic"],
+      default: "local",
+    },
+    fitnessScore: {
+      type: Number,
+      default: null,
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-export default mongoose.model("Timetable", timetableSchema);
+export default mongoose.models.Timetable ||
+  mongoose.model("Timetable", timetableSchema);

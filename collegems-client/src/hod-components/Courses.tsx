@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { RecordOwnership } from "../common-components-management/RecordOwnership";
 import { SavedFiltersMenu } from "../common-components-management/SavedFiltersMenu";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Course {
   _id: string;
@@ -40,6 +42,7 @@ interface Teacher {
 }
 
 export default function HODCourses() {
+  const { data: academicLabels } = useAcademicLabels();
   const [open, setOpen] = useState(false);
   const [courses, setCourses] = useState<Course[]>([]);
   const [teachersList, setTeachersList] = useState<Teacher[]>([]);
@@ -173,10 +176,10 @@ const deleteCourse = async () => {
 
       if (editingCourse) {
         await api.put(`/courses/update/${editingCourse._id}`, courseData);
-        alert("Course updated successfully ✅");
+        alert(`${getAcademicLabel("course", academicLabels)} updated successfully ✅`);
       } else {
         await api.post("/courses/add", courseData);
-        alert("Course added successfully ✅");
+        alert(`${getAcademicLabel("course", academicLabels)} added successfully ✅`);
       }
 
       setOpen(false);
@@ -225,7 +228,7 @@ const deleteCourse = async () => {
               <BookOpen className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Courses</p>
+              <p className="text-sm text-gray-500">Total {getAcademicLabel("course", academicLabels)}s</p>
               <p className="text-2xl font-bold text-gray-900">
                 {stats.totalCourses}
               </p>
@@ -239,7 +242,7 @@ const deleteCourse = async () => {
               <Building className="w-5 h-5 text-amber-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Departments</p>
+              <p className="text-sm text-gray-500">{getAcademicLabel("department", academicLabels)}s</p>
               <p className="text-2xl font-bold text-gray-900">
                 {stats.totalDepartments}
               </p>
@@ -253,7 +256,7 @@ const deleteCourse = async () => {
               <Calendar className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Active Semesters</p>
+              <p className="text-sm text-gray-500">Active {getAcademicLabel("semester", academicLabels)}s</p>
               <p className="text-2xl font-bold text-gray-900">
                 {stats.totalSemesters}
               </p>
@@ -313,7 +316,7 @@ const deleteCourse = async () => {
               onClick={() => handleOpenModal()}
             >
               <Plus className="w-4 h-4" />
-              Add Course
+              Add {getAcademicLabel("course", academicLabels)}
             </button>
           </div>
         </div>
@@ -324,14 +327,14 @@ const deleteCourse = async () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Department
+                  {getAcademicLabel("department", academicLabels)}
                 </label>
                 <select
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                 >
-                  <option value="all">All Departments</option>
+                  <option value="all">All {getAcademicLabel("department", academicLabels)}s</option>
                   {departments.map((dept) => (
                     <option key={dept} value={dept}>
                       {dept}
@@ -347,7 +350,7 @@ const deleteCourse = async () => {
       {/* Courses Grid */}
       <div>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">All Courses</h2>
+          <h2 className="text-lg font-semibold text-gray-900">All {getAcademicLabel("course", academicLabels)}s</h2>
           <span className="text-sm text-gray-500">
             Showing {filteredCourses.length} of {courses.length} courses
           </span>
@@ -467,7 +470,7 @@ const deleteCourse = async () => {
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
-                    {editingCourse ? "Edit Course" : "Add New Course"}
+                    {editingCourse ? `Edit ${getAcademicLabel("course", academicLabels)}` : `Add New ${getAcademicLabel("course", academicLabels)}`}
                   </h3>
                   <p className="text-sm text-gray-500 mt-1">
                     {editingCourse
@@ -509,7 +512,7 @@ const deleteCourse = async () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Course Name *
+                  {getAcademicLabel("course", academicLabels)} Name *
                 </label>
                 <input
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -521,7 +524,7 @@ const deleteCourse = async () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Course Code *
+                  {getAcademicLabel("course", academicLabels)} Code *
                 </label>
                 <input
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -534,14 +537,14 @@ const deleteCourse = async () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Department *
+                    {getAcademicLabel("department", academicLabels)} *
                   </label>
                   <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
                   >
-                    <option value="">Select Department</option>
+                    <option value="">Select {getAcademicLabel("department", academicLabels)}</option>
                     {departments.map((dept) => (
                       <option key={dept} value={dept}>
                         {dept}
@@ -552,14 +555,14 @@ const deleteCourse = async () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Semester *
+                    {getAcademicLabel("semester", academicLabels)} *
                   </label>
                   <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={semester}
                     onChange={(e) => setSemester(e.target.value)}
                   >
-                    <option value="">Select Semester</option>
+                    <option value="">Select {getAcademicLabel("semester", academicLabels)}</option>
                     {semesters.map((sem) => (
                       <option key={sem} value={sem}>
                         Semester {sem}
@@ -585,7 +588,7 @@ const deleteCourse = async () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Max Students
+                    Max {getAcademicLabel("student", academicLabels)}s
                   </label>
                   <input
                     type="number"
@@ -638,7 +641,7 @@ const deleteCourse = async () => {
                   onClick={addOrUpdateCourse}
                   disabled={!name || !code || !department || !semester || !assignedTeacher}
                 >
-                  {editingCourse ? "Update Course" : "Add Course"}
+                  {editingCourse ? `Update ${getAcademicLabel("course", academicLabels)}` : `Add ${getAcademicLabel("course", academicLabels)}`}
                 </button>
               </div>
             </div>

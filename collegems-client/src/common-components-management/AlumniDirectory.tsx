@@ -3,6 +3,8 @@ import { Search, MapPin, Briefcase, Filter, ChevronDown, UserSquare, Linkedin } 
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
 import AdvancedExportButton from "./AdvancedExportButton";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Alumni {
   _id: string;
@@ -16,6 +18,7 @@ interface Alumni {
 }
 
 export default function AlumniDirectory() {
+  const { data: academicLabels } = useAcademicLabels();
   const [alumni, setAlumni] = useState<Alumni[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -76,7 +79,7 @@ export default function AlumniDirectory() {
                 className="pl-9 pr-8 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm appearance-none bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500"
               >
                 {batches.map(b => (
-                  <option key={b} value={b}>{b === "all" ? "All Batches" : b}</option>
+                  <option key={b} value={b}>{b === "all" ? `All ${getAcademicLabel("batch", academicLabels)}s` : b}</option>
                 ))}
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
@@ -89,7 +92,7 @@ export default function AlumniDirectory() {
                 className="pl-4 pr-8 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm appearance-none bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500"
               >
                 {departments.map(d => (
-                  <option key={d} value={d}>{d === "all" ? "All Departments" : d}</option>
+                  <option key={d} value={d}>{d === "all" ? `All ${getAcademicLabel("department", academicLabels)}s` : d}</option>
                 ))}
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
@@ -99,7 +102,7 @@ export default function AlumniDirectory() {
               data={alumni}
               filename="Alumni_Directory_Export"
               pdfTitle="Alumni Directory"
-              headers={["Name", "Email", "Batch", "Department", "Company", "Designation", "LinkedIn"]}
+              headers={["Name", "Email", getAcademicLabel("batch", academicLabels), getAcademicLabel("department", academicLabels), "Company", "Designation", "LinkedIn"]}
               dataMapper={(person: Alumni) => [
                 person.name,
                 person.email,

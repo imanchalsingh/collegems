@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface ExamSchedule {
   _id: string;
@@ -22,6 +24,7 @@ interface ExamSchedule {
 }
 
 const ExamSchedule: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [examName, setExamName] = useState("");
   const [course, setCourse] = useState("");
   const [examDate, setExamDate] = useState("");
@@ -191,7 +194,7 @@ const ExamSchedule: React.FC = () => {
               <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Active Courses</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Active {getAcademicLabel("course", academicLabels)}s</p>
               <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.courses}</p>
             </div>
           </div>
@@ -237,10 +240,10 @@ const ExamSchedule: React.FC = () => {
           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Course</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{getAcademicLabel("course", academicLabels)}</label>
                 <select className={selectCls} value={filterCourse} onChange={(e) => setFilterCourse(e.target.value)}>
                   {uniqueCourses.map((c) => (
-                    <option key={c} value={c}>{c === "all" ? "All Courses" : c}</option>
+                    <option key={c} value={c}>{c === "all" ? `All ${getAcademicLabel("course", academicLabels)}s` : c}</option>
                   ))}
                 </select>
               </div>
@@ -324,7 +327,7 @@ const ExamSchedule: React.FC = () => {
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-700/50">
                 <tr>
-                  {["Exam Details", "Course", "Date & Time", "Duration", "Location", "Actions"].map((h) => (
+                  {["Exam Details", getAcademicLabel("course", academicLabels), "Date & Time", "Duration", "Location", "Actions"].map((h) => (
                     <th key={h} className="text-left py-3 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       {h}
                     </th>
@@ -421,10 +424,10 @@ const ExamSchedule: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Exam Name *</label>
-                  <input className={inputCls} placeholder="e.g., Final Examination - Semester 1" value={examName} onChange={(e) => setExamName(e.target.value)} disabled={loading} />
+                  <input className={inputCls} placeholder={`e.g., Final Examination - ${getAcademicLabel("semester", academicLabels)} 1`} value={examName} onChange={(e) => setExamName(e.target.value)} disabled={loading} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Course *</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{getAcademicLabel("course", academicLabels)} *</label>
                   <input className={inputCls} placeholder="e.g., BCA, BBA, MBA" value={course} onChange={(e) => setCourse(e.target.value)} disabled={loading} />
                 </div>
                 <div>

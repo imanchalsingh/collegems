@@ -15,6 +15,7 @@ const scholarshipSchema = new mongoose.Schema(
     amount: {
       type: Number,
       required: true,
+      min: 0,
     },
     academicYear: {
       type: String,

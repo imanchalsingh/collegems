@@ -9,6 +9,8 @@ import {
   ChevronRight, ChevronLeft, Loader2, Sparkles, Target, BookOpen,
   List, Plus, QrCode, Play, Square, Download, Trash2
 } from 'lucide-react';
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface EventForm {
     title: string;
@@ -35,6 +37,7 @@ interface EventForm {
 }
 
 export default function EventsManage() {
+  const { data: academicLabels } = useAcademicLabels();
     const [viewMode, setViewMode] = useState<'create' | 'list' | 'attendance'>('list');
     const [events, setEvents] = useState<any[]>([]);
     const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
@@ -342,7 +345,7 @@ export default function EventsManage() {
                                             </div>
                                             <div>
                                                 <label className={labelClassName}>Target Audience</label>
-                                                <div className="relative"><Target className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" /><input name="targetAudience" value={form.targetAudience} placeholder="e.g., Students, Professionals" onChange={handleChange} className={`${inputClassName} pl-10`} /></div>
+                                                <div className="relative"><Target className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" /><input name="targetAudience" value={form.targetAudience} placeholder={`e.g., ${getAcademicLabel("student", academicLabels)}s, Professionals`} onChange={handleChange} className={`${inputClassName} pl-10`} /></div>
                                             </div>
                                             <div>
                                                 <label className={labelClassName}>Prerequisites</label>

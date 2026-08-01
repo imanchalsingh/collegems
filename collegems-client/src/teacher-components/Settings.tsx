@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
+import MFASecurityPanel from "../components/auth/MFASecurityPanel";
 
 const digestOptions = [
   { value: "daily", label: "Daily" },
@@ -8,6 +11,7 @@ const digestOptions = [
 ];
 
 export default function TeacherSettings() {
+  const { data: academicLabels } = useAcademicLabels();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(
@@ -219,7 +223,7 @@ export default function TeacherSettings() {
             />
           </label>
           <label className="space-y-1 text-sm text-gray-600">
-            Department
+            {getAcademicLabel("department", academicLabels)}
             <input
               type="text"
               value={profile.department}
@@ -319,6 +323,8 @@ export default function TeacherSettings() {
           </label>
         </div>
       </section>
+
+      <MFASecurityPanel />
 
       <section className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">

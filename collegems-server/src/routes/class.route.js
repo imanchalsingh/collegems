@@ -1,12 +1,13 @@
 import express from "express";
-import { protect } from "../middlewares/auth.middleware.js";
-import { allowRoles } from "../middlewares/role.middleware.js";
+import { protect } from "../middlewares/auth.middleware.js"; // <-- Added the 's' and removed authorize
+import { allowRoles } from "../middlewares/role.middleware.js"; // <-- This is your actual role checker!
 import { asyncHandler, AppError } from "../middlewares/errorHandler.middleware.js";
 import log from "../utils/logger.js";
 import Class from "../models/Classes.model.js";
+import { bulkRenameSections } from "../controllers/section.controller.js";
 
 const router = express.Router();
-
+router.put("/bulk-rename", protect, allowRoles("admin", "hod"), bulkRenameSections);
 // Add class
 router.post(
   "/add",

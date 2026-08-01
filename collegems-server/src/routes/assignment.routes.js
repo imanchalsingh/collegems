@@ -10,7 +10,9 @@ import { protect, authenticateFileDownload } from '../middlewares/auth.middlewar
 import log from "../utils/logger.js";
 import Assignment from "../models/Assignment.model.js";
 import { verifyFileSignature, scanFileForMalware } from "../utils/malwareScanner.js";
-
+import { toggleUpvote } from '../controllers/assignment.controller.js';
+import { toggleComplete } from '../controllers/assignment.controller.js';
+// (Add toggleUpvote to your existing imports)
 // Consolidated all controller imports into one clean block, INCLUDING getUpcomingAssignments
 import {
   createAssignment,
@@ -20,6 +22,8 @@ import {
   getUpcomingAssignments,
   getTeacherAssignments,
   addAssignmentComment,
+  deleteAssignment,
+  restoreAssignment
 } from "../controllers/assignment.controller.js";
 
 const router = express.Router();
@@ -112,8 +116,10 @@ const validateUploadedFile = async (req, res, next) => {
 // ── Existing routes with error handling ───────────────────────────────────────
 
 router.post("/create", protect, allowRoles("teacher"), asyncHandler(createAssignment));
-
+// Assuming authMiddleware verifies the user's token
+router.post('/:id/upvote', protect, toggleUpvote);
 // Single robust submit route (removed the duplicate conflicting one)
+router.post('/:id/complete', protect, toggleComplete);
 router.post(
   "/submit/:id",
   protect,
@@ -192,5 +198,6 @@ router.get(
 
 // The new StackOverflow-style Comments Route!
 router.post("/:id/comments", protect, asyncHandler(addAssignmentComment));
-
+router.delete('/:id', deleteAssignment);
+router.put('/restore/:id', restoreAssignment);
 export default router;

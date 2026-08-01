@@ -10,13 +10,15 @@ import StudentDashboard from "./pages/StudentDashboard";
 import StudentTransferHistory from "./hod-components/StudentTransferHistory";
 import TimeTable from "./user-components/TimeTable";
 
+
 //import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
-import AdminLogin from "./pages/AdminLogin";
-import AdminDashboard from "./pages/AdminDashboard";
+// import AdminLogin from "./pages/AdminLogin";
+// import AdminDashboard from "./pages/AdminDashboard";
 import QuizTaker from "./user-components/QuizTaker";
 import HodDashboard from "./pages/HODDashboard";
 import ParentDashboard from "./pages/ParentDashboard";
+import ParentTeacherMeetingHub from "./pages/ParentTeacherMeetingHub";
 import MainDashboard from "./pages/MainDashboard";
 import ExamSchedule from "./user-components/ExamSchedule";
 import Courses from "./user-components/Courses";
@@ -26,22 +28,25 @@ import EventsStudent from "./user-components/EventsStudent";
 import QuickAccessAll from "./pages/QuickAccessAll";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ReportGenerator from "./pages/ReportGenerator";
+import StudentProgressReportGenerator from "./pages/StudentProgressReportGenerator";
 import ExaminationFormPage from "./pages/ExaminationFormPage";
 import SemesterRegistration from "./user-components/SemesterRegistration";
 //import TimeTable from "./user-components/TimeTable";
 import DashboardLayout from "./layouts/DashboardLayout";
-
-import DashboardLayout from "./layouts/DashboardLayout";
 import LostFoundPortal from "./pages/LostFoundPortal";
 import VerifyStudent from "./pages/VerifyStudent";
+import CertificateVerification from "./pages/CertificateVerification";
 import RiskDashboard from "./pages/RiskDashboard";
-
 import Library from "./common-components-management/Library";
+import LibraryManagementPortal from "./pages/LibraryManagementPortal";
 import ExamHalls from "./hod-components/ExamHalls";
 import HallAllocation from "./hod-components/HallAllocation";
+import ExamSeatingGenerator from "./hod-components/ExamSeatingGenerator";
 import StudentSeatView from "./user-components/StudentSeatView";
 import BackToTop from "./components/BackToTop";
 import PendingChangesBar from "./components/PendingChangesBar";
+import AccessibilityToolbar from "./components/common/AccessibilityToolbar";
+import SkipToContent from "./components/common/SkipToContent";
 import AuditLogs from "./hod-components/AuditLogs";
 import ResourceBooking from "./user-components/ResourceBooking";
 import BookingManagement from "./hod-components/BookingManagement";
@@ -53,14 +58,15 @@ import DataTableDemo from "./pages/DataTableDemo";
 
 import { PwaManager } from "./components/PwaManager";
 import ToastTest from "./pages/ToastTest";
-
+import GlobalPageTracker from "./components/GlobalPageTracker";
 // New Route Guard imports
 import withRoleGuard from "./hocs/withRoleGuard";
 import { UserRole } from "./constants/role.constants";
 import AccessDenied from "./pages/AccessDenied";
 import NotFound from "./pages/NotFound";
 import RoleRoute from "./routes/RoleRoute";
-
+import AlumniPortal from "./pages/AlumniPortal";
+import { Toaster } from 'react-hot-toast';
 // Define Guarded Components
 const StudentDashboardGuarded = withRoleGuard(StudentDashboard, { allowedRoles: UserRole.STUDENT });
 const ExaminationFormPageGuarded = withRoleGuard(ExaminationFormPage, { allowedRoles: UserRole.STUDENT });
@@ -73,8 +79,12 @@ const ResourceBookingTeacherGuarded = withRoleGuard(ResourceBooking, { allowedRo
 
 const HodDashboardGuarded = withRoleGuard(HodDashboard, { allowedRoles: UserRole.HOD });
 const ReportGeneratorGuarded = withRoleGuard(ReportGenerator, { allowedRoles: UserRole.HOD });
+const ProgressReportGuarded = withRoleGuard(StudentProgressReportGenerator, {
+  allowedRoles: [UserRole.TEACHER, UserRole.HOD],
+});
 const ExamHallsGuarded = withRoleGuard(ExamHalls, { allowedRoles: UserRole.HOD });
 const HallAllocationGuarded = withRoleGuard(HallAllocation, { allowedRoles: UserRole.HOD });
+const ExamSeatingGeneratorGuarded = withRoleGuard(ExamSeatingGenerator, { allowedRoles: UserRole.HOD });
 const AuditLogsGuarded = withRoleGuard(AuditLogs, { allowedRoles: UserRole.HOD });
 const BookingManagementGuarded = withRoleGuard(BookingManagement, { allowedRoles: UserRole.HOD });
 const ResourceManagementGuarded = withRoleGuard(ResourceManagement, { allowedRoles: UserRole.HOD });
@@ -82,17 +92,27 @@ const FeePaymentApprovalsGuarded = withRoleGuard(FeePaymentApprovals, { allowedR
 const BulkFieldResetGuarded = withRoleGuard(BulkFieldReset, { allowedRoles: UserRole.HOD });
 
 const ParentDashboardGuarded = withRoleGuard(ParentDashboard, { allowedRoles: UserRole.PARENT });
+const PtmHubParentGuarded = withRoleGuard(ParentTeacherMeetingHub, {
+  allowedRoles: [UserRole.PARENT, UserRole.TEACHER, UserRole.HOD],
+});
 
 export default function App() {
   return (
     <BrowserRouter>
+      <SkipToContent />
       <PwaManager />
       <BackToTop />
+      <AccessibilityToolbar />
       <PendingChangesBar onCommit={async (changes) => {
         // Default commit handler, can be customized or context-driven
         console.log("Committing changes:", changes);
         await new Promise(resolve => setTimeout(resolve, 1000));
       }} />
+      
+      {/* 🔴 ADD THIS LINE RIGHT HERE 🔴 */}
+      <GlobalPageTracker />
+      <Toaster position="bottom-right" />
+      <div id="main-content">
       <Routes>
 <Route path="/test-toasts" element={<ToastTest />} />
 
@@ -109,6 +129,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/datatable-demo" element={<DataTableDemo />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/verify-certificate/:certId" element={<CertificateVerification />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
@@ -173,6 +194,11 @@ export default function App() {
       element={<ReportGeneratorGuarded />}
     />
 
+        <Route
+          path="/progress-report"
+          element={<ProgressReportGuarded />}
+        />
+
     <Route
       path="/hod/exam-halls"
       element={<ExamHallsGuarded />}
@@ -182,6 +208,11 @@ export default function App() {
         <Route
           path="/hod/hall-allocation"
           element={<HallAllocationGuarded />}
+        />
+
+        <Route
+          path="/hod/exam-seating"
+          element={<ExamSeatingGeneratorGuarded />}
         />
 
         <Route
@@ -222,8 +253,18 @@ export default function App() {
           element={<ParentDashboardGuarded />}
         />
 
+        <Route
+          path="/alumni-portal"
+          element={
+            <ProtectedRoute>
+              <AlumniPortal />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </div>
     </BrowserRouter>
   );
 }

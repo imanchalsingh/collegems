@@ -5,6 +5,8 @@ import {
   CheckCircle, Eye, Sliders, BookOpen,
 } from "lucide-react";
 import api from "../api/axios";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface AssignmentOption {
@@ -98,6 +100,7 @@ const statusLabel: Record<Report["status"], string> = {
 };
 
 export default function PlagiarismChecker() {
+  const { data: academicLabels } = useAcademicLabels();
   const [assignments, setAssignments] = useState<AssignmentOption[]>([]);
   const [selectedAssignment, setSelectedAssignment] = useState<string>("");
   const [threshold, setThreshold] = useState(40);
@@ -381,7 +384,7 @@ export default function PlagiarismChecker() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
-                    {["Student", "Source", "Similarity", "Top Match", "Status", ""].map((h) => (
+                    {[getAcademicLabel("student", academicLabels), "Source", "Similarity", "Top Match", "Status", ""].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                         {h}
                       </th>

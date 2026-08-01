@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import BarChartWidget from '../Charts/BarChartWidget';
+import { getAcademicLabel } from "../../utils/academicLabels";
+import { useAcademicLabels } from "../../hooks/useAcademicLabels";
 
 const HodAnalyticsWidget: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
     const [data, setData] = useState<Record<string, unknown> | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -39,7 +42,7 @@ const HodAnalyticsWidget: React.FC = () => {
 
     return (
         <div className="space-y-6 mt-6">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Department Analytics</h2>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">{getAcademicLabel("department", academicLabels)} Analytics</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border-l-4 border-indigo-500">
@@ -48,7 +51,7 @@ const HodAnalyticsWidget: React.FC = () => {
                 </div>
 
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border-l-4 border-blue-500">
-                    <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">Total Courses</h3>
+                    <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">Total {getAcademicLabel("course", academicLabels)}s</h3>
                     <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{String(data.totalCourses || 0)}</p>
                 </div>
 
@@ -58,7 +61,7 @@ const HodAnalyticsWidget: React.FC = () => {
                 </div>
                 
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border-l-4 border-yellow-500">
-                    <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">Active Faculty</h3>
+                    <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">Active {getAcademicLabel("faculty", academicLabels)}</h3>
                     <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{String(data.activeFaculty || 0)}</p>
                 </div>
             </div>
@@ -66,7 +69,7 @@ const HodAnalyticsWidget: React.FC = () => {
             <div className="grid grid-cols-1 gap-6 mt-6">
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Course Performance Comparison</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{getAcademicLabel("course", academicLabels)} Performance Comparison</h3>
                         <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm transition">
                             Export Report (PDF)
                         </button>

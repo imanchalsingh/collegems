@@ -1,198 +1,114 @@
-import React, { useEffect, useState } from "react";
-import { AlertTriangle, Activity } from "lucide-react";
-import api from "../api/axios";
+import React from "react";
+import { useHodAnalytics } from "../hooks/useHodAnalytics";
+import { MetricCard } from "./MetricCard";
+import { RecentActivityFeed } from "./RecentActivityFeed";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
-interface AtRiskStudent {
-  _id: string;
-  studentId: {
-    _id: string;
-    name: string;
-    email: string;
-    studentId: string;
-    course: string;
-    semester: string;
-  };
-  dropoutRiskScore: number;
-  riskLevel: string;
-  predictedPerformance: string;
-  recommendedInterventions: string[];
-  lastCalculatedAt: string;
-}
+const UsersIcon = () => (
+  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+  </svg>
+);
 
-const getFreshness = (lastCalculatedAt?: string) => {
-  if (!lastCalculatedAt) {
-    return { isStale: true, relativeTime: "Never" };
-  }
-  const date = new Date(lastCalculatedAt);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / (60 * 1000));
-  const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
-  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+const AcademicCapIcon = () => (
+  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path d="M12 14l9-5-9-5-9 5 9 5z" />
+    <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
+  </svg>
+);
 
-  // Consider stale if older than 24 hours
-  const isStale = diffMs > 24 * 60 * 60 * 1000;
+const ChartBarIcon = () => (
+  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+  </svg>
+);
 
-  let relativeTime = "";
-  if (diffMins < 1) relativeTime = "Just now";
-  else if (diffMins < 60) relativeTime = `${diffMins}m ago`;
-  else if (diffHours < 24) relativeTime = `${diffHours}h ago`;
-  else relativeTime = `${diffDays}d ago`;
+const BookOpenIcon = () => (
+  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+  </svg>
+);
 
-  return { isStale, relativeTime };
-};
+export const AnalyticsDashboard: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
+  const { data, isLoading, isError, error } = useHodAnalytics();
 
-export default function HODAnalytics() {
-  const [atRiskStudents, setAtRiskStudents] = useState<AtRiskStudent[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchAnalytics();
-  }, []);
-
-  const fetchAnalytics = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get("/analytics/department/at-risk");
-      if (res.data.success) {
-        setAtRiskStudents(res.data.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch analytics", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const assignMentor = async (studentId: string) => {
-    try {
-      // Basic mock assignment for now, integrate with mentorship API
-      await api.post("/mentorships/assign", { menteeId: studentId });
-      alert("Mentor assigned successfully.");
-    } catch (error) {
-      console.error("Failed to assign mentor", error);
-      alert("Failed to assign mentor. Check console.");
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="p-8 space-y-6">
+        <div className="h-8 w-64 bg-slate-800 rounded animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-32 bg-slate-800 rounded-2xl animate-pulse" />
+          ))}
+        </div>
+        <div className="h-96 bg-slate-800 rounded-2xl animate-pulse" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-8">
+        <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-6 text-center">
+          <h2 className="text-xl font-semibold text-rose-400 mb-2">Failed to load analytics</h2>
+          <p className="text-slate-400">{(error as any)?.message || "An unexpected error occurred."}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 flex items-center">
-            <div className="p-3 bg-red-100 dark:bg-red-800 text-red-600 dark:text-red-300 rounded-lg mr-4">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-red-600 dark:text-red-400">High Risk Students</p>
-              <h3 className="text-2xl font-bold text-red-700 dark:text-red-300">{atRiskStudents.length}</h3>
-            </div>
-         </div>
-         {/* More summary widgets can go here */}
+    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-100">{getAcademicLabel("department", academicLabels)} Overview</h1>
+        <p className="mt-2 text-slate-400">High-level analytics and performance metrics for your department.</p>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Activity className="w-5 h-5 text-blue-600" /> AI Performance Predictions
-          </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <MetricCard
+          title="Total Enrollment"
+          value={data?.totalEnrollment || 0}
+          icon={<UsersIcon />}
+          colorTheme="indigo"
+        />
+        <MetricCard
+          title={`Active ${getAcademicLabel("faculty", academicLabels)}`}
+          value={data?.activeFaculty || 0}
+          icon={<AcademicCapIcon />}
+          colorTheme="emerald"
+        />
+        <MetricCard
+          title={`Total ${getAcademicLabel("course", academicLabels)}s`}
+          value={data?.totalCourses || 0}
+          icon={<BookOpenIcon />}
+          colorTheme="amber"
+        />
+        <MetricCard
+          title="Avg. Attendance"
+          value={`${data?.averageAttendance || 0}%`}
+          icon={<ChartBarIcon />}
+          colorTheme="blue"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          {/* Placeholder for future charting (e.g., Recharts) */}
+          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 h-full flex flex-col items-center justify-center min-h-[300px] backdrop-blur-md">
+             <ChartBarIcon />
+             <p className="mt-4 text-slate-400">Detailed interactive charts coming in future update</p>
+          </div>
         </div>
         
-        {atRiskStudents.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-            No high-risk students detected.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-900/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Student</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Risk Score</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Predicted Grade</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Last Calculated</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Recommended Interventions</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {atRiskStudents.map((record) => {
-                  const { isStale, relativeTime } = getFreshness(record.lastCalculatedAt);
-                  return (
-                    <tr 
-                      key={record._id} 
-                      className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
-                        isStale 
-                          ? "bg-amber-50/20 hover:bg-amber-50/40 dark:bg-amber-950/5 dark:hover:bg-amber-950/10" 
-                          : ""
-                      }`}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div>
-                            <div className="text-sm font-medium text-gray-900 dark:text-white">{record.studentId?.name || "Unknown"}</div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">{record.studentId?.studentId || record.studentId?.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 max-w-[100px]">
-                            <div className="bg-red-600 h-2.5 rounded-full" style={{ width: `${Math.round(record.dropoutRiskScore * 100)}%` }}></div>
-                          </div>
-                          <span className="text-sm font-semibold text-red-600 dark:text-red-400">
-                            {Math.round(record.dropoutRiskScore * 100)}%
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-                            {record.predictedPerformance}
-                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span 
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                            isStale 
-                              ? "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800" 
-                              : "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800"
-                          }`}
-                          title={`Last calculated: ${record.lastCalculatedAt ? new Date(record.lastCalculatedAt).toLocaleString() : "Never"}`}
-                        >
-                          <span className={`w-1.5 h-1.5 rounded-full ${isStale ? "bg-amber-500 animate-pulse" : "bg-green-500"}`} />
-                          {isStale ? `Outdated (${relativeTime})` : `Fresh (${relativeTime})`}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400">
-                          {record.recommendedInterventions.map((intervention, idx) => (
-                            <li key={idx}>{intervention}</li>
-                          ))}
-                        </ul>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button 
-                          onClick={() => assignMentor(record.studentId._id)}
-                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                          Assign Mentor
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <div className="lg:col-span-1">
+          <RecentActivityFeed activities={data?.recentActivity || []} />
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default AnalyticsDashboard;

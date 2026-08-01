@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { User, Mail, Phone, Building, Briefcase, Clock, FileText, Save, CheckCircle, AlertCircle } from "lucide-react";
 import api from "../api/axios";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 export default function TeacherProfile() {
+  const { data: academicLabels } = useAcademicLabels();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
@@ -137,10 +140,11 @@ export default function TeacherProfile() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label htmlFor="tp-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Full Name <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="tp-name"
                   type="text"
                   name="name"
                   value={formData.name}
@@ -154,7 +158,7 @@ export default function TeacherProfile() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label htmlFor="tp-teacher-id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Teacher ID
                 </label>
                 <div className="relative">
@@ -162,6 +166,7 @@ export default function TeacherProfile() {
                     <Briefcase className="h-4 w-4 text-gray-400" />
                   </div>
                   <input
+                    id="tp-teacher-id"
                     type="text"
                     name="teacherId"
                     value={formData.teacherId}
@@ -184,7 +189,7 @@ export default function TeacherProfile() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label htmlFor="tp-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Email Address <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -192,6 +197,7 @@ export default function TeacherProfile() {
                     <Mail className="h-4 w-4 text-gray-400" />
                   </div>
                   <input
+                    id="tp-email"
                     type="email"
                     name="email"
                     value={formData.email}
@@ -205,7 +211,7 @@ export default function TeacherProfile() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label htmlFor="tp-phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Phone Number
                 </label>
                 <div className="relative">
@@ -213,6 +219,7 @@ export default function TeacherProfile() {
                     <Phone className="h-4 w-4 text-gray-400" />
                   </div>
                   <input
+                    id="tp-phone"
                     type="tel"
                     name="phone"
                     value={formData.phone}
@@ -236,10 +243,11 @@ export default function TeacherProfile() {
             
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Department
+                <label htmlFor="tp-department" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {getAcademicLabel("department", academicLabels)}
                 </label>
                 <input
+                  id="tp-department"
                   type="text"
                   name="department"
                   value={formData.department}
@@ -250,7 +258,7 @@ export default function TeacherProfile() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label htmlFor="tp-office-hours" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Office Hours & Availability
                 </label>
                 <div className="relative">
@@ -258,6 +266,7 @@ export default function TeacherProfile() {
                     <Clock className="h-4 w-4 text-gray-400" />
                   </div>
                   <input
+                    id="tp-office-hours"
                     type="text"
                     name="officeHours"
                     value={formData.officeHours}
@@ -266,11 +275,11 @@ export default function TeacherProfile() {
                     placeholder="e.g. Mon & Wed, 10:00 AM - 12:00 PM (Room 304)"
                   />
                 </div>
-                <p className="mt-1 text-xs text-gray-500">Students will see this on your faculty profile.</p>
+                <p className="mt-1 text-xs text-gray-500">{getAcademicLabel("student", academicLabels)}s will see this on your faculty profile.</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label htmlFor="tp-bio" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Biography / About
                 </label>
                 <div className="relative">
@@ -278,6 +287,7 @@ export default function TeacherProfile() {
                     <FileText className="h-4 w-4 text-gray-400" />
                   </div>
                   <textarea
+                    id="tp-bio"
                     name="bio"
                     rows={4}
                     value={formData.bio}

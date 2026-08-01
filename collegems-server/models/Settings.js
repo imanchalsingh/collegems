@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+const DEFAULT_ACADEMIC_LABELS = require("../constants/academicLabels");
 const settingsSchema = new mongoose.Schema({
     confirmations: {
         delete: {
@@ -23,6 +23,12 @@ const settingsSchema = new mongoose.Schema({
             description: 'Show confirmation before updating'
         }
     },
+
+    academicLabels: {
+        type: Object,
+        default: () => ({ ...DEFAULT_ACADEMIC_LABELS }),
+    },
+
     updatedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'

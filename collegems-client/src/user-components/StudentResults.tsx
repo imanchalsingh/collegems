@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import axios from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 
 interface Course {
@@ -76,6 +78,7 @@ const getGradeIcon = (grade: string) => {
 };
 
 export default function StudentResults() {
+  const { data: academicLabels } = useAcademicLabels();
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterSemester, setFilterSemester] = useState<string>("all");
@@ -138,9 +141,9 @@ export default function StudentResults() {
 
   const handleDownload = () => {
     const resultsData = filteredResults.map(r => ({
-      "Course Name": r.courseId.name,
-      "Course Code": r.courseId.code,
-      "Semester": r.semester,
+      [`${getAcademicLabel("course", academicLabels)} Name`]: r.courseId.name,
+      [`${getAcademicLabel("course", academicLabels)} Code`]: r.courseId.code,
+      [getAcademicLabel("semester", academicLabels)]: r.semester,
       "Internal": r.internalMarks,
       "External": r.externalMarks,
       "Practical": r.practicalMarks,
@@ -228,7 +231,7 @@ export default function StudentResults() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Courses</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total {getAcademicLabel("course", academicLabels)}s</p>
               <GraduationCap className="w-4 h-4 text-gray-400 dark:text-gray-500" />
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{results.length}</p>
@@ -288,7 +291,7 @@ export default function StudentResults() {
                 >
                   {semesters.map((sem) => (
                     <option key={sem} value={sem}>
-                      {sem === "all" ? "All Semesters" : sem}
+                      {sem === "all" ? `All ${getAcademicLabel("semester", academicLabels)}s` : sem}
                     </option>
                   ))}
                 </select>
@@ -307,9 +310,9 @@ export default function StudentResults() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Course</th>
+                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{getAcademicLabel("course", academicLabels)}</th>
                   <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Code</th>
-                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Semester</th>
+                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{getAcademicLabel("semester", academicLabels)}</th>
                   <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Internal</th>
                   <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">External</th>
                   <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Practical</th>
@@ -411,14 +414,14 @@ export default function StudentResults() {
               </div>
               <div className="p-6 space-y-4">
                 <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">Course Information</h4>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">{getAcademicLabel("course", academicLabels)} Information</h4>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Course Name</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{getAcademicLabel("course", academicLabels)} Name</p>
                       <p className="text-sm font-medium text-gray-900 dark:text-white">{selectedResult.courseId.name}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Course Code</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{getAcademicLabel("course", academicLabels)} Code</p>
                       <p className="text-sm font-medium text-gray-900 dark:text-white">{selectedResult.courseId.code}</p>
                     </div>
                     <div>
@@ -426,7 +429,7 @@ export default function StudentResults() {
                       <p className="text-sm font-medium text-gray-900 dark:text-white">{selectedResult.courseId.credits || 3}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Semester</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{getAcademicLabel("semester", academicLabels)}</p>
                       <p className="text-sm font-medium text-gray-900 dark:text-white">{selectedResult.semester}</p>
                     </div>
                   </div>
@@ -498,7 +501,7 @@ export default function StudentResults() {
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-            Semester-wise Performance
+            {getAcademicLabel("semester", academicLabels)}-wise Performance
           </h3>
           <div className="space-y-3">
             {semesters.filter(s => s !== "all").map((semester) => {

@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 type LeaveStatus = "Pending" | "Approved" | "Rejected";
 
@@ -48,6 +50,7 @@ const statusOptions: Array<"all" | LeaveStatus> = [
 ];
 
 export default function LeaveApprovals() {
+  const { data: academicLabels } = useAcademicLabels();
   const [applications, setApplications] = useState<LeaveApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | LeaveStatus>("Pending");
@@ -274,7 +277,7 @@ export default function LeaveApprovals() {
                   {application.status !== "Pending" && (
                     <div className="mt-3 rounded-lg border border-gray-100 bg-gray-50 p-3 text-sm dark:border-gray-700 dark:bg-gray-900">
                       <p className="font-medium text-gray-900 dark:text-white">
-                        Reviewed by {application.reviewedBy?.name || "Faculty"}
+                        Reviewed by {application.reviewedBy?.name || `${getAcademicLabel("faculty", academicLabels)}`}
                       </p>
                       <p className="mt-1 text-gray-600 dark:text-gray-400">
                         {application.adminRemarks || "No remarks added."}

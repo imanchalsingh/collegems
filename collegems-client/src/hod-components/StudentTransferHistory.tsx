@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface TransferEntry {
   _id: string;
@@ -16,16 +18,17 @@ interface Student {
   email: string;
 }
 
-const FIELD_LABELS: Record<string, string> = {
+const getFieldLabels = (academicLabels: any): Record<string, string> => ({
   branch: "Branch",
-  section: "Section",
-  semester: "Semester",
-  course: "Course",
-};
+  section: getAcademicLabel("section", academicLabels),
+  semester: getAcademicLabel("semester", academicLabels),
+  course: getAcademicLabel("course", academicLabels),
+});
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api";
 
 const StudentTransferHistory = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const { studentId } = useParams<{ studentId: string }>();
   const [history, setHistory] = useState<TransferEntry[]>([]);
   const [student, setStudent] = useState<Student | null>(null);
@@ -90,7 +93,7 @@ const StudentTransferHistory = () => {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <h2 className="text-2xl font-bold mb-2 text-gray-800">
-        Student Transfer History
+        {getAcademicLabel("student", academicLabels)} Transfer History
       </h2>
       {student && (
         <p className="text-gray-500 mb-6">
@@ -140,7 +143,7 @@ const StudentTransferHistory = () => {
               <div className="bg-white rounded-xl border p-4 shadow-sm">
                 <div className="flex justify-between items-center mb-1">
                   <span className="font-medium text-gray-800">
-                    {FIELD_LABELS[entry.field] || entry.field} Changed
+                    {getFieldLabels(academicLabels)[entry.field] || entry.field} Changed
                   </span>
                   <span className="text-xs text-gray-400">
                     {new Date(entry.changedAt).toLocaleString()}

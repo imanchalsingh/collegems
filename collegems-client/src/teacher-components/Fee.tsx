@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Student {
   _id: string;
@@ -25,6 +27,7 @@ interface Student {
 }
 
 export default function Hodfee() {
+  const { data: academicLabels } = useAcademicLabels();
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -162,7 +165,7 @@ export default function Hodfee() {
               <Users className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Students</p>
+              <p className="text-sm text-gray-500">Total {getAcademicLabel("student", academicLabels)}s</p>
               <p className="text-xl font-bold text-gray-900">
                 {students.length}
               </p>
@@ -175,7 +178,7 @@ export default function Hodfee() {
               <Users className="w-5 h-5 text-amber-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Selected Students</p>
+              <p className="text-sm text-gray-500">Selected {getAcademicLabel("student", academicLabels)}s</p>
               <p className="text-xl font-bold text-gray-900">
                 {selectedStudents.length}
               </p>
@@ -219,7 +222,7 @@ export default function Hodfee() {
           }`}
         >
           <BookOpen className="inline w-4 h-4 mr-2" />
-          Course-wise
+          {getAcademicLabel("course", academicLabels)}-wise
         </button>
       </div>
 
@@ -262,14 +265,14 @@ export default function Hodfee() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Course
+                        {getAcademicLabel("course", academicLabels)}
                       </label>
                       <select
                         value={filterCourse}
                         onChange={(e) => setFilterCourse(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="all">All Courses</option>
+                        <option value="all">All {getAcademicLabel("course", academicLabels)}s</option>
                         <option value="bca">BCA</option>
                         <option value="bba">BBA</option>
                         <option value="mba">MBA</option>
@@ -278,14 +281,14 @@ export default function Hodfee() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Semester
+                        {getAcademicLabel("semester", academicLabels)}
                       </label>
                       <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="all">All Semesters</option>
-                        <option value="1">Semester 1</option>
-                        <option value="2">Semester 2</option>
-                        <option value="3">Semester 3</option>
-                        <option value="4">Semester 4</option>
+                        <option value="all">All {getAcademicLabel("semester", academicLabels)}s</option>
+                        <option value="1">{getAcademicLabel("semester", academicLabels)} 1</option>
+                        <option value="2">{getAcademicLabel("semester", academicLabels)} 2</option>
+                        <option value="3">{getAcademicLabel("semester", academicLabels)} 3</option>
+                        <option value="4">{getAcademicLabel("semester", academicLabels)} 4</option>
                       </select>
                     </div>
                   </div>
@@ -303,8 +306,8 @@ export default function Hodfee() {
                   className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
               </div>
-              <div className="flex-1 font-medium text-gray-700">Student</div>
-              <div className="w-24 font-medium text-gray-700">Course</div>
+              <div className="flex-1 font-medium text-gray-700">{getAcademicLabel("student", academicLabels)}</div>
+              <div className="w-24 font-medium text-gray-700">{getAcademicLabel("course", academicLabels)}</div>
               <div className="w-24 font-medium text-gray-700">Status</div>
             </div>
 
@@ -389,7 +392,7 @@ export default function Hodfee() {
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl border border-gray-200 p-6 sticky top-4">
             <h2 className="text-lg font-semibold text-gray-900 mb-6">
-              {!enableCourseWise ? "Set Fee Details" : "Course-wise Fee Setup"}
+              {!enableCourseWise ? "Set Fee Details" : `${getAcademicLabel("course", academicLabels)}-wise Fee Setup`}
             </h2>
 
             {!enableCourseWise ? (
@@ -442,7 +445,7 @@ export default function Hodfee() {
                     </h3>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Students:</span>
+                        <span className="text-gray-600">{getAcademicLabel("student", academicLabels)}s:</span>
                         <span className="font-medium text-gray-900">
                           {selectedStudents.length}
                         </span>
@@ -510,7 +513,7 @@ export default function Hodfee() {
                     <GraduationCap className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                     <div>
                       <p className="text-sm font-medium text-blue-900">
-                        Course-wise fee feature
+                        {getAcademicLabel("course", academicLabels)}-wise fee feature
                       </p>
                       <p className="text-xs text-blue-700 mt-1">
                         Coming soon - Set fees for entire courses at once
@@ -521,7 +524,7 @@ export default function Hodfee() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Select Course *
+                    Select {getAcademicLabel("course", academicLabels)} *
                   </label>
                   <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -544,7 +547,7 @@ export default function Hodfee() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Course Fee *
+                    {getAcademicLabel("course", academicLabels)} Fee *
                   </label>
                   <div className="relative">
                     <DollarSign

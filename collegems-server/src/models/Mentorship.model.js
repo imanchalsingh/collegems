@@ -3,7 +3,17 @@ import mongoose from "mongoose";
 const mentorshipSchema = new mongoose.Schema({
   mentor: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   mentee: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  status: { type: String, enum: ["active", "inactive"], default: "active" },
+  status: {
+    type: String,
+    enum: ["pending", "active", "inactive"],
+    default: "active",
+  },
+  note: { type: String, maxlength: 500 },
+  source: {
+    type: String,
+    enum: ["admin", "alumni_request"],
+    default: "admin",
+  },
   assignedAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 

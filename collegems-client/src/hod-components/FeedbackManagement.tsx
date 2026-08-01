@@ -8,6 +8,8 @@ import {
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
 import AdvancedExportButton from "../common-components-management/AdvancedExportButton";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -48,9 +50,9 @@ interface Analytics {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const CATEGORY_LABELS: Record<string, string> = {
-  course: "Course", faculty: "Faculty", facility: "Facility", general: "General",
-};
+const getCategoryLabels = (academicLabels: any): Record<string, string> => ({
+  course: getAcademicLabel("course", academicLabels), faculty: getAcademicLabel("faculty", academicLabels), facility: "Facility", general: "General",
+});
 
 const STATUS_CONFIG: Record<Status, { label: string; cls: string; icon: any }> = {
   pending:  { label: "Pending",  cls: "bg-amber-100 text-amber-700",     icon: Clock },
@@ -61,6 +63,7 @@ const STATUS_CONFIG: Record<Status, { label: string; cls: string; icon: any }> =
 // ── Analytics panel ───────────────────────────────────────────────────────────
 
 function AnalyticsPanel() {
+  const { data: academicLabels } = useAcademicLabels();
   const [data, setData]     = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -101,7 +104,7 @@ function AnalyticsPanel() {
             {data.categoryBreakdown.map((c) => (
               <div key={c._id} className="flex items-center gap-3">
                 <span className="text-xs text-gray-500 w-20 flex-shrink-0">
-                  {CATEGORY_LABELS[c._id] || c._id}
+                  {getCategoryLabels(academicLabels)[c._id] || c._id}
                 </span>
                 <div className="flex-1 bg-gray-100 rounded-full h-2">
                   <div
@@ -172,6 +175,7 @@ function FeedbackCard({
   onUpdate: (id: string, status: Status, response: string) => void;
   onDelete: (id: string) => void;
 }) {
+  const { data: academicLabels } = useAcademicLabels();
   const [expanded, setExpanded]   = useState(false);
   const [response, setResponse]   = useState(item.adminResponse || "");
   const [status, setStatus]       = useState<Status>(item.status);
@@ -210,7 +214,7 @@ function FeedbackCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-2">
             <span className="text-xs font-semibold px-2 py-0.5 bg-gray-100 text-gray-600 rounded border border-gray-200/60">
-              {CATEGORY_LABELS[item.category]}
+              {getCategoryLabels(academicLabels)[item.category]}
             </span>
             {item.isAnonymous && (
               <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded font-medium">
@@ -326,6 +330,7 @@ function FeedbackCard({
 // ── Main exported component ────────────────────────────────────────────────────
 
 export default function FeedbackManagement() {
+  const { data: academicLabels } = useAcademicLabels();
   const [items, setItems]         = useState<FeedbackItem[]>([]);
   const [loading, setLoading]     = useState(true);
   const [view, setView]           = useState<"list" | "analytics">("list");
@@ -402,8 +407,8 @@ export default function FeedbackManagement() {
                 className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none"
               >
                 <option value="">All Categories</option>
-                <option value="course">Course</option>
-                <option value="faculty">Faculty</option>
+                <option value="course">{getAcademicLabel("course", academicLabels)}</option>
+                <option value="faculty">{getAcademicLabel("faculty", academicLabels)}</option>
                 <option value="facility">Facility</option>
                 <option value="general">General</option>
               </select>
@@ -421,10 +426,10 @@ export default function FeedbackManagement() {
             <AdvancedExportButton
               data={items}
               filename="Feedback_Export"
-              pdfTitle="Student Feedback Report"
+              pdfTitle={`${getAcademicLabel("student", academicLabels)} Feedback Report`}
               headers={["Category", "Title", "Message", "Status", "Sentiment", "Sentiment Score", "Date"]}
               dataMapper={(item: FeedbackItem) => [
-                CATEGORY_LABELS[item.category] || item.category,
+                getCategoryLabels(academicLabels)[item.category] || item.category,
                 item.title,
                 item.message,
                 item.status.toUpperCase(),

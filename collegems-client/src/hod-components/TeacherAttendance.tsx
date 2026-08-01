@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface TeacherAttendance {
   _id: string;
@@ -54,6 +56,7 @@ interface AttendanceStats {
 }
 
 export default function HODTeacherAttendance() {
+  const { data: academicLabels } = useAcademicLabels();
   const [attendanceData, setAttendanceData] = useState<TeacherAttendance[]>([]);
   const [stats, setStats] = useState<AttendanceStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -179,7 +182,7 @@ export default function HODTeacherAttendance() {
   const exportToCSV = () => {
     const headers = [
       "Teacher Name",
-      "Department",
+      getAcademicLabel("department", academicLabels),
       "Email",
       "Status",
       "Date",
@@ -320,7 +323,7 @@ export default function HODTeacherAttendance() {
               onChange={(e) => setSelectedDepartment(e.target.value)}
               className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="all">All Departments</option>
+              <option value="all">All {getAcademicLabel("department", academicLabels)}s</option>
               {departments.map((dept) => (
                 <option key={dept} value={dept}>
                   {dept}
@@ -406,7 +409,7 @@ export default function HODTeacherAttendance() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-gray-500" />
-            Department-wise Attendance
+            {getAcademicLabel("department", academicLabels)}-wise Attendance
           </h3>
           <div className="space-y-4">
             {Object.entries(stats.departmentWise).map(([dept, data]) => (
@@ -462,7 +465,7 @@ export default function HODTeacherAttendance() {
                   Teacher
                 </th>
                 <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase">
-                  Department
+                  {getAcademicLabel("department", academicLabels)}
                 </th>
                 <th className="text-left py-3 px-6 text-xs font-medium text-gray-500 uppercase">
                   Status

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Save, Plus, Trash2, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Course {
   _id: string;
@@ -16,6 +18,7 @@ interface AssessmentComponent {
 }
 
 export default function AssessmentSettings() {
+  const { data: academicLabels } = useAcademicLabels();
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [components, setComponents] = useState<AssessmentComponent[]>([]);
@@ -129,7 +132,7 @@ export default function AssessmentSettings() {
 
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Select Course</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Select {getAcademicLabel("course", academicLabels)}</label>
           <select
             value={selectedCourse}
             onChange={(e) => setSelectedCourse(e.target.value)}

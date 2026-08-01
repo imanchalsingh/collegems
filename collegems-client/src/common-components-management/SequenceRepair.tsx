@@ -3,6 +3,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Wrench, Search, AlertCircle, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
 import api from "../api/axios";
 import { toast } from "sonner";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface RepairPreview {
   recordId: string;
@@ -19,6 +21,7 @@ interface AnalysisResult {
 }
 
 export const SequenceRepair: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [model, setModel] = useState("User");
   const [field, setField] = useState("studentId");
   const [prefix, setPrefix] = useState("STU");
@@ -98,7 +101,7 @@ export const SequenceRepair: React.FC = () => {
               <option value="User">User</option>
               <option value="Results">Results</option>
               <option value="Attendance">Attendance</option>
-              <option value="Course">Course</option>
+              <option value="Course">{getAcademicLabel("course", academicLabels)}</option>
             </select>
           </div>
           <div>

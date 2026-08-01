@@ -29,6 +29,8 @@ import {
   GraduationCap,
   Users,
   UserCircle,
+  User,
+  Armchair,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import api from "../api/axios";
@@ -67,6 +69,7 @@ import ExaminationForm from "../user-components/ExaminationForm";
 import EventsStudent from "../user-components/EventsStudent";
 import Fees from "../user-components/Fee";
 import StudentFeedback from "../user-components/Feedback";
+import StudentComplaints from "../user-components/StudentComplaints";
 import LeaveRequest from "../user-components/LeaveRequest";
 import StudentAchievements from "../user-components/StudentAchievements";
 import ProfileCompletionCard from "../user-components/ProfileCompletionCard";
@@ -81,9 +84,12 @@ import AnnouncementsView from "../user-components/AnnouncementsView";
 import SemesterComparison from "../user-components/SemesterComparison";
 import UserWorkflows from "../user-components/UserWorkflows";
 import StudentQuizList from "../user-components/StudentQuizList";
-
+import StudentProfile from "../user-components/StudentProfile";
+import LivePollResponseView from "../student-components/LivePollResponseView";
 // HOD Components
 import Teachers from "../hod-components/Teachers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 type TabType =
   | "overview"
@@ -102,10 +108,12 @@ type TabType =
   | "exam-form"
   | "my-seat"
   | "placement"
+  | "alumni-portal"
   | "faculty"
   | "scholarships"
   | "id-card"
   | "feedback"
+  | "complaints"
   | "bus-routes"
   | "book-resources"
   | "subject-faculty"
@@ -113,42 +121,62 @@ type TabType =
   | "user-workflows"
   | "settings"
   | "grade-trend"
-  | "online-exams";
+  | "cgpa-simulator"
+  | "online-exams"
+  | "live-polls"
+  | "profile"
+  ;
 
-const navigationItems: {
+const getNavigationItems = (academicLabels: any): {
   id: TabType;
   label: string;
   icon: any;
-}[] = [
+}[] => [
   { id: "overview", label: "Overview", icon: LayoutGrid },
   { id: "announcements", label: "Announcements", icon: Bell },
   { id: "attendance", label: "Attendance", icon: CalendarCheck },
   { id: "assignments", label: "Assignments", icon: FileText },
   { id: "fees", label: "Fees", icon: Wallet },
-  { id: "courses", label: "Courses", icon: BookOpen },
+  { id: "courses", label: `${getAcademicLabel("course", academicLabels)}s`, icon: BookOpen },
   { id: "examschedule", label: "Exam Schedule", icon: Calendar },
+  { id: "my-seat", label: "My Exam Seat", icon: Armchair },
   { id: "academic-calendar", label: "Academic Calendar", icon: CalendarDays },
   { id: "events", label: "Events", icon: CalendarDays },
-  { id: "faculty", label: "Faculty", icon: Users },
-  { id: "subject-faculty", label: "Subject Faculty", icon: GraduationCap },
+  { id: "faculty", label: getAcademicLabel("faculty", academicLabels), icon: Users },
+  {
+    id: "subject-faculty",
+    label: `${getAcademicLabel("subject", academicLabels)} ${getAcademicLabel("faculty", academicLabels)}`,
+    icon: GraduationCap,
+  },
+  {
+    id: "semester-comparison",
+    label: `${getAcademicLabel("semester", academicLabels)} Comparison`,
+    icon: TrendingUp,
+  },
   { id: "results", label: "Results", icon: AwardIcon },
-  { id: "semester-comparison", label: "Semester Comparison", icon: TrendingUp },
+  { id: "cgpa-simulator", label: "CGPA Simulator", icon: Calculator },
   { id: "achievements", label: "Achievements", icon: Trophy },
   { id: "leave", label: "Leave Requests", icon: ClipboardList },
-  { id: "library", label: "Library", icon: BookOpen },
+  { id: "library", label: "Smart Library", icon: BookOpen },
   { id: "exam-form", label: "Examination Form", icon: FileText },
   { id: "scholarships", label: "Scholarships", icon: AwardIcon },
   { id: "id-card", label: "ID Card", icon: UserCircle },
   { id: "feedback", label: "Feedback", icon: MessageSquare },
+  { id: "complaints", label: "Complaints", icon: MessageSquare },
   { id: "placement", label: "Placement", icon: Briefcase },
+  { id: "alumni-portal", label: "Alumni Portal", icon: Users },
   { id: "bus-routes", label: "Bus Tracking", icon: Bus },
   { id: "book-resources", label: "Book Resources", icon: CalendarDays },
   { id: "user-workflows", label: "My Workflows", icon: FileText },
   { id: "grade-trend", label: "Grade Trend", icon: BarChart },
   { id: "online-exams", label: "Online Exams", icon: FileText },
+  { id: "live-polls", label: "Live Polls", icon: Radio },
+  { id: "profile", label: "My Profile", icon: User },
 ];
 
 export default function StudentDashboard() {
+  const { data: academicLabels } = useAcademicLabels();
+  const navigationItems = getNavigationItems(academicLabels);
   const navigate = useNavigate();
   const { darkMode, toggleTheme } = useTheme();
   const [data, setData] = useState<any>(null);
@@ -201,7 +229,7 @@ export default function StudentDashboard() {
   const student = data?.user;
   const studentProgram = student?.course
     ? `${student.course}${student.semester ? ` - Sem ${student.semester}` : ""}`
-    : "Course not set";
+    : `${getAcademicLabel("course", academicLabels)} not set`;
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -355,7 +383,7 @@ export default function StudentDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Student Portal
+                  {getAcademicLabel("student", academicLabels)} Portal
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   {studentProgram}
@@ -370,7 +398,7 @@ export default function StudentDashboard() {
             </div>
             <div className="mt-6 p-4 bg-blue-50 dark:bg-gray-800 rounded-lg">
               <p className="font-medium text-gray-900 dark:text-white">
-                {student?.name || "Student"}
+                {student?.name || `${getAcademicLabel("student", academicLabels)}`}
               </p>
               <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                 ID: {student?.studentId || "Not set"}
@@ -387,6 +415,10 @@ export default function StudentDashboard() {
                   <button
                     key={item.id}
                     onClick={() => {
+                      if (item.id === "alumni-portal") {
+                        navigate("/alumni-portal");
+                        return;
+                      }
                       setActiveTab(item.id);
                       setSidebarOpen(false);
                     }}
@@ -458,7 +490,7 @@ export default function StudentDashboard() {
           <div className="mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
               {activeTab === "overview"
-                ? `${getGreeting()}, ${student?.name?.split(" ")[0] || "Student"}!`
+                ? `${getGreeting()}, ${student?.name?.split(" ")[0] || `${getAcademicLabel("student", academicLabels)}`}!`
                 : navigationItems.find((item) => item.id === activeTab)?.label}
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">
@@ -512,7 +544,7 @@ export default function StudentDashboard() {
                     trend: "Total",
                   },
                   {
-                    title: "Courses",
+                    title: `${getAcademicLabel("course", academicLabels)}s`,
                     value: "Active",
                     icon: BookOpen,
                     color: "purple",
@@ -749,6 +781,7 @@ export default function StudentDashboard() {
               )}
               {activeTab === "events" && <EventsStudent />}
               {activeTab === "results" && <StudentResults />}
+              {activeTab === "cgpa-simulator" && <CGPASimulator />}
               {activeTab === "semester-comparison" && <SemesterComparison />}
               {activeTab === "achievements" && <StudentAchievements />}
               {activeTab === "announcements" && <AnnouncementsView />}
@@ -762,10 +795,12 @@ export default function StudentDashboard() {
               {activeTab === "faculty" && <FacultyView />}
               {activeTab === "subject-faculty" && <Teachers />}
               {activeTab === "book-resources" && <ResourceBooking />}
+              {activeTab === "complaints" && <StudentComplaints />}
               {activeTab === "placement" && <PlacementEligibility />}
               {activeTab === "user-workflows" && <UserWorkflows />}
               {activeTab === "online-exams" && <StudentQuizList />}
-
+              {activeTab === "live-polls" && <LivePollResponseView />}
+              {activeTab === "profile" && <StudentProfile />}
               {activeTab === "settings" && (
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   Settings are not available yet for student accounts.

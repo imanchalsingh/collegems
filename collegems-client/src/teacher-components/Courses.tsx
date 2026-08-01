@@ -20,6 +20,8 @@ import {
   Sun,
   Download,
 } from "lucide-react";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface Course {
   _id: string;
@@ -33,6 +35,7 @@ interface Course {
 }
 
 export default function Courses() {
+  const { data: academicLabels } = useAcademicLabels();
   const { darkMode, toggleTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const [courses, setCourses] = useState<Course[]>([]);
@@ -77,7 +80,7 @@ export default function Courses() {
     if (!window.confirm("Are you sure you want to delete this course?")) return;
     try {
       await api.delete(`/courses/delete/${courseId}`);
-      alert("Course deleted successfully");
+      alert(`${getAcademicLabel("course", academicLabels)} deleted successfully`);
       fetchCourses();
     } catch (error) {
       console.log(error);
@@ -122,10 +125,10 @@ export default function Courses() {
       };
       if (editingCourse) {
         await api.put(`/courses/update/${editingCourse._id}`, courseData);
-        alert("Course updated successfully ✅");
+        alert(`${getAcademicLabel("course", academicLabels)} updated successfully ✅`);
       } else {
         await api.post("/courses/add", courseData);
-        alert("Course added successfully ✅");
+        alert(`${getAcademicLabel("course", academicLabels)} added successfully ✅`);
       }
       setOpen(false);
       resetForm();
@@ -167,7 +170,7 @@ export default function Courses() {
       <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4 sticky top-0 z-20">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Course Catalog</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{getAcademicLabel("course", academicLabels)} Catalog</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               Browse and manage all available courses
             </p>
@@ -196,7 +199,7 @@ export default function Courses() {
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
             >
               <Plus className="w-4 h-4" />
-              Add Course
+              Add {getAcademicLabel("course", academicLabels)}
             </button>
           </div>
         </div>
@@ -212,7 +215,7 @@ export default function Courses() {
                 <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Courses</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total {getAcademicLabel("course", academicLabels)}s</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalCourses}</p>
               </div>
             </div>
@@ -224,7 +227,7 @@ export default function Courses() {
                 <Building className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Departments</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{getAcademicLabel("department", academicLabels)}s</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalDepartments}</p>
               </div>
             </div>
@@ -236,7 +239,7 @@ export default function Courses() {
                 <Calendar className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Active Semesters</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Active {getAcademicLabel("semester", academicLabels)}s</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalSemesters}</p>
               </div>
             </div>
@@ -282,16 +285,16 @@ export default function Courses() {
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Department</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{getAcademicLabel("department", academicLabels)}</label>
                   <select className={selectCls} value={filter} onChange={(e) => setFilter(e.target.value)}>
-                    <option value="all">All Departments</option>
+                    <option value="all">All {getAcademicLabel("department", academicLabels)}s</option>
                     {departments.map((dept) => <option key={dept} value={dept}>{dept}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Semester</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{getAcademicLabel("semester", academicLabels)}</label>
                   <select className={selectCls}>
-                    <option value="all">All Semesters</option>
+                    <option value="all">All {getAcademicLabel("semester", academicLabels)}s</option>
                     {semesters.map((sem) => <option key={sem} value={sem}>Semester {sem}</option>)}
                   </select>
                 </div>
@@ -303,7 +306,7 @@ export default function Courses() {
         {/* Courses Grid */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">All Courses</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">All {getAcademicLabel("course", academicLabels)}s</h2>
             <span className="text-sm text-gray-500 dark:text-gray-400">
               Showing {filteredCourses.length} of {courses.length} courses
             </span>
@@ -419,7 +422,7 @@ export default function Courses() {
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {editingCourse ? "Edit Course" : "Add New Course"}
+                    {editingCourse ? `Edit ${getAcademicLabel("course", academicLabels)}` : `Add New ${getAcademicLabel("course", academicLabels)}`}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     {editingCourse ? "Update course details" : "Fill in the course information"}
@@ -436,25 +439,25 @@ export default function Courses() {
 
             <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Course Name *</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{getAcademicLabel("course", academicLabels)} Name *</label>
                 <input className={inputCls} placeholder="e.g., Data Structures & Algorithms" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Course Code *</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{getAcademicLabel("course", academicLabels)} Code *</label>
                 <input className={inputCls} placeholder="e.g., CS301" value={code} onChange={(e) => setCode(e.target.value)} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Department *</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{getAcademicLabel("department", academicLabels)} *</label>
                   <select className={selectCls} value={department} onChange={(e) => setDepartment(e.target.value)}>
-                    <option value="">Select Department</option>
+                    <option value="">Select {getAcademicLabel("department", academicLabels)}</option>
                     {departments.map((dept) => <option key={dept} value={dept}>{dept}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Semester *</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{getAcademicLabel("semester", academicLabels)} *</label>
                   <select className={selectCls} value={semester} onChange={(e) => setSemester(e.target.value)}>
-                    <option value="">Select Semester</option>
+                    <option value="">Select {getAcademicLabel("semester", academicLabels)}</option>
                     {semesters.map((sem) => <option key={sem} value={sem}>Semester {sem}</option>)}
                   </select>
                 </div>
@@ -465,7 +468,7 @@ export default function Courses() {
                   <input type="number" className={inputCls} placeholder="e.g., 3" value={credits} onChange={(e) => setCredits(e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max Students</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max {getAcademicLabel("student", academicLabels)}s</label>
                   <input type="number" className={inputCls} placeholder="e.g., 60" value={maxStudents} onChange={(e) => setMaxStudents(e.target.value)} />
                 </div>
               </div>
@@ -488,7 +491,7 @@ export default function Courses() {
                   onClick={addOrUpdateCourse}
                   disabled={!name || !code || !department || !semester}
                 >
-                  {editingCourse ? "Update Course" : "Add Course"}
+                  {editingCourse ? `Update ${getAcademicLabel("course", academicLabels)}` : `Add ${getAcademicLabel("course", academicLabels)}`}
                 </button>
               </div>
             </div>

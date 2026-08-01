@@ -29,11 +29,13 @@ export const createJobPosting = async (req, res, next) => {
 // Get all active job postings
 export const getJobPostings = async (req, res, next) => {
   try {
-    const { type, company, search } = req.query;
+    const { type, company, search, referral } = req.query;
     
     let query = { status: "open" };
     if (type) query.type = type;
     if (company) query.company = { $regex: company, $options: "i" };
+    if (referral === "true") query.isReferral = true;
+    if (referral === "false") query.isReferral = { $ne: true };
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: "i" } },

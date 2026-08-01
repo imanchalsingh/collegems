@@ -1,11 +1,14 @@
 import React from "react";
-import { ActivityItem } from "../hooks/useHodAnalytics";
+import type { ActivityItem } from "../hooks/useHodAnalytics";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface RecentActivityFeedProps {
   activities: ActivityItem[];
 }
 
 export const RecentActivityFeed: React.FC<RecentActivityFeedProps> = ({ activities }) => {
+  const { data: academicLabels } = useAcademicLabels();
   if (!activities || activities.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center bg-slate-800/50 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
@@ -23,7 +26,7 @@ export const RecentActivityFeed: React.FC<RecentActivityFeedProps> = ({ activiti
   return (
     <div className="bg-slate-900/50 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-md">
       <div className="px-6 py-5 border-b border-slate-800">
-        <h3 className="text-lg font-semibold text-slate-100">Department Activity</h3>
+        <h3 className="text-lg font-semibold text-slate-100">{getAcademicLabel("department", academicLabels)} Activity</h3>
       </div>
       <ul className="divide-y divide-slate-800/50">
         {activities.map((activity) => (

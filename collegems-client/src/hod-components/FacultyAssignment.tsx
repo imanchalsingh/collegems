@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Teacher {
@@ -65,6 +67,7 @@ const labelCls = "block text-xs font-medium text-gray-700 dark:text-gray-300 mb-
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const FacultyAssignment: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [tab, setTab] = useState<Tab>("assignments");
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [workload, setWorkload] = useState<WorkloadEntry[]>([]);
@@ -259,7 +262,7 @@ const FacultyAssignment: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Briefcase className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            Faculty Assignment Management
+            {getAcademicLabel("faculty", academicLabels)} Assignment Management
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Assign faculty members to subjects and sections
@@ -283,19 +286,19 @@ const FacultyAssignment: React.FC = () => {
             bg: "bg-blue-50 dark:bg-blue-900/30",
           },
           {
-            label: "Faculty Assigned",
+            label: `${getAcademicLabel("faculty", academicLabels)} Assigned`,
             value: new Set(safeAssignments.filter(a => a.faculty?._id).map((a) => a.faculty._id)).size,
             icon: <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />,
             bg: "bg-emerald-50 dark:bg-emerald-900/30",
           },
           {
-            label: "Sections Covered",
+            label: `${getAcademicLabel("section", academicLabels)}s Covered`,
             value: new Set(safeAssignments.filter(a => a.section).map((a) => a.section)).size,
             icon: <UserCheck className="w-5 h-5 text-purple-600 dark:text-purple-400" />,
             bg: "bg-purple-50 dark:bg-purple-900/30",
           },
           {
-            label: "Overloaded Faculty",
+            label: `Overloaded ${getAcademicLabel("faculty", academicLabels)}`,
             value: overloadedCount,
             icon: <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400" />,
             bg: "bg-rose-50 dark:bg-rose-900/30",
@@ -368,7 +371,7 @@ const FacultyAssignment: React.FC = () => {
             value={filterSemester}
             onChange={(e) => setFilterSemester(e.target.value)}
           >
-            <option value="">All Semesters</option>
+            <option value="">All {getAcademicLabel("semester", academicLabels)}s</option>
             {SEMESTERS.map((s) => (
               <option key={s} value={s}>Semester {s}</option>
             ))}
@@ -402,7 +405,7 @@ const FacultyAssignment: React.FC = () => {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
-                      {["Faculty", "Subject", "Section", "Semester", "Academic Year", "Actions"].map((h) => (
+                      {[getAcademicLabel("faculty", academicLabels), getAcademicLabel("subject", academicLabels), getAcademicLabel("section", academicLabels), getAcademicLabel("semester", academicLabels), "Academic Year", "Actions"].map((h) => (
                         <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                           {h}
                         </th>
@@ -539,7 +542,7 @@ const FacultyAssignment: React.FC = () => {
           <div className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-blue-600">
               <h3 className="text-lg font-semibold text-white">
-                {editingId ? "Edit Assignment" : "New Faculty Assignment"}
+                {editingId ? "Edit Assignment" : `New ${getAcademicLabel("faculty", academicLabels)} Assignment`}
               </h3>
               <button onClick={() => setShowModal(false)} className="text-white/80 hover:text-white">
                 <X className="w-5 h-5" />
@@ -557,7 +560,7 @@ const FacultyAssignment: React.FC = () => {
               <div className="grid grid-cols-1 gap-4">
                 {/* Faculty */}
                 <div>
-                  <label htmlFor="fa-faculty" className={labelCls}>Faculty Member *</label>
+                  <label htmlFor="fa-faculty" className={labelCls}>{getAcademicLabel("faculty", academicLabels)} Member *</label>
                   <select
                     id="fa-faculty"
                     className={selectCls}
@@ -575,7 +578,7 @@ const FacultyAssignment: React.FC = () => {
 
                 {/* Course */}
                 <div>
-                  <label htmlFor="fa-course" className={labelCls}>Subject / Course *</label>
+                  <label htmlFor="fa-course" className={labelCls}>{getAcademicLabel("subject", academicLabels)} / {getAcademicLabel("course", academicLabels)} *</label>
                   <select
                     id="fa-course"
                     className={selectCls}
@@ -594,7 +597,7 @@ const FacultyAssignment: React.FC = () => {
                 {/* Section & Semester */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label htmlFor="fa-section" className={labelCls}>Section *</label>
+                    <label htmlFor="fa-section" className={labelCls}>{getAcademicLabel("section", academicLabels)} *</label>
                     <select
                       id="fa-section"
                       className={selectCls}
@@ -608,7 +611,7 @@ const FacultyAssignment: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="fa-semester" className={labelCls}>Semester *</label>
+                    <label htmlFor="fa-semester" className={labelCls}>{getAcademicLabel("semester", academicLabels)} *</label>
                     <select
                       id="fa-semester"
                       className={selectCls}
@@ -639,7 +642,7 @@ const FacultyAssignment: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="fa-department" className={labelCls}>Department *</label>
+                    <label htmlFor="fa-department" className={labelCls}>{getAcademicLabel("department", academicLabels)} *</label>
                     <select
                       id="fa-department"
                       className={selectCls}

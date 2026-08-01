@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Clock, CheckCircle, ShieldAlert } from 'lucide-react';
 import api from '../api/axios'; // Adjust path to your axios instance
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 interface DashboardData {
   summary: { pending: number; approved: number };
@@ -9,6 +11,7 @@ interface DashboardData {
 }
 
 const HODLeaveDashboard: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -53,7 +56,7 @@ const HODLeaveDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white p-6 rounded-xl shadow border-l-4 border-yellow-500 flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-500 font-medium uppercase">Pending Faculty Action</p>
+            <p className="text-sm text-gray-500 font-medium uppercase">Pending {getAcademicLabel("faculty", academicLabels)} Action</p>
             <p className="text-3xl font-bold text-gray-800">{data.summary.pending}</p>
           </div>
           <Clock className="w-10 h-10 text-yellow-500 opacity-20" />
@@ -76,7 +79,7 @@ const HODLeaveDashboard: React.FC = () => {
         <table className="w-full text-sm text-left">
           <thead className="bg-gray-50 text-gray-600">
             <tr>
-              <th className="px-6 py-3">Student</th>
+              <th className="px-6 py-3">{getAcademicLabel("student", academicLabels)}</th>
               <th className="px-6 py-3">Reason</th>
               <th className="px-6 py-3">Dates</th>
               <th className="px-6 py-3 text-right">Emergency Action</th>
@@ -112,7 +115,7 @@ const HODLeaveDashboard: React.FC = () => {
         <table className="w-full text-sm text-left">
           <thead className="bg-gray-50 text-gray-600">
             <tr>
-              <th className="px-6 py-3">Student</th>
+              <th className="px-6 py-3">{getAcademicLabel("student", academicLabels)}</th>
               <th className="px-6 py-3">Type</th>
               <th className="px-6 py-3">Approval Date</th>
             </tr>

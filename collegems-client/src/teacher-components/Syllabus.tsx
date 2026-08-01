@@ -16,6 +16,8 @@ import {
   Eye,
   X,
 } from "lucide-react";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 // TypeScript interfaces
 interface Topic {
@@ -33,6 +35,7 @@ interface Unit {
 }
 
 export default function Syllabus() {
+  const { data: academicLabels } = useAcademicLabels();
   const [courseName, setCourseName] = useState("");
   const [courseCode, setCourseCode] = useState("");
   const [semester, setSemester] = useState("");
@@ -145,7 +148,7 @@ export default function Syllabus() {
 
       pdf.setTextColor(255, 255, 255);
       pdf.setFontSize(22);
-      pdf.text(subjectTitle || "Subject Title", 105, 25, { align: "center" });
+      pdf.text(subjectTitle || `${getAcademicLabel("subject", academicLabels)} Title`, 105, 25, { align: "center" });
 
       if (subjectCode) {
         pdf.setFontSize(11);
@@ -158,7 +161,7 @@ export default function Syllabus() {
       let yPos = 60;
 
       pdf.setFont("bold");
-      pdf.text("Course Information", 20, yPos);
+      pdf.text(`${getAcademicLabel("course", academicLabels)} Information`, 20, yPos);
       pdf.setFont("normal");
       yPos += 10;
 
@@ -332,7 +335,7 @@ export default function Syllabus() {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-gray-900">
-                  Course Details
+                  {getAcademicLabel("course", academicLabels)} Details
                 </h2>
                 {units.length > 0 && (
                   <div className="flex items-center gap-2">
@@ -358,7 +361,7 @@ export default function Syllabus() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Course Name <span className="text-blue-600">*</span>
+                    {getAcademicLabel("course", academicLabels)} Name <span className="text-blue-600">*</span>
                   </label>
                   <input
                     placeholder="e.g., Bachelor of Computer Applications"
@@ -369,7 +372,7 @@ export default function Syllabus() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Course Code
+                    {getAcademicLabel("course", academicLabels)} Code
                   </label>
                   <input
                     placeholder="e.g., BCA-101"
@@ -384,7 +387,7 @@ export default function Syllabus() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Subject Title <span className="text-blue-600">*</span>
+                    {getAcademicLabel("subject", academicLabels)} Title <span className="text-blue-600">*</span>
                   </label>
                   <input
                     placeholder="e.g., Data Structures"
@@ -395,7 +398,7 @@ export default function Syllabus() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Subject Code
+                    {getAcademicLabel("subject", academicLabels)} Code
                   </label>
                   <input
                     placeholder="e.g., DS-201"
@@ -410,14 +413,14 @@ export default function Syllabus() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Semester <span className="text-blue-600">*</span>
+                    {getAcademicLabel("semester", academicLabels)} <span className="text-blue-600">*</span>
                   </label>
                   <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={semester}
                     onChange={(e) => setSemester(e.target.value)}
                   >
-                    <option value="">Select Semester</option>
+                    <option value="">Select {getAcademicLabel("semester", academicLabels)}</option>
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
                       <option key={num} value={`Semester ${num}`}>
                         Semester {num}
@@ -632,7 +635,7 @@ export default function Syllabus() {
                   {/* Header */}
                   <div className="bg-blue-600 p-6">
                     <h2 className="text-xl font-bold text-white">
-                      {subjectTitle || "Subject Title"}
+                      {subjectTitle || `${getAcademicLabel("subject", academicLabels)} Title`}
                     </h2>
                     {subjectCode && (
                       <p className="text-blue-100 text-sm mt-1">
@@ -646,7 +649,7 @@ export default function Syllabus() {
                     {/* Course Info */}
                     <div className="grid grid-cols-2 gap-4 pb-4 border-b border-gray-200">
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">Course</p>
+                        <p className="text-xs text-gray-500 mb-1">{getAcademicLabel("course", academicLabels)}</p>
                         <p className="text-sm font-medium text-gray-900">
                           {courseName || "Not specified"}
                         </p>
@@ -657,7 +660,7 @@ export default function Syllabus() {
                         )}
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">Semester</p>
+                        <p className="text-xs text-gray-500 mb-1">{getAcademicLabel("semester", academicLabels)}</p>
                         <p className="text-sm font-medium text-gray-900">
                           {semester || "Not specified"}
                         </p>

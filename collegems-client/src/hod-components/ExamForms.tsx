@@ -5,6 +5,8 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import { getAcademicLabel } from "../utils/academicLabels";
+import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
 
 interface SubmittedForm {
@@ -20,6 +22,7 @@ interface SubmittedForm {
 }
 
 const HODExamForms: React.FC = () => {
+  const { data: academicLabels } = useAcademicLabels();
   const [forms, setForms] = useState<SubmittedForm[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -258,9 +261,9 @@ const HODExamForms: React.FC = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  <th className="px-6 py-4">Student Details</th>
-                  <th className="px-6 py-4">Course & Sem</th>
-                  <th className="px-6 py-4">Subjects Selected</th>
+                  <th className="px-6 py-4">{getAcademicLabel("student", academicLabels)} Details</th>
+                  <th className="px-6 py-4">{getAcademicLabel("course", academicLabels)} & Sem</th>
+                  <th className="px-6 py-4">{getAcademicLabel("subject", academicLabels)}s Selected</th>
                   <th className="px-6 py-4">Exam Type</th>
                   <th className="px-6 py-4">Date Submitted</th>
                   <th className="px-6 py-4 text-center">Status</th>

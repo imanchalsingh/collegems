@@ -9,8 +9,11 @@ import {
 import api from "../../api/axios";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai"; 
 import { useToast } from "../../hooks/useToast";
+import { getAcademicLabel } from "../../utils/academicLabels";
+import { useAcademicLabels } from "../../hooks/useAcademicLabels";
 
 export default function Register() {
+  const { data: academicLabels } = useAcademicLabels();
   const navigate = useNavigate();
   const { darkMode, toggleTheme } = useTheme();
   const { toast } = useToast();
@@ -99,7 +102,7 @@ export default function Register() {
   };
 
   const roleOptions = [
-    { value: "student", label: "Student", icon: GraduationCap, color: "blue", description: "Access courses, assignments, and grades" },
+    { value: "student", label: `${getAcademicLabel("student", academicLabels)}`, icon: GraduationCap, color: "blue", description: "Access courses, assignments, and grades" },
     { value: "teacher", label: "Teacher", icon: Users, color: "amber", description: "Manage classes, assignments, and attendance" },
     { value: "parent", label: "Parent", icon: Users, color: "purple", description: "Monitor your child's academic progress" },
   ];
@@ -251,10 +254,10 @@ export default function Register() {
             {role === "student" && (
               <div className="space-y-4 pt-2 border-t border-gray-100 dark:border-gray-700">
                 <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                  <GraduationCap className="w-4 h-4 text-blue-600" /> Student Information
+                  <GraduationCap className="w-4 h-4 text-blue-600" /> {getAcademicLabel("student", academicLabels)} Information
                 </h3>
                 <div>
-                  <label htmlFor="studentId" className={labelClass}>Student ID *</label>
+                  <label htmlFor="studentId" className={labelClass}>{getAcademicLabel("student", academicLabels)} ID *</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><IdCard className="h-4 w-4 text-gray-400" /></div>
                     <input id="studentId" name="studentId" value={form.studentId || ""} onChange={handleChange} className={inputClass} placeholder="STU2024001" />
@@ -262,7 +265,7 @@ export default function Register() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label htmlFor="course" className={labelClass}>Course *</label>
+                    <label htmlFor="course" className={labelClass}>{getAcademicLabel("course", academicLabels)} *</label>
                     <select id="course" name="course" value={form.course || ""} onChange={handleChange} className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
                       <option value="">Select</option>
                       <option value="BCA">BCA</option>
@@ -272,7 +275,7 @@ export default function Register() {
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="department" className={labelClass}>Department</label>
+                    <label htmlFor="department" className={labelClass}>{getAcademicLabel("department", academicLabels)}</label>
                     <select id="department" name="department" value={form.department || ""} onChange={handleChange} className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
                       <option value="">Select department (Optional)</option>
                       <option value="Computer Science">Computer Science</option>
@@ -284,7 +287,7 @@ export default function Register() {
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="semester" className={labelClass}>Semester *</label>
+                    <label htmlFor="semester" className={labelClass}>{getAcademicLabel("semester", academicLabels)} *</label>
                     <select id="semester" name="semester" value={form.semester || ""} onChange={handleChange} className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
                       <option value="">Select</option>
                       {[1,2,3,4,5,6].map(sem => <option key={sem} value={sem}>Semester {sem}</option>)}
@@ -308,7 +311,7 @@ export default function Register() {
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="department" className={labelClass}>Department *</label>
+                  <label htmlFor="department" className={labelClass}>{getAcademicLabel("department", academicLabels)} *</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Building2 className="h-4 w-4 text-gray-400" /></div>
                     <select id="department" name="department" value={form.department || ""} onChange={handleChange} className="block w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
@@ -332,7 +335,7 @@ export default function Register() {
                   <Users className="w-4 h-4 text-purple-600" /> Parent Information
                 </h3>
                 <div>
-                  <label htmlFor="studentId" className={labelClass}>Child's Student ID *</label>
+                  <label htmlFor="studentId" className={labelClass}>Child's {getAcademicLabel("student", academicLabels)} ID *</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><IdCard className="h-4 w-4 text-gray-400" /></div>
                     <input id="studentId" name="studentId" value={form.studentId || ""} onChange={handleChange} className={inputClass} placeholder="STU2024001" />

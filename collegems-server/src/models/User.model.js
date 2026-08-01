@@ -23,6 +23,21 @@ const userSchema = new mongoose.Schema({
   resetPasswordToken: { type: String },
   resetPasswordExpires: { type: Date },
 
+  // Multi-factor authentication (TOTP)
+  mfaEnabled: { type: Boolean, default: false },
+  mfaSecret: { type: String, select: false },
+  mfaTempSecret: { type: String, select: false },
+  mfaRecoveryCodes: {
+    type: [
+      {
+        hash: { type: String, required: true },
+        usedAt: { type: Date, default: null },
+      },
+    ],
+    select: false,
+    default: [],
+  },
+
   // Tags
   tags: {
     type: [String],
@@ -123,4 +138,4 @@ userSchema.plugin(timelinePlugin, {
 
 userSchema.plugin(snapshotPlugin);
 
-export default mongoose.model("User", userSchema);
+export default mongoose.models.User || mongoose.model("User", userSchema);
