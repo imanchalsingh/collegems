@@ -187,76 +187,72 @@ async def predict_sentiment(data: SentimentRequest, request: Request):
 
 
 # ---------------------------------------------------------
-# Genetic Algorithm Timetable Generator
+# Code plagiarism (AST + Winnowing)
 # ---------------------------------------------------------
 
-from pydantic import Field
-from services.timetable_solver import solve_timetable, demo_payload
+from services.code_plagiarism_engine import analyze_submissions, compare_pair
 
 
-class TimetableEntity(BaseModel):
+class CodeSubmission(BaseModel):
     id: str
-    name: str | None = None
-    capacity: int | None = None
-    day: str | None = None
-    dayOfWeek: str | None = None
-    startTime: str | None = None
-    endTime: str | None = None
-    teacher_id: str | None = None
-    teacher_name: str | None = None
-    sessions_per_week: int | None = None
-    credits: int | None = None
-    students: int | None = None
-    enrolled: int | None = None
-    section_id: str | None = None
+    label: str | None = None
+    code: str
+    language: str | None = "python"
+    filename: str | None = None
+    studentId: str | None = None
+    studentName: str | None = None
 
 
-class TimetableGenerateRequest(BaseModel):
-    courses: list[dict] = Field(default_factory=list)
-    rooms: list[dict] = Field(default_factory=list)
-    slots: list[dict] = Field(default_factory=list)
-    teacher_unavailable: dict[str, list[str]] = Field(default_factory=dict)
-    population_size: int = 40
-    generations: int = 60
-    crossover_rate: float = 0.8
-    mutation_rate: float = 0.15
-    seed: int | None = None
-    demo: bool = False
+class CodePlagiarismRequest(BaseModel):
+    submissions: list[CodeSubmission]
+    threshold: float = 0.35
+    k: int = 5
+    window: int = 4
 
 
-@app.post("/generate/timetable")
-async def generate_timetable(payload: TimetableGenerateRequest, request: Request):
+class CodePairRequest(BaseModel):
+    left: CodeSubmission
+    right: CodeSubmission
+    k: int = 5
+    window: int = 4
+
+
+@app.post("/analyze/code-plagiarism")
+async def analyze_code_plagiarism(payload: CodePlagiarismRequest, request: Request):
     correlation_id = request.headers.get("x-correlation-id", "N/A")
     log_adapter = logging.LoggerAdapter(logger, {"correlation_id": correlation_id})
 
-    try:
-        data = payload.model_dump()
-        if payload.demo or (not payload.courses and not payload.rooms):
-            data = {**demo_payload(), **{k: v for k, v in data.items() if v not in (None, [], {})}}
-            data.pop("demo", None)
+    if len(payload.submissions) < 2:
+        raise HTTPException(status_code=400, detail="At least two submissions are required")
 
-        result = solve_timetable(
-            courses=data["courses"],
-            rooms=data["rooms"],
-            slots=data["slots"],
-            teacher_unavailable=data.get("teacher_unavailable") or {},
-            population_size=int(data.get("population_size") or 40),
-            generations=int(data.get("generations") or 60),
-            crossover_rate=float(data.get("crossover_rate") or 0.8),
-            mutation_rate=float(data.get("mutation_rate") or 0.15),
-            seed=data.get("seed"),
+    try:
+        result = analyze_submissions(
+            [s.model_dump() for s in payload.submissions],
+            k=payload.k,
+            window=payload.window,
+            threshold=payload.threshold,
         )
         log_adapter.info(
-            "Timetable GA finished fitness=%s hard=%s assignments=%s",
-            result.get("fitness"),
-            result.get("conflicts", {}).get("hard"),
-            len(result.get("assignments", [])),
+            "Code plagiarism analyzed %s submissions; flagged=%s",
+            len(payload.submissions),
+            len(result.get("flaggedPairs", [])),
         )
         return result
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        log_adapter.error("Timetable generation failed: %s", e)
+        log_adapter.error("Code plagiarism analysis failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/analyze/code-pair")
+async def analyze_code_pair(payload: CodePairRequest, request: Request):
+    try:
+        return compare_pair(
+            payload.left.model_dump(),
+            payload.right.model_dump(),
+            k=payload.k,
+            window=payload.window,
+        )
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 

@@ -1,1 +1,1 @@
-"""Package marker for ML helper services."""
+"""ML service helper modules."""
