@@ -68,6 +68,7 @@ import busRouteRoutes from "./busRoute.routes.js";
 
 // Reports & Analytics
 import reportRoutes from "./report.routes.js";
+import progressReportRoutes from "./progressReport.routes.js";
 import analyticsRoutes from "./analytics.routes.js";
 import quizRoutes from "./quiz.routes.js";
 import auditLogRoutes from "./auditLog.routes.js";
@@ -175,6 +176,7 @@ authenticatedRouter.use("/bus-routes", busRouteRoutes);
 
 // Reports & Analytics
 authenticatedRouter.use("/reports", reportRoutes);
+authenticatedRouter.use("/progress-reports", progressReportRoutes);
 authenticatedRouter.use("/analytics", analyticsRoutes);
 authenticatedRouter.use("/quizzes", quizRoutes);
 authenticatedRouter.use("/audit-logs", auditLogRoutes);
