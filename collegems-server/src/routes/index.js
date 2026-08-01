@@ -94,6 +94,7 @@ import temporaryLinkRoutes from "./temporaryLink.routes.js";
 // MIDDLEWARES
 // ========================================
 import { authenticate } from "../middlewares/auth.middleware.js";
+import { captureAuditContext } from "../middlewares/auditContext.middleware.js";
 import { verifyStudent } from "../controllers/idcard.controller.js";
 
 // ========================================
@@ -113,6 +114,7 @@ router.use("/temporary-links", temporaryLinkRoutes);
 // ========================================
 const authenticatedRouter = express.Router();
 authenticatedRouter.use(authenticate);
+authenticatedRouter.use(captureAuditContext);
 
 // Core Routes
 authenticatedRouter.use("/search", searchRoutes);
