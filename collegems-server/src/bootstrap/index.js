@@ -12,7 +12,7 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { execSync } from "child_process";
 import { initializeStudyGroupSockets } from "../socket/studyGroupSocket.js";
-import { initializeGpsTrackingSockets } from "../socket/gpsTrackingSocket.js";
+import { initializeAttendanceSessionSockets } from "../socket/attendanceSessionSocket.js";
 import { allowedOrigins } from "../config/cors.js";
 import { registerProcessErrorHandlers } from "../utils/processErrorHandlers.js";
 import helmet from "helmet";
@@ -152,18 +152,7 @@ io.on("connection", (socket) => {
   // -----------------------------------
 
   initializeStudyGroupSockets(io);
-  initializeGpsTrackingSockets(io);
-
-  // BullMQ / Redis background workers (#705)
-  import("../config/redis.config.js")
-    .then((redis) => redis.getRedisConnection())
-    .then(() => import("../queues/queue.registry.js"))
-    .then((q) => q.initQueues())
-    .then(() => import("../workers/bullWorkers.js"))
-    .then((w) => w.startBullWorkers(io))
-    .catch((err) => {
-      console.warn("Queue bootstrap warning:", err.message);
-    });
+  initializeAttendanceSessionSockets(io);
 
   freePort();
 
