@@ -10,3 +10,6 @@ collegems-server/uploads/**
 collegems-server/secure-uploads/**
 !collegems-server/secure-uploads/**/
 !collegems-server/secure-uploads/**/.gitkeep
+
+# Local crypto key material
+collegems-server/.keys/
