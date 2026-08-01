@@ -1,4 +1,4 @@
-import { describe, it, before, after } from 'node:test';
+import { describe, it, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
@@ -93,5 +93,94 @@ describe('Multi-Tenant Architecture - Edge Cases & Data Isolation', () => {
     
     const paths = Object.keys(SkippedModel.schema.paths);
     assert.strictEqual(paths.includes('tenantId'), false, 'Models with skipTenant should NOT have a tenantId field injected');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// tenantResolver.js — Security boundary tests
+// These tests invoke the middleware directly using mock req/res objects so no
+// HTTP server is required.  They share the same in-memory MongoDB that was
+// started above, but manage their own connection lifecycle.
+// ---------------------------------------------------------------------------
+describe('tenantResolver Middleware — Security Boundary', () => {
+  let mongoServer2;
+  let tenantResolver;
+
+  // Helper: builds a lightweight mock req/res/next triple.
+  const makeMocks = ({ headers = {}, path = '/api/courses' } = {}) => {
+    const req = { headers, path };
+    const res = {
+      _status: null,
+      _body: null,
+      status(code) { this._status = code; return this; },
+      json(body)   { this._body = body;   return this; },
+    };
+    const next = () => { res._next = true; };
+    return { req, res, next };
+  };
+
+  before(async () => {
+    mongoServer2 = await MongoMemoryServer.create();
+    await mongoose.connect(mongoServer2.getUri());
+
+    // Import the middleware AFTER the DB is ready so Tenant model can connect.
+    const mod = await import('../middlewares/tenantResolver.js');
+    tenantResolver = mod.default;
+  });
+
+  after(async () => {
+    await mongoose.disconnect();
+    await mongoServer2.stop();
+  });
+
+  beforeEach(async () => {
+    // Clear all collections between tests for a clean slate.
+    const collections = mongoose.connection.collections;
+    for (const col of Object.values(collections)) {
+      await col.deleteMany({});
+    }
+  });
+
+  it('Security Fix 1: Invalid x-tenant-id (non-ObjectId) must return HTTP 400, never Tenant.findOne()', async () => {
+    const { req, res, next } = makeMocks({ headers: { 'x-tenant-id': 'invalid-id' } });
+
+    await tenantResolver(req, res, next);
+
+    assert.strictEqual(res._status, 400, 'Expected HTTP 400 for a non-ObjectId tenant header');
+    assert.ok(res._body && !res._body.success, 'Response body should indicate failure');
+    assert.ok(!res._next, 'next() must NOT be called when tenant ID is invalid');
+  });
+
+  it('Security Fix 2a: Missing x-tenant-id with ALLOW_DEV_TENANT_BYPASS unset must return HTTP 400', async () => {
+    const saved = process.env.ALLOW_DEV_TENANT_BYPASS;
+    delete process.env.ALLOW_DEV_TENANT_BYPASS; // ensure flag is absent
+
+    const { req, res, next } = makeMocks(); // no x-tenant-id header
+    await tenantResolver(req, res, next);
+
+    // Restore
+    if (saved !== undefined) process.env.ALLOW_DEV_TENANT_BYPASS = saved;
+
+    assert.strictEqual(res._status, 400, 'Expected HTTP 400 when header is absent and bypass is not enabled');
+    assert.ok(!res._next, 'next() must NOT be called when tenant header is missing and bypass is off');
+  });
+
+  it('Security Fix 2b: Missing x-tenant-id with ALLOW_DEV_TENANT_BYPASS=true + NODE_ENV=test must resolve Test Tenant', async () => {
+    const savedBypass  = process.env.ALLOW_DEV_TENANT_BYPASS;
+    const savedNodeEnv = process.env.NODE_ENV;
+
+    process.env.ALLOW_DEV_TENANT_BYPASS = 'true';
+    process.env.NODE_ENV = 'test';
+
+    const { req, res, next } = makeMocks(); // no x-tenant-id header
+    await tenantResolver(req, res, next);
+
+    // Restore
+    process.env.ALLOW_DEV_TENANT_BYPASS = savedBypass  ?? '';
+    process.env.NODE_ENV                = savedNodeEnv ?? '';
+
+    assert.ok(res._next, 'next() should be called when bypass is explicitly enabled in test mode');
+    assert.ok(req.tenantId, 'req.tenantId should be set after a successful bypass resolution');
+    assert.strictEqual(req.tenant?.slug, 'test-tenant-slug', 'Resolved tenant should be the Test Tenant');
   });
 });
