@@ -118,6 +118,7 @@ type TabType =
   | "user-workflows"
   | "settings"
   | "grade-trend"
+  | "cgpa-simulator"
   | "online-exams"
   | "live-polls"
   | "profile"
@@ -149,9 +150,10 @@ const getNavigationItems = (academicLabels: any): {
     icon: TrendingUp,
   },
   { id: "results", label: "Results", icon: AwardIcon },
+  { id: "cgpa-simulator", label: "CGPA Simulator", icon: Calculator },
   { id: "achievements", label: "Achievements", icon: Trophy },
   { id: "leave", label: "Leave Requests", icon: ClipboardList },
-  { id: "library", label: "Library", icon: BookOpen },
+  { id: "library", label: "Smart Library", icon: BookOpen },
   { id: "exam-form", label: "Examination Form", icon: FileText },
   { id: "scholarships", label: "Scholarships", icon: AwardIcon },
   { id: "id-card", label: "ID Card", icon: UserCircle },
@@ -407,6 +409,11 @@ export default function StudentDashboard() {
                   <button
                     key={item.id}
                     onClick={() => {
+                      if (item.id === "library") {
+                        navigate("/library");
+                        setSidebarOpen(false);
+                        return;
+                      }
                       setActiveTab(item.id);
                       setSidebarOpen(false);
                     }}
@@ -769,6 +776,7 @@ export default function StudentDashboard() {
               )}
               {activeTab === "events" && <EventsStudent />}
               {activeTab === "results" && <StudentResults />}
+              {activeTab === "cgpa-simulator" && <CGPASimulator />}
               {activeTab === "semester-comparison" && <SemesterComparison />}
               {activeTab === "achievements" && <StudentAchievements />}
               {activeTab === "announcements" && <AnnouncementsView />}

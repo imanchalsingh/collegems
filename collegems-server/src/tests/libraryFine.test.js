@@ -10,6 +10,7 @@ import BookIssue from "../models/BookIssue.model.js";
 import LibraryFine from "../models/LibraryFine.model.js";
 import Notification from "../models/Notification.model.js";
 import { processLibraryFines } from "../utils/cronJobs.js";
+import { calculateChargeableDays, FINE_PER_DAY } from "../utils/libraryFineEngine.js";
 import jwt from "jsonwebtoken";
 
 test("Library Fine Tracking Tests", async (t) => {
@@ -20,6 +21,7 @@ test("Library Fine Tracking Tests", async (t) => {
   let book;
   let overdueIssue;
   let notOverdueIssue;
+  let overdueDueDate;
 
   t.before(async () => {
     mongoServer = await MongoMemoryServer.create();
@@ -70,6 +72,7 @@ test("Library Fine Tracking Tests", async (t) => {
 
     const threeDaysAgo = new Date(today);
     threeDaysAgo.setDate(today.getDate() - 3);
+    overdueDueDate = threeDaysAgo;
 
     const threeDaysFromNow = new Date(today);
     threeDaysFromNow.setDate(today.getDate() + 3);
@@ -126,11 +129,13 @@ test("Library Fine Tracking Tests", async (t) => {
     assert.strictEqual(updatedOverdue.status, "overdue", "Status should be updated to overdue");
     assert.strictEqual(updatedNotOverdue.status, "issued", "Status should remain issued");
 
-    // Check Fine generation
+    // Check Fine generation (chargeable days exclude weekends/holidays)
     const fine = await LibraryFine.findOne({ issue: overdueIssue._id });
     assert.ok(fine, "Fine record should be created");
-    assert.strictEqual(fine.amount, 30, "Amount should be ₹10 * 3 days = ₹30");
-    assert.strictEqual(fine.daysOverdue, 3);
+    const expectedDays = calculateChargeableDays(overdueDueDate, today, []);
+    assert.ok(expectedDays >= 1, "Should have at least 1 chargeable day");
+    assert.strictEqual(fine.daysOverdue, expectedDays);
+    assert.strictEqual(fine.amount, expectedDays * FINE_PER_DAY);
     assert.strictEqual(fine.status, "Unpaid");
 
     // Check Notification generation
@@ -147,7 +152,10 @@ test("Library Fine Tracking Tests", async (t) => {
     assert.strictEqual(res.status, 200);
     assert.ok(res.body.success);
     assert.strictEqual(res.body.fines.length, 1, "Should return exactly 1 fine");
-    assert.strictEqual(res.body.fines[0].amount, 30);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expectedDays = calculateChargeableDays(overdueDueDate, today, []);
+    assert.strictEqual(res.body.fines[0].amount, expectedDays * FINE_PER_DAY);
     assert.strictEqual(res.body.fines[0].issue.book.title, "Test Library Book", "Populated book title should match");
   });
 

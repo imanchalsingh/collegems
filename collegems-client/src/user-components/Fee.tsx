@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import FeeEMIScheduler from "./FeeEMIScheduler";
 
 interface Installment {
   _id?: string;
@@ -236,6 +237,10 @@ export default function StudentFee() {
             ×
           </button>
         </div>
+      )}
+
+      {fee && (
+        <FeeEMIScheduler onPaymentComplete={fetchFee} />
       )}
 
       {!fee ? (

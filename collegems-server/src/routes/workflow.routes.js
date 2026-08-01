@@ -1,8 +1,14 @@
 import express from "express";
 import {
   createFormTemplate,
+  listFormTemplates,
+  updateFormTemplate,
   createWorkflowDef,
+  listWorkflowDefs,
   addWorkflowSteps,
+  saveWorkflowGraph,
+  getWorkflowGraph,
+  getInstanceAuditTrail,
   getAvailableWorkflows,
   submitWorkflowRequest,
   getMyRequests,
@@ -13,7 +19,6 @@ import { protect, restrictTo } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-// Apply auth middleware to all routes
 router.use(protect);
 
 // --- User Routes ---
@@ -22,16 +27,21 @@ router.post("/submit", submitWorkflowRequest);
 router.get("/my-requests", getMyRequests);
 
 // --- Approver Routes ---
-// Assuming any logged-in user could potentially be an approver if they have the right role
 router.get("/pending-approvals", getPendingApprovals);
 router.post("/process/:instanceId", processWorkflowAction);
+router.get("/instances/:instanceId/audit", getInstanceAuditTrail);
 
 // --- Admin Routes ---
-// Restrict below routes to admin and hod
 router.use(restrictTo("admin", "hod"));
 
+router.get("/forms", listFormTemplates);
 router.post("/forms", createFormTemplate);
+router.put("/forms/:id", updateFormTemplate);
+
+router.get("/definitions", listWorkflowDefs);
 router.post("/definitions", createWorkflowDef);
 router.post("/definitions/:workflowDefId/steps", addWorkflowSteps);
+router.get("/definitions/:workflowDefId/graph", getWorkflowGraph);
+router.put("/definitions/:workflowDefId/graph", saveWorkflowGraph);
 
 export default router;

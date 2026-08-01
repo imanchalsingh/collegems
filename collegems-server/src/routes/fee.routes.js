@@ -6,7 +6,31 @@ import log from "../utils/logger.js";
 import Fee from "../models/Fee.model.js";
 import User from "../models/User.model.js";
 import { logAction } from "../utils/auditService.js";
+import {
+  previewEmiPlan,
+  subscribeEmiPlan,
+  getMyEmiPlan,
+  createCheckoutOrder,
+  confirmCheckoutPayment,
+} from "../controllers/feeEmi.controller.js";
 const router = express.Router();
+
+// ——— EMI scheduler & payment gateway ———
+router.post("/emi/preview", protect, allowRoles("student", "parent"), previewEmiPlan);
+router.post("/emi/subscribe", protect, allowRoles("student", "parent"), subscribeEmiPlan);
+router.get("/emi/me", protect, allowRoles("student", "parent"), getMyEmiPlan);
+router.post(
+  "/payments/create-order",
+  protect,
+  allowRoles("student", "parent"),
+  createCheckoutOrder
+);
+router.post(
+  "/payments/confirm",
+  protect,
+  allowRoles("student", "parent"),
+  confirmCheckoutPayment
+);
 
 // Set fee for student
 router.post(
@@ -88,7 +112,7 @@ router.post("/pay", protect, allowRoles("student", "parent"), asyncHandler(async
       $inc: { paid: amount },
       $push: { installments: { amount, idempotencyKey, paidOn: new Date() } },
     },
-    { new: true },
+    { new: true, editorId: req.user.id },
   );
 
   if (!fee) {
@@ -114,7 +138,7 @@ router.post("/pay", protect, allowRoles("student", "parent"), asyncHandler(async
 
   const status = computeFeeStatus(fee.paid, fee.total, fee.dueDate);
   if (fee.status !== status) {
-    fee = await Fee.findByIdAndUpdate(fee._id, { $set: { status } }, { new: true });
+    fee = await Fee.findByIdAndUpdate(fee._id, { $set: { status } }, { new: true, editorId: req.user.id });
   }
 
   await logAction(req.user.id, "REQUEST_FEE_PAYMENT", "Fee", fee._id, { studentId, amount });

@@ -164,12 +164,13 @@ async function closeDatabaseConnections() {
 // Close Redis connections
 async function closeRedisConnections() {
     try {
-        // If using Redis
-        // const redisClient = require('../config/redis');
-        // await redisClient.quit();
-        // logger.info('Redis connections closed');
-        
-        logger.info('Redis connections closed');
+        const { closeRedisConnection } = await import('../config/redis.config.js');
+        await closeRedisConnection();
+        const { closeQueues } = await import('../queues/queue.registry.js');
+        await closeQueues();
+        const { stopBullWorkers } = await import('../workers/bullWorkers.js');
+        await stopBullWorkers();
+        logger.info('Redis / BullMQ connections closed');
     } catch (error) {
         logger.error('Failed to close Redis connections', error);
         throw error;

@@ -1,5 +1,18 @@
 import mongoose from "mongoose";
 
+const conditionSchema = new mongoose.Schema(
+  {
+    field: { type: String, trim: true },
+    operator: {
+      type: String,
+      enum: ["eq", "neq", "ne", "gt", "gte", "lt", "lte", "contains"],
+      default: "eq",
+    },
+    value: { type: mongoose.Schema.Types.Mixed },
+  },
+  { _id: false }
+);
+
 const workflowStepSchema = new mongoose.Schema(
   {
     workflowDef: {
@@ -11,23 +24,24 @@ const workflowStepSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      // Used internally by the DAG (e.g., "step_1")
     },
     stepName: {
       type: String,
       required: true,
       trim: true,
-      // e.g., "HOD Approval"
+    },
+    /** Canvas node kind: Start → Approval → Condition → Action */
+    nodeType: {
+      type: String,
+      enum: ["start", "approval", "condition", "action"],
+      default: "approval",
     },
     approverRole: {
       type: String,
-      // The role required to approve this step (e.g., "hod", "principal", "admin")
-      // If null, we might rely on specific approverUser
     },
     approverUser: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      // Specific user to approve, if not using role
     },
     isInitial: {
       type: Boolean,
@@ -37,19 +51,25 @@ const workflowStepSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    onApproveNextStepId: {
+    condition: conditionSchema,
+    /** Final status when an action node completes without a next edge. */
+    actionOutcome: {
       type: String,
-      // stepId of the next node in the DAG if approved
+      enum: ["Approved", "Rejected"],
+      default: "Approved",
     },
-    onRejectNextStepId: {
-      type: String,
-      // stepId of the next node in the DAG if rejected
+    position: {
+      x: { type: Number, default: 0 },
+      y: { type: Number, default: 0 },
     },
+    onApproveNextStepId: String,
+    onRejectNextStepId: String,
+    onTrueNextStepId: String,
+    onFalseNextStepId: String,
   },
   { timestamps: true }
 );
 
-// Prevent duplicate stepIds within the same workflow definition
 workflowStepSchema.index({ workflowDef: 1, stepId: 1 }, { unique: true });
 
 export default mongoose.model("WorkflowStep", workflowStepSchema);

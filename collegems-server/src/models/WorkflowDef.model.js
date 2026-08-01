@@ -10,7 +10,15 @@ const workflowDefSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["Leave", "Outpass", "Event", "Requisition", "General"],
+      enum: [
+        "Leave",
+        "Outpass",
+        "Event",
+        "Requisition",
+        "General",
+        "FeeConcession",
+        "Bonafide",
+      ],
       default: "General",
     },
     description: {
@@ -34,6 +42,11 @@ const workflowDefSchema = new mongoose.Schema(
     version: {
       type: Number,
       default: 1,
+    },
+    /** Visual React Flow layout (nodes/edges) for the drag-and-drop builder. */
+    graphMeta: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
     },
   },
   { timestamps: true }
