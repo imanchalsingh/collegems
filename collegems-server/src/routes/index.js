@@ -23,6 +23,7 @@ import courseRoutes from "./course.routes.js";
 import classRoutes from "./class.route.js";
 import syllabusRoutes from "./syllabus.route.js";
 import timetableRoutes from "./timetable.routes.js";
+import timetableGeneratorRoutes from "./timetableGenerator.routes.js";
 import academicCalendarRoutes from "./academicCalendar.routes.js";
 
 // Examination Routes
@@ -127,6 +128,7 @@ authenticatedRouter.use("/courses", courseRoutes);
 authenticatedRouter.use("/classes", classRoutes);
 authenticatedRouter.use("/syllabus", syllabusRoutes);
 authenticatedRouter.use("/timetable", timetableRoutes);
+authenticatedRouter.use("/timetable-generator", timetableGeneratorRoutes);
 authenticatedRouter.use("/academic-calendar", academicCalendarRoutes);
 
 // Examination Routes

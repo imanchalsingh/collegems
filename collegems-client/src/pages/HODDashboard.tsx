@@ -5,7 +5,8 @@ import {
   LayoutGrid, Users, GraduationCap, BookOpen, Building2, FileText,
   Wallet, DollarSign, Calendar, Menu, X, RefreshCw, ChevronRight,
   Bell, Search, UserCircle, LogOut, Settings, CalendarDays,
-  Moon, Sun, Award, Bus, MessageSquare, Activity, Lock, Wrench, Edit // <-- Added Edit here
+  Moon, Sun, Award, Bus, MessageSquare, Activity, Lock, Wrench, Edit,
+  CalendarClock,
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -50,6 +51,7 @@ import WorkflowAdmin from "../hod-components/WorkflowAdmin";
 import WorkflowApprovals from "../hod-components/WorkflowApprovals";
 import ReminderManagement from "../common-components-management/ReminderManagement";
 import BulkRenameSections from "../common-components-management/BulkRenameSections"; // <-- Add this line
+import TimetableGeneratorGrid from "../hod-components/TimetableGeneratorGrid";
 // Pages
 import RiskDashboard from "./RiskDashboard";
 import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget";
@@ -97,7 +99,8 @@ type TabType =
   | "workflow-admin"
   | "workflow-approvals"
   | "reminders"
-  | "bulk-rename";
+  | "bulk-rename"
+  | "ga-timetable";
 
 interface Data {
   cards: Array<{ title: string; value: number }>;
@@ -185,6 +188,7 @@ export default function HODDashboard() {
     { id: "department-analytics" as TabType, label: `${getAcademicLabel("department", academicLabels)} Analytics`, icon: LayoutGrid },
     { id: "reminders" as TabType, label: "Profile Reminders", icon: Bell },
     { id: "bulk-rename" as TabType, label: `Bulk Rename ${getAcademicLabel("section", academicLabels)}s`, icon: Edit },
+    { id: "ga-timetable" as TabType, label: "GA Timetable", icon: CalendarClock },
   ];
 
   // Fetch data on mount
@@ -590,6 +594,7 @@ export default function HODDashboard() {
         { activeTab === "department-analytics" && <HodAnalyticsWidget /> }
         { activeTab === "reminders" && <ReminderManagement /> }
         { activeTab === "bulk-rename" && <BulkRenameSections /> }
+        {activeTab === "ga-timetable" && <TimetableGeneratorGrid />}
       </>
     );
   };

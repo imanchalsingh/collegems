@@ -10,3 +10,6 @@ collegems-server/uploads/**
 collegems-server/secure-uploads/**
 !collegems-server/secure-uploads/**/
 !collegems-server/secure-uploads/**/.gitkeep
+
+# Local signing / secrets artifacts
+collegems-server/.keys/

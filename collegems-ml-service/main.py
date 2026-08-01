@@ -185,6 +185,81 @@ async def predict_sentiment(data: SentimentRequest, request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ---------------------------------------------------------
+# Genetic Algorithm Timetable Generator
+# ---------------------------------------------------------
+
+from pydantic import Field
+from services.timetable_solver import solve_timetable, demo_payload
+
+
+class TimetableEntity(BaseModel):
+    id: str
+    name: str | None = None
+    capacity: int | None = None
+    day: str | None = None
+    dayOfWeek: str | None = None
+    startTime: str | None = None
+    endTime: str | None = None
+    teacher_id: str | None = None
+    teacher_name: str | None = None
+    sessions_per_week: int | None = None
+    credits: int | None = None
+    students: int | None = None
+    enrolled: int | None = None
+    section_id: str | None = None
+
+
+class TimetableGenerateRequest(BaseModel):
+    courses: list[dict] = Field(default_factory=list)
+    rooms: list[dict] = Field(default_factory=list)
+    slots: list[dict] = Field(default_factory=list)
+    teacher_unavailable: dict[str, list[str]] = Field(default_factory=dict)
+    population_size: int = 40
+    generations: int = 60
+    crossover_rate: float = 0.8
+    mutation_rate: float = 0.15
+    seed: int | None = None
+    demo: bool = False
+
+
+@app.post("/generate/timetable")
+async def generate_timetable(payload: TimetableGenerateRequest, request: Request):
+    correlation_id = request.headers.get("x-correlation-id", "N/A")
+    log_adapter = logging.LoggerAdapter(logger, {"correlation_id": correlation_id})
+
+    try:
+        data = payload.model_dump()
+        if payload.demo or (not payload.courses and not payload.rooms):
+            data = {**demo_payload(), **{k: v for k, v in data.items() if v not in (None, [], {})}}
+            data.pop("demo", None)
+
+        result = solve_timetable(
+            courses=data["courses"],
+            rooms=data["rooms"],
+            slots=data["slots"],
+            teacher_unavailable=data.get("teacher_unavailable") or {},
+            population_size=int(data.get("population_size") or 40),
+            generations=int(data.get("generations") or 60),
+            crossover_rate=float(data.get("crossover_rate") or 0.8),
+            mutation_rate=float(data.get("mutation_rate") or 0.15),
+            seed=data.get("seed"),
+        )
+        log_adapter.info(
+            "Timetable GA finished fitness=%s hard=%s assignments=%s",
+            result.get("fitness"),
+            result.get("conflicts", {}).get("hard"),
+            len(result.get("assignments", [])),
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        log_adapter.error("Timetable generation failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "CollegeMS ML Analytics", "model_loaded": dropout_model is not None}
