@@ -152,6 +152,17 @@ io.on("connection", (socket) => {
 
   initializeStudyGroupSockets(io);
 
+  // BullMQ / Redis background workers (#705)
+  import("../config/redis.config.js")
+    .then((redis) => redis.getRedisConnection())
+    .then(() => import("../queues/queue.registry.js"))
+    .then((q) => q.initQueues())
+    .then(() => import("../workers/bullWorkers.js"))
+    .then((w) => w.startBullWorkers(io))
+    .catch((err) => {
+      console.warn("Queue bootstrap warning:", err.message);
+    });
+
   freePort();
 
   // ✅ RETURN BOTH THE EXPRESS APP AND HTTP SERVER TO server.js
