@@ -12,7 +12,7 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { execSync } from "child_process";
 import { initializeStudyGroupSockets } from "../socket/studyGroupSocket.js";
-import { initializeAttendanceSessionSockets } from "../socket/attendanceSessionSocket.js";
+import { initializeLivePollSockets } from "../socket/livePollSocket.js";
 import { allowedOrigins } from "../config/cors.js";
 import { registerProcessErrorHandlers } from "../utils/processErrorHandlers.js";
 import helmet from "helmet";
@@ -152,7 +152,7 @@ io.on("connection", (socket) => {
   // -----------------------------------
 
   initializeStudyGroupSockets(io);
-  initializeAttendanceSessionSockets(io);
+  initializeLivePollSockets(io);
 
   freePort();
 
