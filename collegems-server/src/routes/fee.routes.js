@@ -6,7 +6,31 @@ import log from "../utils/logger.js";
 import Fee from "../models/Fee.model.js";
 import User from "../models/User.model.js";
 import { logAction } from "../utils/auditService.js";
+import {
+  previewEmiPlan,
+  subscribeEmiPlan,
+  getMyEmiPlan,
+  createCheckoutOrder,
+  confirmCheckoutPayment,
+} from "../controllers/feeEmi.controller.js";
 const router = express.Router();
+
+// ——— EMI scheduler & payment gateway ———
+router.post("/emi/preview", protect, allowRoles("student", "parent"), previewEmiPlan);
+router.post("/emi/subscribe", protect, allowRoles("student", "parent"), subscribeEmiPlan);
+router.get("/emi/me", protect, allowRoles("student", "parent"), getMyEmiPlan);
+router.post(
+  "/payments/create-order",
+  protect,
+  allowRoles("student", "parent"),
+  createCheckoutOrder
+);
+router.post(
+  "/payments/confirm",
+  protect,
+  allowRoles("student", "parent"),
+  confirmCheckoutPayment
+);
 
 // Set fee for student
 router.post(
