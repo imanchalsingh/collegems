@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import snapshotPlugin from "../plugins/snapshotPlugin.js";
 
 const installmentSchema = new mongoose.Schema({
   amount: {

@@ -112,7 +112,7 @@ router.post("/pay", protect, allowRoles("student", "parent"), asyncHandler(async
       $inc: { paid: amount },
       $push: { installments: { amount, idempotencyKey, paidOn: new Date() } },
     },
-    { new: true },
+    { new: true, editorId: req.user.id },
   );
 
   if (!fee) {
@@ -138,7 +138,7 @@ router.post("/pay", protect, allowRoles("student", "parent"), asyncHandler(async
 
   const status = computeFeeStatus(fee.paid, fee.total, fee.dueDate);
   if (fee.status !== status) {
-    fee = await Fee.findByIdAndUpdate(fee._id, { $set: { status } }, { new: true });
+    fee = await Fee.findByIdAndUpdate(fee._id, { $set: { status } }, { new: true, editorId: req.user.id });
   }
 
   await logAction(req.user.id, "REQUEST_FEE_PAYMENT", "Fee", fee._id, { studentId, amount });

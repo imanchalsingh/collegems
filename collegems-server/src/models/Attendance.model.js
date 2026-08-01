@@ -56,7 +56,25 @@ const attendanceSchema = new mongoose.Schema(
         message: 'Status must be present or absent'
       },
       required: [true, 'Status is required']
-    }
+    },
+    /** How this row was marked (manual roster vs QR TOTP). */
+    method: {
+      type: String,
+      enum: ["manual", "qr_totp", "qr_offline_sync"],
+      default: "manual",
+    },
+    session: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "AttendanceSession",
+    },
+    deviceFingerprint: String,
+    geo: {
+      lat: Number,
+      lng: Number,
+      accuracyM: Number,
+    },
+    scannedAt: Date,
+    syncedAt: Date,
   },
   { timestamps: true }
 );
