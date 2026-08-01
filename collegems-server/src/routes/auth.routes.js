@@ -11,6 +11,7 @@ import {
   resendVerificationEmail,
   forgotPassword,
   resetPassword,
+  verifyMfaLogin,
 } from "../controllers/auth.controller.js";
 import { validateRegister } from "../middlewares/validation.middleware.js";
 import {
@@ -30,6 +31,7 @@ router.use(publicAuthLimiter);
 
 router.post("/register", registerLimiter, detectDevice, validateRegister, register);
 router.post("/login", loginLimiter, detectDevice, login);
+router.post("/mfa/verify", loginLimiter, detectDevice, verifyMfaLogin);
 router.post("/refresh", detectDevice, refresh);
 router.post("/logout", logout);
 router.post("/verify-email", verifyEmailLimiter, verifyEmail);
