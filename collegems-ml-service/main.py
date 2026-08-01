@@ -258,7 +258,96 @@ async def analyze_code_pair(payload: CodePairRequest, request: Request):
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "CollegeMS ML Analytics", "model_loaded": dropout_model is not None}
+    return {
+        "status": "healthy",
+        "service": "CollegeMS ML Analytics",
+        "model_loaded": dropout_model is not None,
+        "ats_enabled": True,
+    }
+
+
+# ---------------------------------------------------------
+# Placement ATS — resume parse + job matchmaking (#707)
+# ---------------------------------------------------------
+
+from fastapi import File, Form, UploadFile
+from services.resume_parser import parse_resume_bytes, parse_resume_text
+from services.ats_matcher import score_ats
+
+
+class AtsScoreRequest(BaseModel):
+    job_id: str | None = None
+    requirements: list[str] = []
+    job_text: str | None = None
+    resume: dict | None = None
+    raw_text: str | None = None
+    min_cgpa: float | None = None
+    max_backlogs: int | None = None
+    student_cgpa: float | None = None
+    student_backlogs: int | None = None
+
+
+@app.post("/parse/resume")
+async def parse_resume_endpoint(
+    request: Request,
+    file: UploadFile | None = File(None),
+    text: str | None = Form(None),
+    student_id: str | None = Form(None),
+):
+    correlation_id = request.headers.get("x-correlation-id", "N/A")
+    log_adapter = logging.LoggerAdapter(logger, {"correlation_id": correlation_id})
+    try:
+        if file is not None:
+            content = await file.read()
+            result = parse_resume_bytes(content, student_id=student_id)
+        elif text:
+            result = parse_resume_text(text, student_id=student_id)
+        else:
+            # Also accept JSON body for server-side proxies
+            try:
+                body = await request.json()
+            except Exception:
+                body = {}
+            if body.get("text"):
+                result = parse_resume_text(body["text"], student_id=body.get("student_id"))
+            else:
+                raise HTTPException(status_code=400, detail="Provide PDF file or text")
+        log_adapter.info(
+            f"Parsed resume skills={len(result.get('skills', []))} student={student_id}"
+        )
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_adapter.error(f"Resume parse failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/score/ats")
+async def score_ats_endpoint(data: AtsScoreRequest, request: Request):
+    correlation_id = request.headers.get("x-correlation-id", "N/A")
+    log_adapter = logging.LoggerAdapter(logger, {"correlation_id": correlation_id})
+    try:
+        result = score_ats(
+            requirements=data.requirements,
+            job_text=data.job_text,
+            resume=data.resume,
+            raw_text=data.raw_text,
+            min_cgpa=data.min_cgpa,
+            max_backlogs=data.max_backlogs,
+            student_cgpa=data.student_cgpa,
+            student_backlogs=data.student_backlogs,
+        )
+        if data.job_id:
+            result["job_id"] = data.job_id
+        log_adapter.info(
+            f"ATS score={result['ats_score']} level={result['match_level']} job={data.job_id}"
+        )
+        return result
+    except Exception as e:
+        log_adapter.error(f"ATS scoring failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     import uvicorn
