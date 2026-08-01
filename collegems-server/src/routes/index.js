@@ -8,7 +8,7 @@ import express from "express";
 
 // Auth & Core
 import authRoutes from "./auth.routes.js";
-import verificationRoutes from "./verification.routes.js";
+import mfaRoutes from "./mfa.routes.js";
 import dashboardRoutes from "./dashboard.routes.js";
 import userRoutes from "./user.routes.js";
 import historyRoutes from "./history.routes.js";
@@ -98,6 +98,7 @@ import temporaryLinkRoutes from "./temporaryLink.routes.js";
 // MIDDLEWARES
 // ========================================
 import { authenticate } from "../middlewares/auth.middleware.js";
+import { mfaGuard } from "../middlewares/mfaGuard.js";
 import { verifyStudent } from "../controllers/idcard.controller.js";
 
 // ========================================
@@ -109,7 +110,7 @@ const router = express.Router();
 // PUBLIC & EXCEPTION ROUTES
 // ========================================
 router.use("/auth", authRoutes);
-router.use(verificationRoutes);
+router.use("/mfa", mfaRoutes);
 router.use("/assignment", assignmentRoutes);
 router.use("/temporary-links", temporaryLinkRoutes);
 
@@ -118,6 +119,7 @@ router.use("/temporary-links", temporaryLinkRoutes);
 // ========================================
 const authenticatedRouter = express.Router();
 authenticatedRouter.use(authenticate);
+authenticatedRouter.use(mfaGuard);
 
 // Core Routes
 authenticatedRouter.use("/search", searchRoutes);
