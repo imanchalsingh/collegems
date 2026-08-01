@@ -89,6 +89,7 @@ import ownershipRoutes from "./ownership.routes.js";
 import savedFilterRoutes from "./savedFilter.routes.js";
 import abandonmentRoutes from "./abandonment.routes.js";
 import temporaryLinkRoutes from "./temporaryLink.routes.js";
+import queueRoutes from "./queue.routes.js";
 
 // ========================================
 // MIDDLEWARES
@@ -191,6 +192,7 @@ authenticatedRouter.use("/workflows", workflowRoutes);
 authenticatedRouter.use("/dependencies", dependencyRoutes);
 authenticatedRouter.use("/data-locks", dataLockRoutes);
 authenticatedRouter.use("/snapshots", snapshotRoutes);
+authenticatedRouter.use("/queues", queueRoutes);
 authenticatedRouter.use("/sequences", sequenceRoutes);
 authenticatedRouter.use("/ownership", ownershipRoutes);
 authenticatedRouter.use("/saved-filters", savedFilterRoutes);
