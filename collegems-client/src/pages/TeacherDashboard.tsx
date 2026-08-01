@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   User,
   MessageSquare,
+  Code2,
 } from "lucide-react";
 import HodCourses from "../teacher-components/Courses";
 import TeacherAssignments from "../teacher-components/Assignment";
@@ -38,6 +39,7 @@ import AnnouncementForm from "../common-components-management/AnnouncementForm";
 import AnnouncementManage from "../common-components-management/AnnouncementManage";
 import Clubs from "../common-components-management/Clubs";
 import PlagiarismChecker from "../teacher-components/PlagiarismChecker";
+import CodePlagiarismReportView from "../teacher-components/CodePlagiarismReportView";
 import { useNotifications } from "../hooks/useNotifications";
 import RiskDashboard from "./RiskDashboard";
 import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget";
@@ -46,6 +48,7 @@ import ThemeSwitcher from "../components/ThemeSwitcher";
 import TeacherProfile from "../teacher-components/TeacherProfile";
 import TeacherFeedback from "../teacher-components/TeacherFeedback";
 import QuizCreator from "../teacher-components/QuizCreator";
+import ProctoringAuditReport from "../teacher-components/ProctoringAuditReport";
 import { useLoading } from "../hooks/useLoading";
 import { SkeletonText, SkeletonStatsCard, SkeletonActivityFeed, SkeletonList } from "../common-components-management/SkeletonLoader"; 
 import TeacherAnalyticsWidget from "../components/AnalyticsWidgets/TeacherAnalyticsWidget";
@@ -143,11 +146,14 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
     { id: "book-resources", label: "Book Resources", icon: CalendarDays },
     { id: "clubs", label: "Clubs & Organizations", icon: Users },
     { id: "plagiarism-checker", label: "Plagiarism Checker", icon: ShieldCheck },
+    { id: "code-plagiarism", label: "Code Similarity", icon: Code2 },
     { id: "class-performance", label: "Class Performance", icon: BarChart3 },
     { id: "risk-dashboard", label: "Predictive Analytics", icon: LayoutDashboard },
+    { id: "progress-report", label: "Progress Report Cards", icon: FileText },
     { id: "user-workflows", label: "My Workflows", icon: FileText },
     { id: "feedback", label: `${getAcademicLabel("student", academicLabels)} Feedback`, icon: MessageSquare },
     { id: "quizzes", label: "Quizzes & Exams", icon: ClipboardCheck },
+    { id: "proctoring-audit", label: "Proctoring Logs", icon: Shield },
   ];
 
   const activeTabLabel = activeTab === "settings" ? "Settings"
@@ -553,11 +559,13 @@ export default function TeacherDashboard({ initialTab }: TeacherDashboardProps) 
           {activeTab === "book-resources" && <ResourceBooking />}
           {activeTab === "clubs" && <Clubs />}
           {activeTab === "plagiarism-checker" && <PlagiarismChecker />}
+          {activeTab === "code-plagiarism" && <CodePlagiarismReportView />}
           {activeTab === "class-performance" && <TeacherAnalyticsWidget />}
           {activeTab === "risk-dashboard" && <RiskDashboard />}
           {activeTab === "user-workflows" && <UserWorkflows />}
           {activeTab === "feedback" && <TeacherFeedback />} 
           {activeTab === "quizzes" && <QuizCreator />}
+          {activeTab === "proctoring-audit" && <ProctoringAuditReport />}
           {activeTab === "announcements" && (
             <div className="space-y-8">
               <AnnouncementForm onSuccess={() => setRefreshAnnouncements((k) => k + 1)} />

@@ -8,6 +8,7 @@ import express from "express";
 
 // Auth & Core
 import authRoutes from "./auth.routes.js";
+import mfaRoutes from "./mfa.routes.js";
 import dashboardRoutes from "./dashboard.routes.js";
 import userRoutes from "./user.routes.js";
 import historyRoutes from "./history.routes.js";
@@ -23,6 +24,7 @@ import courseRoutes from "./course.routes.js";
 import classRoutes from "./class.route.js";
 import syllabusRoutes from "./syllabus.route.js";
 import timetableRoutes from "./timetable.routes.js";
+import timetableGeneratorRoutes from "./timetableGenerator.routes.js";
 import academicCalendarRoutes from "./academicCalendar.routes.js";
 
 // Examination Routes
@@ -68,8 +70,10 @@ import busRouteRoutes from "./busRoute.routes.js";
 
 // Reports & Analytics
 import reportRoutes from "./report.routes.js";
+import progressReportRoutes from "./progressReport.routes.js";
 import analyticsRoutes from "./analytics.routes.js";
 import quizRoutes from "./quiz.routes.js";
+import proctoringRoutes from "./proctoring.routes.js";
 import auditLogRoutes from "./auditLog.routes.js";
 import systemHealthRoutes from "./systemHealth.routes.js";
 import restoreRoutes from "./restore.routes.js";
@@ -89,11 +93,13 @@ import ownershipRoutes from "./ownership.routes.js";
 import savedFilterRoutes from "./savedFilter.routes.js";
 import abandonmentRoutes from "./abandonment.routes.js";
 import temporaryLinkRoutes from "./temporaryLink.routes.js";
+import queueRoutes from "./queue.routes.js";
 
 // ========================================
 // MIDDLEWARES
 // ========================================
 import { authenticate } from "../middlewares/auth.middleware.js";
+import { captureAuditContext } from "../middlewares/auditContext.middleware.js";
 import { verifyStudent } from "../controllers/idcard.controller.js";
 
 // ========================================
@@ -105,6 +111,7 @@ const router = express.Router();
 // PUBLIC & EXCEPTION ROUTES
 // ========================================
 router.use("/auth", authRoutes);
+router.use("/mfa", mfaRoutes);
 router.use("/assignment", assignmentRoutes);
 router.use("/temporary-links", temporaryLinkRoutes);
 
@@ -113,6 +120,7 @@ router.use("/temporary-links", temporaryLinkRoutes);
 // ========================================
 const authenticatedRouter = express.Router();
 authenticatedRouter.use(authenticate);
+authenticatedRouter.use(captureAuditContext);
 
 // Core Routes
 authenticatedRouter.use("/search", searchRoutes);
@@ -127,6 +135,7 @@ authenticatedRouter.use("/courses", courseRoutes);
 authenticatedRouter.use("/classes", classRoutes);
 authenticatedRouter.use("/syllabus", syllabusRoutes);
 authenticatedRouter.use("/timetable", timetableRoutes);
+authenticatedRouter.use("/timetable-generator", timetableGeneratorRoutes);
 authenticatedRouter.use("/academic-calendar", academicCalendarRoutes);
 
 // Examination Routes
@@ -175,8 +184,10 @@ authenticatedRouter.use("/bus-routes", busRouteRoutes);
 
 // Reports & Analytics
 authenticatedRouter.use("/reports", reportRoutes);
+authenticatedRouter.use("/progress-reports", progressReportRoutes);
 authenticatedRouter.use("/analytics", analyticsRoutes);
 authenticatedRouter.use("/quizzes", quizRoutes);
+authenticatedRouter.use("/proctoring", proctoringRoutes);
 authenticatedRouter.use("/audit-logs", auditLogRoutes);
 authenticatedRouter.use("/system-health", systemHealthRoutes);
 authenticatedRouter.use("/restore", restoreRoutes);
@@ -191,6 +202,7 @@ authenticatedRouter.use("/workflows", workflowRoutes);
 authenticatedRouter.use("/dependencies", dependencyRoutes);
 authenticatedRouter.use("/data-locks", dataLockRoutes);
 authenticatedRouter.use("/snapshots", snapshotRoutes);
+authenticatedRouter.use("/queues", queueRoutes);
 authenticatedRouter.use("/sequences", sequenceRoutes);
 authenticatedRouter.use("/ownership", ownershipRoutes);
 authenticatedRouter.use("/saved-filters", savedFilterRoutes);

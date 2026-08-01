@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { getAcademicLabel } from "../utils/academicLabels";
 import { useAcademicLabels } from "../hooks/useAcademicLabels";
+import MFASecurityPanel from "../components/auth/MFASecurityPanel";
 
 const digestOptions = [
   { value: "daily", label: "Daily" },
@@ -322,6 +323,8 @@ export default function TeacherSettings() {
           </label>
         </div>
       </section>
+
+      <MFASecurityPanel />
 
       <section className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">

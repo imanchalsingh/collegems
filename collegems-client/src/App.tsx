@@ -27,12 +27,14 @@ import EventsStudent from "./user-components/EventsStudent";
 import QuickAccessAll from "./pages/QuickAccessAll";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import ReportGenerator from "./pages/ReportGenerator";
+import StudentProgressReportGenerator from "./pages/StudentProgressReportGenerator";
 import ExaminationFormPage from "./pages/ExaminationFormPage";
 import SemesterRegistration from "./user-components/SemesterRegistration";
 //import TimeTable from "./user-components/TimeTable";
 import DashboardLayout from "./layouts/DashboardLayout";
 import LostFoundPortal from "./pages/LostFoundPortal";
 import VerifyStudent from "./pages/VerifyStudent";
+import CertificateVerification from "./pages/CertificateVerification";
 import RiskDashboard from "./pages/RiskDashboard";
 import Library from "./common-components-management/Library";
 import LibraryManagementPortal from "./pages/LibraryManagementPortal";
@@ -72,6 +74,9 @@ const ResourceBookingTeacherGuarded = withRoleGuard(ResourceBooking, { allowedRo
 
 const HodDashboardGuarded = withRoleGuard(HodDashboard, { allowedRoles: UserRole.HOD });
 const ReportGeneratorGuarded = withRoleGuard(ReportGenerator, { allowedRoles: UserRole.HOD });
+const ProgressReportGuarded = withRoleGuard(StudentProgressReportGenerator, {
+  allowedRoles: [UserRole.TEACHER, UserRole.HOD],
+});
 const ExamHallsGuarded = withRoleGuard(ExamHalls, { allowedRoles: UserRole.HOD });
 const HallAllocationGuarded = withRoleGuard(HallAllocation, { allowedRoles: UserRole.HOD });
 const AuditLogsGuarded = withRoleGuard(AuditLogs, { allowedRoles: UserRole.HOD });
@@ -115,6 +120,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/datatable-demo" element={<DataTableDemo />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/verify-certificate/:certId" element={<CertificateVerification />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
@@ -178,6 +184,11 @@ export default function App() {
           path="/hod/reports"
       element={<ReportGeneratorGuarded />}
     />
+
+        <Route
+          path="/progress-report"
+          element={<ProgressReportGuarded />}
+        />
 
     <Route
       path="/hod/exam-halls"
