@@ -34,6 +34,7 @@ import SemesterRegistration from "./user-components/SemesterRegistration";
 import DashboardLayout from "./layouts/DashboardLayout";
 import LostFoundPortal from "./pages/LostFoundPortal";
 import VerifyStudent from "./pages/VerifyStudent";
+import CertificateVerification from "./pages/CertificateVerification";
 import RiskDashboard from "./pages/RiskDashboard";
 import Library from "./common-components-management/Library";
 import ExamHalls from "./hod-components/ExamHalls";
@@ -115,6 +116,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/datatable-demo" element={<DataTableDemo />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/verify-certificate/:certId" element={<CertificateVerification />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />

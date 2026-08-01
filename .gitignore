@@ -11,5 +11,5 @@ collegems-server/secure-uploads/**
 !collegems-server/secure-uploads/**/
 !collegems-server/secure-uploads/**/.gitkeep
 
-# Local signing / secrets artifacts
+# Auto-generated transcript signing keys (local dev)
 collegems-server/.keys/
