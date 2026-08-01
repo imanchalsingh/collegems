@@ -69,8 +69,10 @@ import busRouteRoutes from "./busRoute.routes.js";
 
 // Reports & Analytics
 import reportRoutes from "./report.routes.js";
+import progressReportRoutes from "./progressReport.routes.js";
 import analyticsRoutes from "./analytics.routes.js";
 import quizRoutes from "./quiz.routes.js";
+import proctoringRoutes from "./proctoring.routes.js";
 import auditLogRoutes from "./auditLog.routes.js";
 import systemHealthRoutes from "./systemHealth.routes.js";
 import restoreRoutes from "./restore.routes.js";
@@ -177,8 +179,10 @@ authenticatedRouter.use("/bus-routes", busRouteRoutes);
 
 // Reports & Analytics
 authenticatedRouter.use("/reports", reportRoutes);
+authenticatedRouter.use("/progress-reports", progressReportRoutes);
 authenticatedRouter.use("/analytics", analyticsRoutes);
 authenticatedRouter.use("/quizzes", quizRoutes);
+authenticatedRouter.use("/proctoring", proctoringRoutes);
 authenticatedRouter.use("/audit-logs", auditLogRoutes);
 authenticatedRouter.use("/system-health", systemHealthRoutes);
 authenticatedRouter.use("/restore", restoreRoutes);
