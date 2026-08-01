@@ -32,6 +32,7 @@ import examScheduleRoutes from "./examschedule.routes.js";
 import examFormRoutes from "./examForm.routes.js";
 import examHallRoutes from "./examHall.routes.js";
 import hallAllocationRoutes from "./hallAllocation.routes.js";
+import seatingPlanRoutes from "./seatingPlan.routes.js";
 
 // Financial Routes
 import feeRoutes from "./fee.routes.js";
@@ -151,6 +152,7 @@ authenticatedRouter.use("/examschedule", examScheduleRoutes);
 authenticatedRouter.use("/exam-forms", examFormRoutes);
 authenticatedRouter.use("/exam-halls", examHallRoutes);
 authenticatedRouter.use("/hall-allocations", hallAllocationRoutes);
+authenticatedRouter.use("/seating-plans", seatingPlanRoutes);
 
 // Financial Routes
 authenticatedRouter.use("/fee", feeRoutes);

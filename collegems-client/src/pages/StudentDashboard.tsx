@@ -30,7 +30,7 @@ import {
   Users,
   UserCircle,
   User,
-  Radio,
+  Armchair,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import api from "../api/axios";
@@ -136,6 +136,7 @@ const getNavigationItems = (academicLabels: any): {
   { id: "fees", label: "Fees", icon: Wallet },
   { id: "courses", label: `${getAcademicLabel("course", academicLabels)}s`, icon: BookOpen },
   { id: "examschedule", label: "Exam Schedule", icon: Calendar },
+  { id: "my-seat", label: "My Exam Seat", icon: Armchair },
   { id: "academic-calendar", label: "Academic Calendar", icon: CalendarDays },
   { id: "events", label: "Events", icon: CalendarDays },
   { id: "faculty", label: getAcademicLabel("faculty", academicLabels), icon: Users },
