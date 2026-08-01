@@ -30,7 +30,7 @@ import {
 
 export const createAssignment = async (req, res) => {
   try {
-    const { title, courseId, dueDate, description, submissionType, validationRules } = req.body;
+const { title, courseId, dueDate, description, submissionType, validationRules, isPublished }= req.body;
     const totalPointsRaw =
       req.body.totalPoints !== undefined
         ? req.body.totalPoints
@@ -96,6 +96,7 @@ export const createAssignment = async (req, res) => {
       totalPoints: pointsValidation.value,
       submissionType: submissionTypeValidation.value || "file",
       validationRules,
+      isPublished: isPublished !== false,
     });
 
     res.status(201).json(assignment);
@@ -288,7 +289,10 @@ export const getUpcomingAssignments = async (req, res) => {
 
     // 🔴 ADD THIS FILTER: { isDeleted: { $ne: true } }
     // Fetch all active assignments and populate course name
-    const all = await Assignment.find({ isDeleted: { $ne: true } })
+  const all = await Assignment.find({ 
+      isDeleted: { $ne: true },
+      isPublished: true // <-- THIS HIDES DRAFTS FROM STUDENTS
+    })
       .populate("course", "name code")
       .populate("teacher", "name")
       .lean();
@@ -627,5 +631,45 @@ export const toggleUpvote = async (req, res) => {
   } catch (error) {
     console.error("Error toggling upvote:", error);
     res.status(500).json({ message: "Server error toggling upvote" });
+  }
+};
+// Add to src/controllers/assignment.controller.js
+export const toggleComplete = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id || req.user.id; 
+
+    const assignment = await Assignment.findById(id);
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    // Initialize array if it doesn't exist
+    if (!assignment.completedBy) assignment.completedBy = [];
+
+    // Check if already completed by this user
+    const hasCompleted = assignment.completedBy.some(
+      (uid) => uid.toString() === userId.toString()
+    );
+
+    if (hasCompleted) {
+      // Remove from completed list (uncheck)
+      assignment.completedBy = assignment.completedBy.filter(
+        (uid) => uid.toString() !== userId.toString()
+      );
+    } else {
+      // Add to completed list (check)
+      assignment.completedBy.push(userId);
+    }
+
+    await assignment.save();
+    
+    res.status(200).json({ 
+      success: true, 
+      completedBy: assignment.completedBy 
+    });
+  } catch (error) {
+    console.error("Error toggling completion:", error);
+    res.status(500).json({ message: "Server error toggling completion status" });
   }
 };

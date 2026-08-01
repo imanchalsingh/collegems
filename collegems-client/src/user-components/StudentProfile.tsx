@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { getAcademicLabel } from "../utils/academicLabels";
 import { useAcademicLabels } from "../hooks/useAcademicLabels";
+import MFASecurityPanel from "../components/auth/MFASecurityPanel";
 
 // Define the expected shape of the student data based on acceptance criteria
 interface StudentData {
@@ -47,7 +48,7 @@ const StudentProfile: React.FC = () => {
   }
 
   return (
-    <div className="flex justify-center items-center p-4 min-h-[60vh]">
+    <div className="flex flex-col items-center gap-6 p-4 min-h-[60vh]">
       {/* Mobile-responsive card wrapper */}
       <div className="w-full max-w-lg bg-white dark:bg-gray-900 shadow-xl rounded-2xl p-6 md:p-8 border border-gray-100 dark:border-gray-800">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
@@ -87,6 +88,10 @@ const StudentProfile: React.FC = () => {
           </svg>
           <p>If any of your academic details ({getAcademicLabel("semester", academicLabels)}, {getAcademicLabel("section", academicLabels)}, etc.) are incorrect, please report it to your HOD or the administration office immediately to prevent grading issues.</p>
         </div>
+      </div>
+
+      <div className="w-full max-w-lg">
+        <MFASecurityPanel />
       </div>
     </div>
   );
