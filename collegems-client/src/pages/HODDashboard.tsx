@@ -5,7 +5,7 @@ import {
   LayoutGrid, Users, GraduationCap, BookOpen, Building2, FileText,
   Wallet, DollarSign, Calendar, Menu, X, RefreshCw, ChevronRight,
   Bell, Search, UserCircle, LogOut, Settings, CalendarDays,
-  Moon, Sun, Award, Bus, MessageSquare, Activity, Lock, Wrench, Edit, Briefcase
+  Moon, Sun, Award, Bus, MessageSquare, Activity, Lock, Wrench, Edit, History
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -40,7 +40,7 @@ import FeedbackManagement from "../hod-components/FeedbackManagement";
 import ExamHalls from "../hod-components/ExamHalls";
 import HallAllocation from "../hod-components/HallAllocation";
 import AuditLogs from "../hod-components/AuditLogs";
-import PlacementMatchmaker from "./PlacementMatchmaker";
+import RecordHistoryDiffViewer from "../components/audit/RecordHistoryDiffViewer";
 import BookingManagement from "../hod-components/BookingManagement";
 import ResourceManagement from "../hod-components/ResourceManagement";
 import SemesterManagement from "../hod-components/SemesterManagement";
@@ -87,7 +87,7 @@ type TabType =
   | "exam-halls"
   | "hall-allocation"
   | "audit-logs"
-  | "placement-matchmaker"
+  | "record-history"
   | "manage-bookings"
   | "manage-resources"
   | "risk-dashboard"
@@ -177,7 +177,7 @@ export default function HODDashboard() {
     { id: "exam-halls" as TabType, label: "Exam Halls", icon: Building2 },
     { id: "hall-allocation" as TabType, label: "Hall Allocation", icon: Users },
     { id: "audit-logs" as TabType, label: "Audit Logs", icon: FileText },
-    { id: "placement-matchmaker" as TabType, label: "ATS Matchmaker", icon: Briefcase },
+    { id: "record-history" as TabType, label: "Record History", icon: History },
     { id: "system-logs" as TabType, label: "System Traces", icon: FileText },
     { id: "system-health" as TabType, label: "System Health", icon: Activity },
     { id: "manage-bookings" as TabType, label: "Manage Bookings", icon: Calendar },
@@ -586,7 +586,7 @@ export default function HODDashboard() {
         {activeTab === "exam-halls" && <ExamHalls />}
         {activeTab === "hall-allocation" && <HallAllocation />}
         {activeTab === "audit-logs" && <AuditLogs />}
-        {activeTab === "placement-matchmaker" && <PlacementMatchmaker />}
+        {activeTab === "record-history" && <RecordHistoryDiffViewer />}
         {activeTab === "system-health" && <SystemHealthDashboard />}
         {activeTab === "manage-bookings" && <BookingManagement />}
         { activeTab === "manage-resources" && <ResourceManagement /> }

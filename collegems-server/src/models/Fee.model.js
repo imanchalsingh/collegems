@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import snapshotPlugin from "../plugins/snapshotPlugin.js";
 
 const installmentSchema = new mongoose.Schema({
   amount: {
@@ -99,5 +100,7 @@ feeSchema.pre("save", async function () {
     this.status = "Pending";
   }
 });
+
+feeSchema.plugin(snapshotPlugin);
 
 export default mongoose.model("Fee", feeSchema);
