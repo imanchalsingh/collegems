@@ -23,6 +23,14 @@ const bookSchema = new mongoose.Schema(
       sparse: true,
       trim: true,
     },
+    /** Spine / RFID barcode — defaults to ISBN when not set */
+    barcode: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      index: true,
+    },
     quantity: {
       type: Number,
       required: true,

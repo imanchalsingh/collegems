@@ -1,12 +1,12 @@
 import cron from "node-cron";
 import Fee from "../models/Fee.model.js";
 import User from "../models/User.model.js";
-import BookIssue from "../models/BookIssue.model.js";
-import LibraryFine from "../models/LibraryFine.model.js";
 import Notification from "../models/Notification.model.js";
-import { sendFeeReminderEmail, sendOverdueEmail } from "./email.js";
+import { sendFeeReminderEmail, sendOverdueEmail, sendEmiInstallmentReminder } from "./email.js";
+import { calculateOverduePenalty } from "./feeEmi.util.js";
 import { batchGenerateAnalytics } from "../services/analytics.service.js";
 import { analyzeAttendanceAnomalies } from "../services/attendanceAnomaly.service.js";
+import { runAutomatedFineEngine } from "../controllers/libraryFine.controller.js";
 
 /**
  * Normalizes a date to midnight for accurate day-difference calculations.
@@ -70,6 +70,86 @@ export const startFeeCronJobs = () => {
       }
 
       console.log(`✅ Sent ${reminderCount} fee reminder emails.`);
+
+      // 3. EMI scheduled installments — reminders + overdue penalties after grace
+      const emiFees = await Fee.find({
+        "emiPlan.active": true,
+        "scheduledInstallments.status": { $in: ["upcoming", "due", "overdue"] },
+      }).populate("student");
+
+      let emiReminders = 0;
+      let emiPenalties = 0;
+
+      for (const fee of emiFees) {
+        let changed = false;
+        let accrued = 0;
+
+        for (const slot of fee.scheduledInstallments) {
+          if (slot.status === "paid" || slot.status === "cancelled") continue;
+
+          const due = getMidnightDate(slot.dueDate);
+          const timeDiff = due.getTime() - today.getTime();
+          const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+          if (daysLeft < 0) {
+            const { penalty } = calculateOverduePenalty({
+              installmentAmount: slot.amount,
+              dueDate: slot.dueDate,
+              gracePeriodDays: fee.emiPlan?.gracePeriodDays ?? 7,
+              dailyPercent: fee.emiPlan?.lateFeeDailyPercent ?? 2,
+              maxPercent: fee.emiPlan?.lateFeeMaxPercent ?? 20,
+              asOf: today,
+            });
+            if (slot.status !== "overdue" || slot.lateFee !== penalty) {
+              slot.status = "overdue";
+              slot.lateFee = penalty;
+              changed = true;
+              emiPenalties++;
+            }
+            accrued += penalty;
+
+            if (
+              fee.student?.settings?.notifications?.email &&
+              !(slot.reminderSentForDays || []).includes(0)
+            ) {
+              await sendEmiInstallmentReminder(fee.student, fee, slot, 0);
+              slot.reminderSentForDays = [...(slot.reminderSentForDays || []), 0];
+              changed = true;
+              emiReminders++;
+            }
+          } else {
+            if (daysLeft === 0) {
+              if (slot.status !== "due") {
+                slot.status = "due";
+                changed = true;
+              }
+            }
+            if (
+              (daysLeft === 7 || daysLeft === 3 || daysLeft === 1) &&
+              fee.student?.settings?.notifications?.email &&
+              !(slot.reminderSentForDays || []).includes(daysLeft)
+            ) {
+              await sendEmiInstallmentReminder(fee.student, fee, slot, daysLeft);
+              slot.reminderSentForDays = [
+                ...(slot.reminderSentForDays || []),
+                daysLeft,
+              ];
+              changed = true;
+              emiReminders++;
+            }
+          }
+        }
+
+        if (changed) {
+          fee.penaltyAccrued = accrued;
+          fee.markModified("scheduledInstallments");
+          await fee.save();
+        }
+      }
+
+      console.log(
+        `✅ EMI: ${emiReminders} reminders, ${emiPenalties} penalty updates across ${emiFees.length} plans.`
+      );
     } catch (error) {
       console.error("❌ Error in fee cron job:", error);
     }
@@ -89,66 +169,14 @@ export const startAnalyticsCronJobs = () => {
 export const processLibraryFines = async () => {
   console.log("🔄 Running daily library fine check...");
   try {
-    const today = getMidnightDate(new Date());
-
-    // 1. Mark newly overdue books and create initial fine record
-    const newlyOverdue = await BookIssue.find({
-      status: "issued",
-      dueDate: { $lt: today },
-    }).populate("user");
-
-    for (const issue of newlyOverdue) {
-      issue.status = "overdue";
-      await issue.save();
-
-      const existingFine = await LibraryFine.findOne({ issue: issue._id });
-      if (!existingFine) {
-        const fine = new LibraryFine({
-          student: issue.user._id,
-          issue: issue._id,
-          amount: 10, // Base fine of 10 rupees for the first day
-          daysOverdue: 1,
-          status: "Unpaid"
-        });
-        await fine.save();
-
-        // Notify student
-        const notification = new Notification({
-          recipient: issue.user._id,
-          type: "library",
-          message: `Your library book "${issue.book}" is overdue. A fine of ₹10 has been generated.`,
-        });
-        await notification.save();
-      }
-    }
-
-    console.log(`✅ Processed ${newlyOverdue.length} newly overdue books.`);
-
-    // 2. Update fines for existing overdue books
-    const overdueBooks = await BookIssue.find({
-      status: "overdue",
-    });
-
-    let updatedCount = 0;
-    for (const issue of overdueBooks) {
-      const issueDate = getMidnightDate(issue.dueDate);
-      const timeDiff = today.getTime() - issueDate.getTime();
-      const daysOverdue = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-      if (daysOverdue > 0) {
-        const fine = await LibraryFine.findOne({ issue: issue._id });
-        if (fine && fine.status === "Unpaid" && fine.daysOverdue !== daysOverdue) {
-          fine.daysOverdue = daysOverdue;
-          fine.amount = daysOverdue * 10; // ₹10 per day
-          await fine.save();
-          updatedCount++;
-        }
-      }
-    }
-    
-    console.log(`✅ Updated fines for ${updatedCount} existing overdue books.`);
+    const result = await runAutomatedFineEngine();
+    console.log(
+      `✅ Library fines: ${result.newlyFined} new, ${result.updated} updated (weekends/holidays excluded).`
+    );
+    return result;
   } catch (error) {
     console.error("❌ Error in library fine processor:", error);
+    return { newlyFined: 0, updated: 0, error: error.message };
   }
 };
 

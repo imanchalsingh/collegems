@@ -19,10 +19,22 @@ const workflowAuditLogSchema = new mongoose.Schema(
     },
     action: {
       type: String,
-      enum: ["Started", "Approved", "Rejected", "Commented"],
+      enum: [
+        "Started",
+        "Approved",
+        "Rejected",
+        "Commented",
+        "Transitioned",
+        "ConditionEvaluated",
+      ],
       required: true,
     },
     comments: {
+      type: String,
+      trim: true,
+    },
+    /** Optional approval signature (typed name / base64). */
+    signature: {
       type: String,
       trim: true,
     },

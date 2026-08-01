@@ -1,0 +1,70 @@
+{
+  "app": {
+    "name": "कॉलेज प्रबंधन प्रणाली",
+    "tagline": "छात्रों, शिक्षकों और प्रशासकों के लिए स्मार्ट कैंपस उपकरण"
+  },
+  "nav": {
+    "dashboard": "डैशबोर्ड",
+    "login": "साइन इन",
+    "register": "खाता बनाएँ",
+    "logout": "साइन आउट",
+    "accessibility": "एक्सेसिबिलिटी"
+  },
+  "auth": {
+    "welcomeBack": "अपने डैशबोर्ड तक पहुँचने के लिए साइन इन करें",
+    "email": "ईमेल पता",
+    "password": "पासवर्ड",
+    "rememberMe": "मुझे याद रखें",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "signIn": "साइन इन",
+    "signingIn": "साइन इन हो रहा है...",
+    "noAccount": "खाता नहीं है?",
+    "registerHere": "यहाँ पंजीकरण करें",
+    "enterCredentials": "कृपया ईमेल और पासवर्ड दोनों दर्ज करें",
+    "loginFailed": "लॉगिन असफल। कृपया अपनी जानकारी जाँचें।"
+  },
+  "roles": {
+    "student": "छात्र",
+    "teacher": "शिक्षक",
+    "parent": "अभिभावक",
+    "hod": "विभागाध्यक्ष"
+  },
+  "a11y": {
+    "toolbar": "एक्सेसिबिलिटी टूलबार",
+    "openToolbar": "एक्सेसिबिलिटी सेटिंग्स खोलें",
+    "closeToolbar": "एक्सेसिबिलिटी सेटिंग्स बंद करें",
+    "language": "भाषा",
+    "highContrast": "उच्च कंट्रास्ट",
+    "dyslexicFont": "डिस्लेक्सिया-अनुकूल फ़ॉन्ट",
+    "fontSize": "टेक्स्ट आकार",
+    "decreaseFont": "टेक्स्ट छोटा करें",
+    "increaseFont": "टेक्स्ट बड़ा करें",
+    "resetFont": "आकार रीसेट करें",
+    "voiceAssist": "वॉइस सहायता",
+    "speakSelection": "चयनित पाठ पढ़ें",
+    "speakPage": "पेज सारांश पढ़ें",
+    "stopSpeaking": "पढ़ना रोकें",
+    "voiceRate": "बोलने की गति",
+    "skipToContent": "मुख्य सामग्री पर जाएँ",
+    "enabled": "चालू",
+    "disabled": "बंद"
+  },
+  "dashboard": {
+    "quickAccess": "त्वरित पहुँच",
+    "announcements": "घोषणाएँ",
+    "results": "शैक्षणिक परिणाम",
+    "exams": "परीक्षा अनुसूची",
+    "courses": "कोर्स कैटलॉग",
+    "events": "कैंपस कार्यक्रम",
+    "timetable": "कक्षा समय-सारणी",
+    "library": "पुस्तकालय कैटलॉग",
+    "readAloud": "ज़ोर से पढ़ें"
+  },
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "search": "खोजें",
+    "back": "वापस"
+  }
+}

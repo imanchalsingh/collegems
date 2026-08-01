@@ -1,7 +1,9 @@
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import "./i18n/config";
+import App from "./App.tsx";
 import { ThemeProvider } from "./context/ThemeContext";
+import { AccessibilityProvider } from "./context/AccessibilityContext";
 import { SocketProvider } from "./context/SocketContext";
 import { ToastProvider } from "./context/ToastContext";
 import { PendingChangesProvider } from "./context/PendingChangesContext";
@@ -11,18 +13,20 @@ import { store } from "./store/store";
 
 const queryClient = new QueryClient();
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <ToastProvider>
-          <SocketProvider>
-            <PendingChangesProvider>
-              <App />
-            </PendingChangesProvider>
-          </SocketProvider>
-        </ToastProvider>
+        <AccessibilityProvider>
+          <ToastProvider>
+            <SocketProvider>
+              <PendingChangesProvider>
+                <App />
+              </PendingChangesProvider>
+            </SocketProvider>
+          </ToastProvider>
+        </AccessibilityProvider>
       </ThemeProvider>
     </QueryClientProvider>
-  </Provider>,
-)
+  </Provider>
+);

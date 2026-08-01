@@ -20,6 +20,7 @@ import {
   CalendarDays,
   AwardIcon,
   HeartHandshake,
+  Bus,
 } from "lucide-react";
 import api from "../api/axios";
 import Attendance from "../user-components/Attendance";
@@ -31,6 +32,7 @@ import StudentResults from "../user-components/StudentResults";
 import EventsStudent from "../user-components/EventsStudent";
 import AcademicCalendar from "../common-components-management/AcademicCalendar";
 import Library from "../common-components-management/Library";
+import BusRoutes from "../common-components-management/BusRoutes";
 import { getAcademicLabel } from "../utils/academicLabels";
 import { useAcademicLabels } from "../hooks/useAcademicLabels";
 
@@ -114,6 +116,7 @@ export default function ParentDashboard() {
   const navigationItems = [
     { id: "overview", label: "Overview", icon: LayoutGrid },
     { id: "attendance", label: "Child's Attendance", icon: CalendarCheck },
+    { id: "bus-routes", label: "Bus Tracking", icon: Bus },
     { id: "assignments", label: "Child's Assignments", icon: FileText },
     { id: "fees", label: "Fee Details", icon: Wallet },
     { id: "courses", label: `Academic ${getAcademicLabel("course", academicLabels)}s`, icon: BookOpen },
@@ -121,6 +124,7 @@ export default function ParentDashboard() {
     { id: "academic-calendar", label: "Academic Calendar", icon: CalendarDays },
     { id: "events", label: "Campus Events", icon: CalendarDays },
     { id: "results", label: "Term Results", icon: AwardIcon },
+    { id: "ptm", label: "PTM Video Hub", icon: HeartHandshake },
     { id: "library", label: "Library Catalog", icon: BookOpen },
   ];
 
@@ -247,6 +251,11 @@ export default function ParentDashboard() {
                   <button
                     key={item.id}
                     onClick={() => {
+                      if (item.id === "ptm") {
+                        navigate("/ptm");
+                        setSidebarOpen(false);
+                        return;
+                      }
                       setActiveTab(item.id);
                       setSidebarOpen(false);
                     }}
@@ -497,6 +506,7 @@ export default function ParentDashboard() {
           ) : (
             <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm transition-colors">
               {activeTab === "attendance" && <Attendance />}
+              {activeTab === "bus-routes" && <BusRoutes />}
               {activeTab === "assignments" && <Assignment />}
               {activeTab === "fees" && <Fees />}
               {activeTab === "courses" && <Courses />}

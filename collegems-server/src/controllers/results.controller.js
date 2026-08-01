@@ -37,7 +37,7 @@ export const getResults = async (req, res) => {
             studentId: studentId,
             status: "published",
         })
-            .populate("courseId", "name code")
+            .populate("courseId", "name code credits")
             .select("internalMarks externalMarks practicalMarks totalMarks grade status semester createdAt");
 
         res.json(results);
