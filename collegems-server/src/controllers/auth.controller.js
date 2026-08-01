@@ -24,6 +24,12 @@ import {
 import RefreshToken from "../models/RefreshToken.model.js";
 import crypto from "crypto";
 import { sendVerificationEmail, sendPasswordResetEmail } from "../utils/email.js";
+import { isMfaEnforcedForRole } from "../utils/mfa.service.js";
+import {
+  createMfaChallengeToken,
+  verifyMfaChallengeToken,
+} from "./mfa.controller.js";
+import { validateMfaLoginCode } from "../middlewares/mfaGuard.js";
 
 const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 const REFRESH_TOKEN_COOKIE_OPTIONS = {
@@ -311,7 +317,7 @@ export const login = async (req, res) => {
 
       email: new RegExp(`^${escapeRegExp(email)}$`, "i"),
 
-    }).select("+password");
+    }).select("+password +mfaSecret +mfaRecoveryCodes");
 
     if (!user) {
 
@@ -345,88 +351,16 @@ export const login = async (req, res) => {
 
     }
 
+    if (user.mfaEnabled) {
+      const mfaToken = createMfaChallengeToken(user);
+      return res.status(200).json({
+        mfaRequired: true,
+        mfaToken,
+        message: "MFA verification required",
+      });
+    }
 
-
-    const accessToken = generateAccessToken(user);
-
-    const refreshToken = generateRefreshToken(user);
-
-
-
-    // Hash refresh token & create DB session
-
-    const tokenHash = hashRefreshToken(refreshToken);
-
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-
-    await createSession({
-
-      userId: user._id,
-
-      tokenHash,
-
-      deviceInfo: req.deviceInfo,
-
-      ipAddress: req.ipAddress,
-
-      expiresAt,
-
-    });
-
-
-
-    res.cookie("refreshToken", refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
-
-
-
-    res.json({
-
-      accessToken,
-
-      user: {
-
-        id: user._id,
-
-        name: user.name,
-
-        email: user.email,
-
-        role: user.role,
-
-        studentId: user.studentId,
-
-        semester: user.semester,
-
-        course: user.course,
-
-        teacherId: user.teacherId,
-
-        department: user.department,
-
-        departmentCode: user.departmentCode,
-
-        childId: user.childId,
-
-      },
-
-    });
-
-
-
-    // Update telemetry
-
-    user.lastLogin = Date.now();
-
-    user.loginCount = (user.loginCount || 0) + 1;
-
-    await user.save({ validateBeforeSave: false });
-
-
-
-    // Log the login
-
-    await logAction(user._id, "LOGIN", "Auth", user._id, { role: user.role, email: user.email });
-
+    await finalizeLogin(req, res, user);
   } catch (err) {
 
     console.error("Login error:", err);
@@ -435,6 +369,94 @@ export const login = async (req, res) => {
 
   }
 
+};
+
+async function finalizeLogin(req, res, user, extra = {}) {
+  const accessToken = generateAccessToken(user);
+  const refreshToken = generateRefreshToken(user);
+  const tokenHash = hashRefreshToken(refreshToken);
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+  await createSession({
+    userId: user._id,
+    tokenHash,
+    deviceInfo: req.deviceInfo,
+    ipAddress: req.ipAddress,
+    expiresAt,
+  });
+
+  res.cookie("refreshToken", refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+
+  res.json({
+    accessToken,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      studentId: user.studentId,
+      semester: user.semester,
+      course: user.course,
+      teacherId: user.teacherId,
+      department: user.department,
+      departmentCode: user.departmentCode,
+      childId: user.childId,
+      mfaEnabled: Boolean(user.mfaEnabled),
+      mfaEnrollmentRequired:
+        isMfaEnforcedForRole(user.role) && !user.mfaEnabled,
+    },
+    ...extra,
+  });
+
+  user.lastLogin = Date.now();
+  user.loginCount = (user.loginCount || 0) + 1;
+  await user.save({ validateBeforeSave: false });
+
+  await logAction(user._id, "LOGIN", "Auth", user._id, {
+    role: user.role,
+    email: user.email,
+    mfa: Boolean(user.mfaEnabled),
+  });
+}
+
+export const verifyMfaLogin = async (req, res) => {
+  try {
+    const { mfaToken } = req.body || {};
+    if (!mfaToken) {
+      return res.status(400).json({ message: "mfaToken is required" });
+    }
+
+    let decoded;
+    try {
+      decoded = verifyMfaChallengeToken(mfaToken);
+    } catch {
+      return res.status(401).json({ message: "Invalid or expired MFA challenge" });
+    }
+
+    const user = await User.findById(decoded.id).select(
+      "+mfaSecret +mfaRecoveryCodes",
+    );
+    if (!user || !user.mfaEnabled) {
+      return res.status(400).json({ message: "MFA is not enabled for this account" });
+    }
+
+    req.mfaUser = user;
+
+    return validateMfaLoginCode(req, res, async () => {
+      try {
+        if (req.mfaMethod === "recovery") {
+          await user.save({ validateBeforeSave: false });
+        }
+        await finalizeLogin(req, res, user, { mfaMethod: req.mfaMethod });
+      } catch (err) {
+        console.error("MFA login finalize error:", err);
+        res.status(500).json({ message: "Server error" });
+      }
+    });
+  } catch (err) {
+    console.error("MFA login verify error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 
