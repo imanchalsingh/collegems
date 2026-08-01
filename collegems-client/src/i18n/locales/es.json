@@ -1,0 +1,70 @@
+{
+  "app": {
+    "name": "Sistema de Gestión Universitaria",
+    "tagline": "Herramientas inteligentes para estudiantes, docentes y administradores"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "login": "Iniciar sesión",
+    "register": "Crear cuenta",
+    "logout": "Cerrar sesión",
+    "accessibility": "Accesibilidad"
+  },
+  "auth": {
+    "welcomeBack": "Inicia sesión para acceder a tu panel",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "rememberMe": "Recordarme",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "signIn": "Iniciar sesión",
+    "signingIn": "Iniciando sesión...",
+    "noAccount": "¿No tienes una cuenta?",
+    "registerHere": "Regístrate aquí",
+    "enterCredentials": "Ingresa el correo y la contraseña",
+    "loginFailed": "Error al iniciar sesión. Verifica tus credenciales."
+  },
+  "roles": {
+    "student": "Estudiante",
+    "teacher": "Profesor",
+    "parent": "Padre/Madre",
+    "hod": "Jefe de Departamento"
+  },
+  "a11y": {
+    "toolbar": "Barra de accesibilidad",
+    "openToolbar": "Abrir configuración de accesibilidad",
+    "closeToolbar": "Cerrar configuración de accesibilidad",
+    "language": "Idioma",
+    "highContrast": "Alto contraste",
+    "dyslexicFont": "Fuente para dislexia",
+    "fontSize": "Tamaño del texto",
+    "decreaseFont": "Reducir texto",
+    "increaseFont": "Aumentar texto",
+    "resetFont": "Restablecer tamaño",
+    "voiceAssist": "Asistencia de voz",
+    "speakSelection": "Leer texto seleccionado",
+    "speakPage": "Leer resumen de la página",
+    "stopSpeaking": "Detener lectura",
+    "voiceRate": "Velocidad de voz",
+    "skipToContent": "Saltar al contenido principal",
+    "enabled": "Activado",
+    "disabled": "Desactivado"
+  },
+  "dashboard": {
+    "quickAccess": "Acceso rápido",
+    "announcements": "Anuncios",
+    "results": "Resultados académicos",
+    "exams": "Calendario de exámenes",
+    "courses": "Catálogo de cursos",
+    "events": "Eventos del campus",
+    "timetable": "Horario de clases",
+    "library": "Catálogo de biblioteca",
+    "readAloud": "Leer en voz alta"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "search": "Buscar",
+    "back": "Volver"
+  }
+}

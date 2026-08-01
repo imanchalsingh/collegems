@@ -45,6 +45,8 @@ import ExamSeatingGenerator from "./hod-components/ExamSeatingGenerator";
 import StudentSeatView from "./user-components/StudentSeatView";
 import BackToTop from "./components/BackToTop";
 import PendingChangesBar from "./components/PendingChangesBar";
+import AccessibilityToolbar from "./components/common/AccessibilityToolbar";
+import SkipToContent from "./components/common/SkipToContent";
 import AuditLogs from "./hod-components/AuditLogs";
 import ResourceBooking from "./user-components/ResourceBooking";
 import BookingManagement from "./hod-components/BookingManagement";
@@ -96,8 +98,10 @@ const PtmHubParentGuarded = withRoleGuard(ParentTeacherMeetingHub, {
 export default function App() {
   return (
     <BrowserRouter>
+      <SkipToContent />
       <PwaManager />
       <BackToTop />
+      <AccessibilityToolbar />
       <PendingChangesBar onCommit={async (changes) => {
         // Default commit handler, can be customized or context-driven
         console.log("Committing changes:", changes);
@@ -107,6 +111,7 @@ export default function App() {
       {/* 🔴 ADD THIS LINE RIGHT HERE 🔴 */}
       <GlobalPageTracker />
       <Toaster position="bottom-right" />
+      <div id="main-content">
       <Routes>
 <Route path="/test-toasts" element={<ToastTest />} />
 
@@ -254,6 +259,7 @@ export default function App() {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </div>
     </BrowserRouter>
   );
 }
