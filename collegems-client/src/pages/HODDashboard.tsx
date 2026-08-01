@@ -51,6 +51,7 @@ import WorkflowAdmin from "../hod-components/WorkflowAdmin";
 import WorkflowApprovals from "../hod-components/WorkflowApprovals";
 import ReminderManagement from "../common-components-management/ReminderManagement";
 import BulkRenameSections from "../common-components-management/BulkRenameSections"; // <-- Add this line
+import IssueCertificatePanel from "../hod-components/IssueCertificatePanel";
 // Pages
 import RiskDashboard from "./RiskDashboard";
 import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget";
@@ -78,6 +79,7 @@ type TabType =
   | "library"
   | "settings"
   | "reports"
+  | "progress-report"
   | "exam-forms"
   | "scholarships"
   | "feedback"
@@ -99,7 +101,8 @@ type TabType =
   | "workflow-admin"
   | "workflow-approvals"
   | "reminders"
-  | "bulk-rename";
+  | "bulk-rename"
+  | "sealed-certificates";
 
 interface Data {
   cards: Array<{ title: string; value: number }>;
@@ -166,6 +169,7 @@ export default function HODDashboard() {
     { id: "events" as TabType, label: "Organize Events", icon: CalendarDays },
     { id: "library" as TabType, label: "Library Catalog", icon: BookOpen },
     { id: "reports" as TabType, label: "Report Generator", icon: FileText },
+    { id: "progress-report" as TabType, label: "Progress Report Cards", icon: FileText },
     { id: "feedback" as TabType, label: "Feedback", icon: MessageSquare },
     { id: "exam-forms" as TabType, label: "Exam Forms", icon: FileText },
     { id: "scholarships" as TabType, label: "Scholarship Approvals", icon: Award },
@@ -188,6 +192,7 @@ export default function HODDashboard() {
     { id: "department-analytics" as TabType, label: `${getAcademicLabel("department", academicLabels)} Analytics`, icon: LayoutGrid },
     { id: "reminders" as TabType, label: "Profile Reminders", icon: Bell },
     { id: "bulk-rename" as TabType, label: `Bulk Rename ${getAcademicLabel("section", academicLabels)}s`, icon: Edit },
+    { id: "sealed-certificates" as TabType, label: "Sealed Certificates", icon: Shield },
   ];
 
   // Fetch data on mount
@@ -520,6 +525,7 @@ export default function HODDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
                   { label: "Generate Reports", icon: FileText, color: "bg-blue-50 text-blue-700 hover:bg-blue-100", onClick: () => navigate("/hod/reports") },
+                  { label: "Progress Report Cards", icon: FileText, color: "bg-teal-50 text-teal-700 hover:bg-teal-100", onClick: () => navigate("/progress-report") },
                   { label: `View ${getAcademicLabel("student", academicLabels)}s`, icon: GraduationCap, color: "bg-amber-50 text-amber-700 hover:bg-amber-100", onClick: () => setActiveTab("students") },
                   { label: `Manage ${getAcademicLabel("course", academicLabels)}s`, icon: BookOpen, color: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100", onClick: () => setActiveTab("courses") },
                 ].map((action, index) => {
@@ -594,6 +600,7 @@ export default function HODDashboard() {
         { activeTab === "department-analytics" && <HodAnalyticsWidget /> }
         { activeTab === "reminders" && <ReminderManagement /> }
         { activeTab === "bulk-rename" && <BulkRenameSections /> }
+        {activeTab === "sealed-certificates" && <IssueCertificatePanel />}
       </>
     );
   };
@@ -632,6 +639,8 @@ export default function HODDashboard() {
                     onClick={() => {
                       if (item.id === ("reports" as TabType)) {
                         navigate("/hod/reports");
+                      } else if (item.id === ("progress-report" as TabType)) {
+                        navigate("/progress-report");
                       } else {
                         setActiveTab(item.id);
                         setSidebarOpen(false);

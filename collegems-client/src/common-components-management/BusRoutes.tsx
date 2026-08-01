@@ -16,10 +16,14 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import { extractArray } from "../utils/apiHelpers";
+import LiveBusTrackerMap from "../components/transport/LiveBusTrackerMap";
 
 interface Stop {
   stopName: string;
   arrivalTime: string;
+  lat?: number;
+  lng?: number;
+  radiusM?: number;
 }
 
 interface BusRoute {
@@ -109,9 +113,13 @@ export default function BusRoutes() {
     setStops(stops.filter((_, i) => i !== index));
   };
 
-  const handleStopChange = (index: number, field: keyof Stop, value: string) => {
+  const handleStopChange = (
+    index: number,
+    field: keyof Stop,
+    value: string | number | undefined
+  ) => {
     const newStops = [...stops];
-    newStops[index] = { ...newStops[index], [field]: value };
+    newStops[index] = { ...newStops[index], [field]: value } as Stop;
     setStops(newStops);
   };
 
@@ -217,6 +225,12 @@ export default function BusRoutes() {
         <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-xl text-red-700 dark:text-red-400 text-sm">
           <AlertTriangle className="w-5 h-5 shrink-0" />
           <span>{error}</span>
+        </div>
+      )}
+
+      {routes.length > 0 && (
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 rounded-xl shadow-sm">
+          <LiveBusTrackerMap routes={routes} canSimulate={isEditable} />
         </div>
       )}
 
@@ -466,35 +480,76 @@ export default function BusRoutes() {
 
                 <div className="space-y-3">
                   {stops.map((stop, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold shrink-0">
-                        {index + 1}
+                    <div key={index} className="space-y-2 border border-gray-100 dark:border-gray-800 rounded-lg p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold shrink-0">
+                          {index + 1}
+                        </div>
+                        <input
+                          type="text"
+                          required
+                          value={stop.stopName}
+                          onChange={(e) => handleStopChange(index, "stopName", e.target.value)}
+                          placeholder="Stop name (e.g. City Center)"
+                          className="flex-1 min-w-0 px-3 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-950 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                        />
+                        <input
+                          type="text"
+                          required
+                          value={stop.arrivalTime}
+                          onChange={(e) => handleStopChange(index, "arrivalTime", e.target.value)}
+                          placeholder="ETA (e.g. 08:30 AM)"
+                          className="w-32 px-3 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-950 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                        />
+                        {stops.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveStop(index)}
+                            className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
-                      <input
-                        type="text"
-                        required
-                        value={stop.stopName}
-                        onChange={(e) => handleStopChange(index, "stopName", e.target.value)}
-                        placeholder="Stop name (e.g. City Center)"
-                        className="flex-1 min-w-0 px-3 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-950 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-                      />
-                      <input
-                        type="text"
-                        required
-                        value={stop.arrivalTime}
-                        onChange={(e) => handleStopChange(index, "arrivalTime", e.target.value)}
-                        placeholder="ETA (e.g. 08:30 AM)"
-                        className="w-32 px-3 py-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-950 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-                      />
-                      {stops.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveStop(index)}
-                          className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      )}
+                      <div className="grid grid-cols-3 gap-2 pl-9">
+                        <input
+                          type="number"
+                          step="any"
+                          value={stop.lat ?? ""}
+                          onChange={(e) =>
+                            handleStopChange(
+                              index,
+                              "lat",
+                              e.target.value === "" ? undefined : Number(e.target.value)
+                            )
+                          }
+                          placeholder="Lat"
+                          className="px-2 py-1.5 border rounded-lg text-xs bg-white dark:bg-gray-800"
+                        />
+                        <input
+                          type="number"
+                          step="any"
+                          value={stop.lng ?? ""}
+                          onChange={(e) =>
+                            handleStopChange(
+                              index,
+                              "lng",
+                              e.target.value === "" ? undefined : Number(e.target.value)
+                            )
+                          }
+                          placeholder="Lng"
+                          className="px-2 py-1.5 border rounded-lg text-xs bg-white dark:bg-gray-800"
+                        />
+                        <input
+                          type="number"
+                          value={stop.radiusM ?? 1000}
+                          onChange={(e) =>
+                            handleStopChange(index, "radiusM", Number(e.target.value) || 1000)
+                          }
+                          placeholder="Fence m"
+                          className="px-2 py-1.5 border rounded-lg text-xs bg-white dark:bg-gray-800"
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
