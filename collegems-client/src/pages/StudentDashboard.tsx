@@ -30,7 +30,7 @@ import {
   Users,
   UserCircle,
   User,
-  Handshake,
+  Calculator,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import api from "../api/axios";
@@ -84,7 +84,7 @@ import SemesterComparison from "../user-components/SemesterComparison";
 import UserWorkflows from "../user-components/UserWorkflows";
 import StudentQuizList from "../user-components/StudentQuizList";
 import StudentProfile from "../user-components/StudentProfile";
-import MentorshipSlotBookingHub from "../components/mentorship/MentorshipSlotBookingHub";
+import CGPASimulator from "../student-components/CGPASimulator";
 // HOD Components
 import Teachers from "../hod-components/Teachers";
 import { getAcademicLabel } from "../utils/academicLabels";
@@ -118,6 +118,7 @@ type TabType =
   | "user-workflows"
   | "settings"
   | "grade-trend"
+  | "cgpa-simulator"
   | "online-exams"
   | "mentorship-slots"
   | "profile"
@@ -149,6 +150,7 @@ const getNavigationItems = (academicLabels: any): {
     icon: TrendingUp,
   },
   { id: "results", label: "Results", icon: AwardIcon },
+  { id: "cgpa-simulator", label: "CGPA Simulator", icon: Calculator },
   { id: "achievements", label: "Achievements", icon: Trophy },
   { id: "leave", label: "Leave Requests", icon: ClipboardList },
   { id: "library", label: "Smart Library", icon: BookOpen },
@@ -774,6 +776,7 @@ export default function StudentDashboard() {
               )}
               {activeTab === "events" && <EventsStudent />}
               {activeTab === "results" && <StudentResults />}
+              {activeTab === "cgpa-simulator" && <CGPASimulator />}
               {activeTab === "semester-comparison" && <SemesterComparison />}
               {activeTab === "achievements" && <StudentAchievements />}
               {activeTab === "announcements" && <AnnouncementsView />}

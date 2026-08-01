@@ -5,7 +5,7 @@ import {
   LayoutGrid, Users, GraduationCap, BookOpen, Building2, FileText,
   Wallet, DollarSign, Calendar, Menu, X, RefreshCw, ChevronRight,
   Bell, Search, UserCircle, LogOut, Settings, CalendarDays,
-  Moon, Sun, Award, Bus, MessageSquare, Activity, Lock, Wrench, Edit, History
+  Moon, Sun, Award, Bus, MessageSquare, Activity, Lock, Wrench, Edit, Shield // <-- Added Edit here
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -57,6 +57,7 @@ import RiskDashboard from "./RiskDashboard";
 import AttendanceAlertsWidget from "../teacher-components/AttendanceAlertsWidget";
 import TrackingWidget from "../hod-components/TrackingWidget";
 import SystemHealthDashboard from "../hod-components/SystemHealthDashboard";
+import SecurityMetricsDashboard from "../hod-components/SecurityMetricsDashboard";
 import HodAnalyticsWidget from "../components/AnalyticsWidgets/HodAnalyticsWidget";
 import LiveTrafficWidget from '../hod-components/LiveTrafficWidget';
 import { getAcademicLabel } from "../utils/academicLabels";
@@ -93,6 +94,7 @@ type TabType =
   | "risk-dashboard"
   | "system-logs"
   | "system-health"
+  | "security-metrics"
   | "freeze-semesters"
   | "data-locks"
   | "sequence-repair"
@@ -180,6 +182,7 @@ export default function HODDashboard() {
     { id: "record-history" as TabType, label: "Record History", icon: History },
     { id: "system-logs" as TabType, label: "System Traces", icon: FileText },
     { id: "system-health" as TabType, label: "System Health", icon: Activity },
+    { id: "security-metrics" as TabType, label: "Security Metrics", icon: Shield },
     { id: "manage-bookings" as TabType, label: "Manage Bookings", icon: Calendar },
     { id: "manage-resources" as TabType, label: "Manage Resources", icon: Building2 },
     { id: "freeze-semesters" as TabType, label: `Freeze ${getAcademicLabel("semester", academicLabels)}s`, icon: BookOpen },
@@ -588,6 +591,7 @@ export default function HODDashboard() {
         {activeTab === "audit-logs" && <AuditLogs />}
         {activeTab === "record-history" && <RecordHistoryDiffViewer />}
         {activeTab === "system-health" && <SystemHealthDashboard />}
+        {activeTab === "security-metrics" && <SecurityMetricsDashboard />}
         {activeTab === "manage-bookings" && <BookingManagement />}
         { activeTab === "manage-resources" && <ResourceManagement /> }
         { activeTab === "freeze-semesters" && <SemesterManagement /> }
