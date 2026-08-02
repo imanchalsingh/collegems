@@ -5,7 +5,15 @@ dotenv.config();
 
 // Create a reusable transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport({
-  service: process.env.EMAIL_SERVICE || "gmail", // e.g., 'gmail'
+  ...(process.env.EMAIL_HOST
+    ? {
+        host: process.env.EMAIL_HOST,
+        port: Number(process.env.EMAIL_PORT) || 587,
+        secure: process.env.EMAIL_SECURE === "true",
+      }
+    : {
+        service: process.env.EMAIL_SERVICE || "gmail", // e.g., 'gmail'
+      }),
   auth: {
     user: process.env.EMAIL_USER || "your-email@gmail.com",
     pass: process.env.EMAIL_PASS || "your-app-password",
@@ -23,7 +31,7 @@ const transporter = nodemailer.createTransport({
 export const sendEmail = async (to, subject, text, html = "", attachments = []) => {
   try {
     const info = await transporter.sendMail({
-      from: `"College Management System" <${process.env.EMAIL_USER || "noreply@college.edu"}>`,
+      from: process.env.EMAIL_FROM || `"College Management System" <${process.env.EMAIL_USER || "noreply@college.edu"}>`,
       to,
       subject,
       text,
@@ -152,7 +160,10 @@ export const sendVerificationEmail = async (user, verificationUrl) => {
     </div>
   `;
 
-  return sendEmail(user.email, subject, text, html);
+  const sent = await sendEmail(user.email, subject, text, html);
+  if (!sent) {
+    throw new Error("Failed to send verification email");
+  }
 };
 
 /**
@@ -181,5 +192,8 @@ export const sendPasswordResetEmail = async (user, resetUrl) => {
     </div>
   `;
 
-  return sendEmail(user.email, subject, text, html);
+  const sent = await sendEmail(user.email, subject, text, html);
+  if (!sent) {
+    throw new Error("Failed to send password reset email");
+  }
 };

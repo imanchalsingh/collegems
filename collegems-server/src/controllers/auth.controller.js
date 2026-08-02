@@ -826,15 +826,27 @@ export const forgotPassword = async (req, res) => {
     }
 
     const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
     const resetTokenExpires = Date.now() + 60 * 60 * 1000; // 1 hour
 
-    user.resetPasswordToken = resetToken;
+    user.resetPasswordToken = hashedToken;
     user.resetPasswordExpires = resetTokenExpires;
     await user.save({ validateBeforeSave: false });
 
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
-    await sendPasswordResetEmail(user, resetUrl);
+
+    try {
+      await sendPasswordResetEmail(user, resetUrl);
+    } catch (emailError) {
+      console.error("Password reset email error:", emailError);
+
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+
+      return res.status(500).json({ message: "Failed to send password reset email" });
+    }
 
     res.json({ message: "If an account with that email exists, we have sent a password reset link." });
   } catch (err) {
@@ -850,8 +862,10 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ message: "Token and new password are required" });
     }
 
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
     const user = await User.findOne({
-      resetPasswordToken: token,
+      resetPasswordToken: hashedToken,
       resetPasswordExpires: { $gt: Date.now() },
     });
 
