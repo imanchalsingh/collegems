@@ -67,8 +67,20 @@ import NotFound from "./pages/NotFound";
 import RoleRoute from "./routes/RoleRoute";
 import AlumniPortal from "./pages/AlumniPortal";
 import { Toaster } from 'react-hot-toast';
+import AcademicTimeline from "./pages/student/AcademicTimeline";
+import Assignment from "./user-components/Assignment";
+import Attendance from "./user-components/Attendance";
+import Fees from "./user-components/Fee";
+import LeaveRequest from "./user-components/LeaveRequest";
+
 // Define Guarded Components
 const StudentDashboardGuarded = withRoleGuard(StudentDashboard, { allowedRoles: UserRole.STUDENT });
+const AcademicTimelineGuarded = withRoleGuard(AcademicTimeline, { allowedRoles: UserRole.STUDENT });
+const AssignmentStudentGuarded = withRoleGuard(Assignment, { allowedRoles: UserRole.STUDENT });
+const AttendanceStudentGuarded = withRoleGuard(Attendance, { allowedRoles: UserRole.STUDENT });
+const FeesStudentGuarded = withRoleGuard(Fees, { allowedRoles: UserRole.STUDENT });
+const ResultsStudentGuarded = withRoleGuard(StudentResults, { allowedRoles: UserRole.STUDENT });
+const LeavesStudentGuarded = withRoleGuard(LeaveRequest, { allowedRoles: UserRole.STUDENT });
 const ExaminationFormPageGuarded = withRoleGuard(ExaminationFormPage, { allowedRoles: UserRole.STUDENT });
 const StudentSeatViewGuarded = withRoleGuard(StudentSeatView, { allowedRoles: UserRole.STUDENT });
 const ResourceBookingStudentGuarded = withRoleGuard(ResourceBooking, { allowedRoles: UserRole.STUDENT });
@@ -142,6 +154,12 @@ export default function App() {
           <Route path="/faculty" element={<Teachers />} />
           <Route path="/quickaccess" element={<QuickAccessAll />} />
           <Route path="/timetable" element={ <TimeTable /> } />
+          <Route path="/student/timeline" element={<AcademicTimelineGuarded />} />
+          <Route path="/student/assignments" element={<AssignmentStudentGuarded />} />
+          <Route path="/student/attendance" element={<AttendanceStudentGuarded />} />
+          <Route path="/student/fees" element={<FeesStudentGuarded />} />
+          <Route path="/student/results" element={<ResultsStudentGuarded />} />
+          <Route path="/student/leaves" element={<LeavesStudentGuarded />} />
         </Route>
 
         {/* Role-based dashboards */}

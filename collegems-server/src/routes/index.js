@@ -47,6 +47,7 @@ import officeHoursRoutes from "./officeHours.routes.js";
 // Student Services
 import idCardRoutes from "./idcard.routes.js";
 import transferRoutes from "./transfer.routes.js";
+import milestoneRoutes from "./milestone.routes.js";
 
 // Community & Engagement
 import eventRoute from "./event.routes.js";
@@ -171,6 +172,7 @@ authenticatedRouter.use("/office-hours", officeHoursRoutes);
 authenticatedRouter.use("/student/idcard", idCardRoutes);
 authenticatedRouter.get("/verify/student/:studentId", verifyStudent);
 authenticatedRouter.use("/transfer", transferRoutes);
+authenticatedRouter.use(milestoneRoutes);
 
 // Community & Engagement
 authenticatedRouter.use("/events", eventRoute);
