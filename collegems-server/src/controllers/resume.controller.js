@@ -1,16 +1,7 @@
 // src/controllers/resume.controller.js
 import { validateResume, getFileInfo, sanitizeFilename } from '../utils/fileValidators.js';
+import { extractResumeText } from '../utils/resumeParser.js';
 import fs from 'fs';
-
-/**
- * Extract text from resume file
- * (Replace with your actual resume parsing logic)
- */
-async function extractResumeText(file) {
-  // TODO: Implement actual resume text extraction
-  // This is a placeholder - replace with your actual logic
-  return "Resume text extracted successfully";
-}
 
 /**
  * Handle Resume Analysis with Security Validation
@@ -51,10 +42,17 @@ export async function handleAnalyzeResume(req, res) {
     const safeFilename = sanitizeFilename(req.file.originalname);
 
     // Now process the validated file
-    const text = await extractResumeText(req.file);
-    
-    // Process resume text...
-    // ... your existing logic
+    let text;
+    try {
+      text = await extractResumeText(req.file);
+    } catch (parseError) {
+      const message = parseError.message || 'Failed to parse the uploaded document';
+      return res.status(422).json({
+        success: false,
+        error: message,
+        code: 'PARSE_ERROR'
+      });
+    }
 
     res.json({
       success: true,
@@ -67,7 +65,6 @@ export async function handleAnalyzeResume(req, res) {
       },
       data: {
         text: text
-        // ... rest of your data
       }
     });
 
